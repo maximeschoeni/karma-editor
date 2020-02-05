@@ -1,0 +1,49 @@
+#wpwrap {
+  overflow: hidden;
+}
+
+
+
+/* Karma List
+--------------------------------------*/
+.karma-list-header-row {
+  display: flex;
+  justify-content: space-between;
+}
+.karma-list-header-row ul.status-list li {
+  display: inline;
+}
+.karma-list-header-row ul.status-list li:not(:last-child)::after {
+  content: " | ";
+}
+.karma-list-header-row ul.status-list li.active a {
+  color: black;
+}
+.karma-list-header-row .karma-list-filters {
+  display: flex;
+}
+
+.karma-list-body table {
+  background-color: #d1d1d1;
+  user-select: none;
+}
+
+.karma-list-body tr td,
+.karma-list-body tr th {
+  background-color: white;
+  color: inherit;
+}
+.karma-list-body tr:hover td {
+  background-color: #d1d1d1;
+}
+.karma-list-body tr.selected td {
+  background-color: #cde0ec;
+}
+.karma-list-body tr td a {
+  color: inherit;
+}
+.karma-list-body tr.selected td a {
+
+  text-decoration: underline;
+  cursor: pointer;
+}
