@@ -85,30 +85,30 @@ Karma.buildList = function(object, options) {
     offset: 0
   };
   // tableManager.selectedPosts = [];
-  tableManager.rows = [];
-  tableManager.selection = {
-    clear: function() {
-      tableManager.rows.forEach(this.remove);
-    },
-    add: function(row) {
-      if (!row.selected) {
-        row.selected = true;
-        row.update();
-      }
-    },
-    remove: function(row) {
-      if (row.selected) {
-        row.selected = false;
-        row.update();
-      }
-    },
-    get: function() {
-      return tableManager.rows.filter(function(row) {
-        return row.selected;
-      });
-    }
-
-  };
+  // tableManager.rows = [];
+  // tableManager.selection = {
+  //   clear: function() {
+  //     tableManager.rows.forEach(this.remove);
+  //   },
+  //   add: function(row) {
+  //     if (!row.selected) {
+  //       row.selected = true;
+  //       row.update();
+  //     }
+  //   },
+  //   remove: function(row) {
+  //     if (row.selected) {
+  //       row.selected = false;
+  //       row.update();
+  //     }
+  //   },
+  //   get: function() {
+  //     return tableManager.rows.filter(function(row) {
+  //       return row.selected;
+  //     });
+  //   }
+  //
+  // };
 
   tableManager.send = function() {
     Ajax.get(Karma.ajax_url, tableManager.request, function(results) {
@@ -415,10 +415,44 @@ Karma.buildList = function(object, options) {
                   init: function(tbody, update) {
                     tableManager.updateTbody = update;
                     dragManager = Sortable.register(tbody);
+
+                    var parent;
+
+                    dragManager.onMove = function(selection, rect) {
+                      var index = dragManager.items.indexOf(selection[0]);
+                      var prev = index > 0 && dragManager.items[index-1];
+                      if (prev && rect.left > prev.box.left + 40) {
+                        tbody.style.boxShadow = "inset 40px 0px 0px 0px #f1f1f1";
+                        if (parent && parent !== prev) {
+                          parent.element.classList.remove("parent");
+                          parent = null;
+                        }
+                        if (prev && parent !== prev) {
+                          parent = prev;
+                          parent.element.classList.add("parent");
+                        }
+                      } else {
+                        tbody.style.boxShadow = "none";
+                        if (parent) {
+                          parent.element.classList.remove("parent");
+                          parent = null;
+                        }
+                      }
+
+                      // if (parent && parent !== prev) {
+                      //   parent.element.classList.remove("parent");
+                      //   parent = null;
+                      // }
+                      // if (prev && parent !== prev) {
+                      //   parent = prev;
+                      //   prev.element.classList.add("parent");
+                      // }
+                    };
                     update();
                   },
                   update: function() {
-                    var mouseDown = false;
+                    // var mouseDown = false;
+                    // var dragging = false;
                     return {
                       children: query.posts.map(function(post) {
                         var dragItem;
@@ -432,73 +466,18 @@ Karma.buildList = function(object, options) {
                             });
 
                             dragItem = dragManager.register(tr);
-                            // dragItem.onMove = function(x, y) {
-                            //   tr.style.transform = "translate("+x+"px, "+y+"px)";
-                            // }
-                            // dragItem.onComplete = function() {
-                            //   tr.style.transform = "none";
-                            // }
+                            // dragItem.post = post;
                             dragItem.onReorder = function(index) {
                               console.log(post.post_name, index);
                             }
 
+
                           },
                           update: function(cluster) {
-                            // console.log(cluster);
-
-                            var rowManager = {};
-
-                            tableManager.rows.push(rowManager);
-
-
 
                             return {
                               init: function(tr, update) {
-                                rowManager.update = update;
-                                // tr.onclick = function(event) {
-                                //   if (!rowManager.selected) {
-                                //     if (!event.shiftKey) {
-                                //       tableManager.selection.clear();
-                                //     }
-                                //     tableManager.selection.add(rowManager);
-                                //   } else if (event.shiftKey) {
-                                //     tableManager.selection.remove(rowManager);
-                                //   } else {
-                                //     if (tableManager.selection.get().length === 1) {
-                                //       tableManager.selection.remove(rowManager);
-                                //     } else {
-                                //       tableManager.selection.clear();
-                                //       tableManager.selection.add(rowManager);
-                                //     }
-                                //   }
-                                // }
-
-                                dragItem.onComplete = function() {
-                                  tableManager.selection.clear();
-                                }
-
-                                tr.onmousedown = function(event) {
-
-                                  // var selection = tableManager.selection.get();
-                                  if (rowManager.selected) {
-                                    dragItem.startDrag(event);
-                                  } else {
-                                    tableManager.selection.clear();
-                                    tableManager.selection.add(rowManager);
-                                    mouseDown = true;
-                                  }
-                                };
-                                tr.onmousemove = function(event) {
-                                  if (mouseDown) {
-                                    tableManager.selection.add(rowManager);
-                                  }
-                                };
-                                tr.onmouseup = function() {
-                                  if (mouseDown) {
-                                    mouseDown = false;
-                                    tableManager.selection.add(rowManager);
-                                  }
-                                };
+                                dragItem.onUpdate = update;
                                 update();
                               },
                               update: function() {
@@ -506,7 +485,12 @@ Karma.buildList = function(object, options) {
                                   // class: tableManager.selectedPosts.indexOf(post) > -1 && "selected",
                                   // class: rowManager.selected && "selected",
                                   init: function(tr) {
-                                    tr.className = rowManager.selected && "selected";
+                                    // tr.className = dragItem.selected && "selected" || "";
+                                    if (dragItem.selected) {
+                                      tr.classList.add("selected");
+                                    } else {
+                                      tr.classList.remove("selected");
+                                    }
                                   },
                                   children: options.columns.map(function(column) {
                                     return build({

@@ -26,6 +26,7 @@
 .karma-list-body table {
   background-color: #d1d1d1;
   user-select: none;
+  border: none;
 }
 
 .karma-list-body tr td,
@@ -33,7 +34,8 @@
   background-color: white;
   color: inherit;
 }
-.karma-list-body tr:hover td {
+.karma-list-body tr:hover td,
+.karma-list-body tr.parent td {
   background-color: #d1d1d1;
 }
 .karma-list-body tr.selected td {
