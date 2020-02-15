@@ -27,9 +27,17 @@ Class Karma_Editor {
     add_action('wp_ajax_karma_query_distinct_status', array($this, 'ajax_query_distinct_status'));
 
 
+    add_action('wp_ajax_karma_save_post', array($this, 'ajax_save_post'));
+
+
 
     add_action('karma_clusters_update_'.'page', array($this, 'update_page_cluster'), 10, 5);
 
+    // wp_update_post(array(
+    //   'ID' => 7,
+    //   'post_type' => 'page'
+    // ));
+    // die();
   }
 
 
@@ -531,6 +539,37 @@ Class Karma_Editor {
     include KARMA_EDITOR_PATH.'/include/list.php';
 
   }
+
+  /**
+   * @ajax karma_save_post
+   */
+  public function ajax_save_post() {
+    global $wpdb;
+
+    if (isset($_POST['ID'])) {
+
+      // $args = array();
+      // $args['ID'] = intval($_POST['ID']);
+      // if (isset($_POST['menu_order'])) {
+      //   $args['menu_order'] = intval($_POST['menu_order']);
+      // }
+      // if (isset($_POST['post_parent'])) {
+      //   $args['post_parent'] = intval($_POST['post_parent']);
+      // }
+
+
+
+      wp_update_post($_POST);
+    }
+
+    echo json_encode($_POST);
+
+    exit;
+  }
+
+
+
+
 
 }
 

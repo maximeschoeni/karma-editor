@@ -509,8 +509,9 @@ class Karma_Clusters {
 			$sql = implode("', '", array_map('esc_sql', $registered_post_types));
 
 			$posts = $wpdb->get_results(
-				"SELECT ID, post_type, post_name FROM $wpdb->posts WHERE post_type IN ('$sql')"
+				"SELECT ID, post_type, post_name, post_parent FROM $wpdb->posts WHERE post_type IN ('$sql')"
 			);
+
 
 			foreach ($posts as $post) {
 

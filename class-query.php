@@ -21,20 +21,20 @@ Class Karma_Query {
     $group = '';
     $order = '';
 
-    if ($query->wheres) {
+    if (isset($query->wheres) && $query->wheres) {
 
       $where = 'WHERE '.implode(' AND ', $query->wheres);
 
     }
 
-    if ($query->joins) {
+    if (isset($query->joins) && $query->joins) {
 
       $join = implode(' ', array_unique($query->joins));
       $group = 'GROUP BY p.ID';
 
     }
 
-    if ($query->orders) {
+    if (isset($query->orders) && $query->orders) {
 
       $order = 'ORDER BY '.implode(', ', $query->orders);
 
@@ -48,7 +48,7 @@ Class Karma_Query {
 
     if (!isset($request['query_posts']) || $request['query_posts']) {
 
-      $this->sql = "SELECT p.post_name, p.post_status FROM $wpdb->posts AS p $join $where $group $order $limit";
+      $this->sql = "SELECT p.ID, p.post_name, p.post_status, p.post_parent FROM $wpdb->posts AS p $join $where $group $order $limit";
 
       $this->posts = $wpdb->get_results($this->sql);
 

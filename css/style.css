@@ -24,28 +24,84 @@
 }
 
 .karma-list-body table {
-  background-color: #d1d1d1;
+  background-color: transparent;
   user-select: none;
   border: none;
+  border-collapse: separate;
+  border-spacing: 1px;
 }
-
-.karma-list-body tr td,
-.karma-list-body tr th {
+.karma-list-body table.active {
+  background-color: #e8f1f6;
+}
+.karma-list-body tr {
+  color: #23282d;
+}
+.karma-list-body thead tr {
+  background-color: #ffffff;
+}
+.karma-list-body tbody tr {
+  background-color: #f9f9f9;
+}
+.karma-list-body tbody tr:hover {
   background-color: white;
   color: inherit;
 }
-.karma-list-body tr:hover td,
-.karma-list-body tr.parent td {
-  background-color: #d1d1d1;
+.karma-list-body tbody tr.selected {
+  background-color: #0073aa;
+  color: #ffffff;
 }
-.karma-list-body tr.selected td {
-  background-color: #cde0ec;
+.karma-list-body tr td,
+.karma-list-body tr th {
+  color: inherit;
+  border: none;
 }
 .karma-list-body tr td a {
   color: inherit;
 }
 .karma-list-body tr.selected td a {
+  text-decoration: underline;
+  cursor: pointer;
+}
 
+
+.karma-list-body ul {
+  margin: 0;
+}
+.karma-list-body ul.active {
+  background-color: #e8f1f6;
+}
+.karma-list-body ul ul {
+  margin-left: 50px;
+}
+.karma-list-body ul li {
+  margin: 0;
+}
+.karma-list-body ul li.selected {
+  z-index: 10;
+}
+.karma-list-body ul li .row {
+  background-color: #f9f9f9;
+  font-size: 13px;
+  line-height: 1.5em;
+  padding: 8px 10px;
+  margin: 1px;
+}
+.karma-list-body ul li .row:hover {
+  background-color: white;
+  color: inherit;
+}
+.karma-list-body ul li.selected ul .row {
+  background-color: #73737361;
+}
+.karma-list-body ul li.selected .row {
+  background-color: #0073aa;
+  color: #ffffff;
+}
+
+.karma-list-body ul li .row a {
+  color: inherit;
+}
+.karma-list-body ul li.selected .row a {
   text-decoration: underline;
   cursor: pointer;
 }
