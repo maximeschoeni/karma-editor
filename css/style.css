@@ -31,7 +31,7 @@
   border-spacing: 1px;
 }
 .karma-list-body table.active {
-  background-color: #e8f1f6;
+  background-color: #bcd6e2;
 }
 .karma-list-body tr {
   color: #23282d;
@@ -66,9 +66,10 @@
 
 .karma-list-body ul {
   margin: 0;
+  user-select: none;
 }
 .karma-list-body ul.active {
-  background-color: #e8f1f6;
+  background-color: #bcd6e2;
 }
 .karma-list-body ul ul {
   margin-left: 50px;
@@ -91,7 +92,7 @@
   color: inherit;
 }
 .karma-list-body ul li.selected ul .row {
-  background-color: #73737361;
+  background-color: #79b2ce;
 }
 .karma-list-body ul li.selected .row {
   background-color: #0073aa;

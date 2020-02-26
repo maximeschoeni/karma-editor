@@ -96,6 +96,11 @@ Karma.buildList = function(object, options) {
     order: "ASC"
   };
 
+  tableManager.getChildren = function(post) {
+    return this.posts.filter(function(child) {
+      return post && child.post_parent === post.ID || !child.post_parent === "0";
+    });
+  };
   tableManager.getParent = function(post) {
     if (post.parent === undefined) {
       post.parent = parseInt(post.post_parent) && this.posts && this.posts.find(function(otherPost) {
@@ -596,66 +601,120 @@ Karma.buildListTable = function(query, tableManager, options) {
 
 Karma.buildListHierarchy = function(query, tableManager, options) {
 
-  var buildList = function(children) {
-    var selectManager = Selectable.create();
-    var dragManager = Sortable.create(selectManager);
+  var selectManager = Selectable.create();
+
+  var buildList = function(parent) {
+
+
+    // var dragManager = Sortable.create(selectManager);
+
+    var zone = selectManager.addZone();
+
     return build({
       tag: "ul",
       init: function(ul) {
-        dragManager.onActivate = function() {
+        // zone = selectManager.addZone(ul);
+        zone.element = ul;
+        zone.id = parent && parent.ID || 0;
+        zone.onActivate = function() {
           ul.classList.add("active");
         }
-        dragManager.onDeactivate = function() {
+        zone.onDeactivate = function() {
           ul.classList.remove("active");
         }
-        dragManager.element = ul;
+        // zone.onAppend = function(item) {
+        //   Ajax.post(Karma.ajax_url, {
+        //     action: "karma_save_post",
+        //     ID: item.id,
+        //     post_type: tableManager.request.post_type,
+        //     post_parent: parent.ID
+        //   }, function(results) {
+        //     console.log(results)
+        //   });
+        // };
+
+
       },
-      children: children.map(function(post) {
-        var dragItem;
+      children: parent.children && parent.children.map(function(post) {
+        var dragItem = zone.addItem();
+
         return build({
           tag: "li",
           init: function(li, update) {
             tableManager.getClusterPromise(post).then(function(results) {
               update(results);
             });
-            dragItem = selectManager.addItem(li);
+            // dragItem = selectManager.addItem(li, zone);
+            dragItem.element = li;
+            dragItem.id = post.ID;
+            dragItem.index = post.menu_order;
+            dragItem.parentId = post.post_parent;
             dragItem.post = post;
-            dragItem.onReorder = function(index) {
-              Ajax.post(Karma.ajax_url, {
-                action: "karma_save_post",
-                ID: post.ID,
-                post_type: "page",
-                menu_order: index
-              }, function(results) {
-                console.log(results)
-              });
-              console.log(post.post_name, index);
-            }
+            dragItem.onChange = function() {
+              // Ajax.post(Karma.ajax_url, {
+              //   action: "karma_save_post",
+              //   ID: post.ID,
+              //   post_type: tableManager.request.post_type,
+              //   menu_order: dragItem.index,
+              //   post_parent: dragItem.parentId
+              // }, function(results) {
+              //   console.log(results)
+              // });
+            };
+            // dragItem.onReorder = function() {
+            //   Ajax.post(Karma.ajax_url, {
+            //     action: "karma_save_post",
+            //     ID: post.ID,
+            //     post_type: tableManager.request.post_type,
+            //     menu_order: dragItem.index
+            //   }, function(results) {
+            //     console.log(results)
+            //   });
+            // };
+            // dragItem.onParent = function() {
+            //   Ajax.post(Karma.ajax_url, {
+            //     action: "karma_save_post",
+            //     ID: post.ID,
+            //     post_type: tableManager.request.post_type,
+            //     post_parent: dragItem.parentId;
+            //   }, function(results) {
+            //     console.log(results)
+            //   });
+            // };
           },
           update: function(cluster) {
             return {
               init: function(li, update) {
-                dragItem.onUpdate = update;
+                dragItem.onSelect = function() {
+                  li.classList.add("selected");
+                };
+                dragItem.onUnselect = function() {
+                  li.classList.remove("selected");
+                };
                 update();
               },
               update: function() {
                 return {
-                  init: function(li) {
-                    if (dragItem.selected) {
-                      li.classList.add("selected");
-                    } else {
-                      li.classList.remove("selected");
-                    }
-                  },
+                  // init: function(li) {
+                  //   if (dragItem.selected) {
+                  //     li.classList.add("selected");
+                  //   } else {
+                  //     li.classList.remove("selected");
+                  //   }
+                  // },
                   children: [
                     build({
                       class: "row",
                       child: build({
                         tag: "a",
                         text: cluster.post_title
-                      })
+                      }),
+                      init: function(row) {
+                        row.addEventListener("mousedown", dragItem.mousedown);
+                        row.addEventListener("mousemove", dragItem.mousemove);
+                      }
                     }),
-                    post.children && buildList(post.children)
+                    buildList(post)
                   ]
                 }
               }
@@ -665,7 +724,7 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
       })
     });
   };
-  return buildList(tableManager.getTree());
+  return buildList({children: tableManager.getTree()});
 }
 
 

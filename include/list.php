@@ -11,6 +11,6 @@
     container.appendChild(
       Karma.buildList(post_type_object, options)
     );
-  });
+  }, {passive: true});
 </script>
 </div>
