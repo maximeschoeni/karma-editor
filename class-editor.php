@@ -73,8 +73,9 @@ Class Karma_Editor {
     // ));
 
     wp_register_script('build', KARMA_EDITOR_URL.'/js/build-v2.js', array(), false, true);
-    wp_register_script('sortable-v2', KARMA_EDITOR_URL.'/js/sortable.js', array(), false, true);
-    wp_enqueue_script('karma', KARMA_EDITOR_URL.'/js/editor.js', array('ajax', 'build', 'sortable-v2'), false, true);
+    // wp_register_script('sortable-v2', KARMA_EDITOR_URL.'/js/sortable.js', array(), false, true);
+    wp_register_script('selection', KARMA_EDITOR_URL.'/js/selection.js', array(), false, true);
+    wp_enqueue_script('karma', KARMA_EDITOR_URL.'/js/editor.js', array('ajax', 'build', 'selection'), false, true);
 
     wp_localize_script('karma', 'Karma', array(
       'ajax_url' => admin_url() . 'admin-ajax.php',

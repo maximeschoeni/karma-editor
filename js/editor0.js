@@ -96,9 +96,9 @@ Karma.buildList = function(object, options) {
     order: "ASC"
   };
 
-  tableManager.getChildren = function(postId) {
-    return this.posts.filter(function(post) {
-      return parseInt(post.post_parent) === (postId || 0);
+  tableManager.getChildren = function(post) {
+    return this.posts.filter(function(child) {
+      return post && child.post_parent === post.ID || !child.post_parent === "0";
     });
   };
   tableManager.getParent = function(post) {
@@ -601,36 +601,32 @@ Karma.buildListTable = function(query, tableManager, options) {
 
 Karma.buildListHierarchy = function(query, tableManager, options) {
 
-  var rootItem = Selection.createItem();
+  var selectManager = Selectable.create();
 
-  var buildList = function(parentItem) {
+  var buildList = function(parent, parentItem, parentZone) {
 
 
     // var dragManager = Sortable.create(selectManager);
 
-    // var zone = selectManager.addZone();
-    // zone.parent = parentZone;
-
+    var zone = selectManager.addZone();
+    zone.parent = parentZone;
 
     return build({
       tag: "ul",
       init: function(ul) {
         // zone = selectManager.addZone(ul);
-        parentItem.zone.element = ul;
-        parentItem.onActivate = function() {
+        zone.element = ul;
+        zone.id = parent && parent.ID || 0;
+        zone.onActivate = function() {
           ul.classList.add("active");
         };
-        parentItem.onDeactivate = function() {
+        zone.onDeactivate = function() {
           ul.classList.remove("active");
         };
       },
-      children: tableManager.getChildren(parentItem.id || 0).map(function(post) {
-
-        var dragItem = parentItem.addChild();
-        dragItem.id = parseInt(post.ID);
-        dragItem.index = parseInt(post.menu_order);
-        dragItem.parentId = parseInt(post.post_parent);
-        dragItem.post = post;
+      children: tableManager.getChildren(parent).map(function(post) {
+        var dragItem = zone.addItem();
+        dragItem.parent = parentItem;
 
         return build({
           tag: "li",
@@ -640,24 +636,20 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
             });
             // dragItem = selectManager.addItem(li, zone);
             dragItem.element = li;
-
+            dragItem.id = post.ID;
+            dragItem.index = post.menu_order;
+            dragItem.parentId = post.post_parent;
+            dragItem.post = post;
             dragItem.onChange = function() {
-              console.log({
+              Ajax.post(Karma.ajax_url, {
                 action: "karma_save_post",
                 ID: post.ID,
                 post_type: tableManager.request.post_type,
                 menu_order: dragItem.index,
                 post_parent: dragItem.parentId
+              }, function(results) {
+                console.log(results)
               });
-              // Ajax.post(Karma.ajax_url, {
-              //   action: "karma_save_post",
-              //   ID: post.ID,
-              //   post_type: tableManager.request.post_type,
-              //   menu_order: dragItem.index,
-              //   post_parent: dragItem.parentId
-              // }, function(results) {
-              //   console.log(results)
-              // });
             };
           },
           update: function(cluster) {
@@ -685,7 +677,7 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
                         row.addEventListener("mousemove", dragItem.mousemove);
                       }
                     }),
-                    buildList(dragItem)
+                    buildList(post, dragItem, zone)
                   ]
                 }
               }
@@ -695,7 +687,7 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
       })
     });
   };
-  return buildList(rootItem);
+  return buildList();
 }
 
 

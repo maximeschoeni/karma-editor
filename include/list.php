@@ -1,4 +1,4 @@
-<div class="wrap">
+<div class="wrap karma-wrap">
 <h1 class="wp-heading-inline">Pages</h1><a href="http://localhost:8888/wordpress/wp-admin/post-new.php?post_type=page" class="page-title-action">Add New</a>
 <hr class="wp-header-end">
 <div id="karma-editor-list"></div>

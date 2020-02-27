@@ -3,6 +3,41 @@
 }
 
 
+/* Karma
+--------------------------------------*/
+
+/* .karma-wrap {
+  height: calc(100vh - 32px);
+  margin: 0 20px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+#karma-editor-list {
+  display: flex;
+  flex-grow: 1;
+}
+#karma-editor-list .karma-list-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+#karma-editor-list .karma-list-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+#karma-editor-list .karma-list-body ul {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+#karma-editor-list .karma-list-body ul li {
+  display: flex;
+  flex-direction: column;
+}
+#karma-editor-list .karma-list-body ul li:last-child {
+  flex-grow: 1;
+} */
 
 /* Karma List
 --------------------------------------*/
@@ -91,12 +126,15 @@
   background-color: white;
   color: inherit;
 }
+
+.karma-list-body ul li.selected .row {
+  color: #ffffff;
+}
 .karma-list-body ul li.selected ul .row {
   background-color: #79b2ce;
 }
-.karma-list-body ul li.selected .row {
-  background-color: #0073aa;
-  color: #ffffff;
+.karma-list-body ul li.selected>.row {
+  background-color: #0073aa !important;
 }
 
 .karma-list-body ul li .row a {
