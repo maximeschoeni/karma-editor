@@ -66,6 +66,12 @@ var Selection = {
 					return item === child || item.contains(child);
 				});
 			},
+			getPrevSibling: function() {
+				return this.parent.zone.items[this.parent.zone.items.indexOf(this)-1];
+			},
+			getNextSibling: function() {
+				return this.parent.zone.items[this.parent.zone.items.indexOf(this)+1];
+			},
 			addChild: function() {
 				var child = Selection.createItem();
 				child.parent = this;
@@ -93,6 +99,30 @@ var Selection = {
 					}
 				}
 			},
+			resolve: function(item, box) {
+				return item.parent === this.parent && (this.parent.zone.items.indexOf(item) < this.parent.zone.items.indexOf(this) ? box.top+box.height > this.getBox().top+this.getBox().height/2 : box.top < this.getBox().top+this.getBox().height/2);
+
+				// if (item.parent === this.parent) {
+				// 	var index = this.parent.zone.items.indexOf(this);
+				// 	var itemIndex = this.parent.zone.items.indexOf(item);
+				// 	if (itemIndex < index) {
+				// 		return box.top+box.height > this.getBox().top+this.getBox().height/2;
+				// 	} else {
+				// 		return box.top < this.getBox().top+this.getBox().height/2;
+				// 	}
+				// }
+				// if (item.parent === this.parent) {
+				// 	var index = ;
+				//
+				//
+				//
+				// 	if (this.parent.zone.items.indexOf(item) < this.parent.zone.items.indexOf(this)) {
+				// 		return box.top+box.height > this.getBox().top+this.getBox().height/2;
+				// 	} else {
+				// 		return box.top < this.getBox().top+this.getBox().height/2;
+				// 	}
+				// }
+			},
 			findSelected: function() {
 				return this.getRoot().getDescendants().find(function(item) {
 					return item.selected;
@@ -107,6 +137,15 @@ var Selection = {
 						width: 0,
 						height: 0
 					},
+					getFirst: function() {
+						return this.items[0];
+					},
+					getLast: function() {
+						return this.items[this.items.length-1];
+					},
+					getInbetween: function() {
+
+					},
 					getItemY: function(item) {
 						var y = 0;
 						for (var i = 0; i < this.items.length; i++) {
@@ -114,6 +153,19 @@ var Selection = {
 								return y;
 							}
 							y += this.items[i].getBox().height;
+						}
+						return y;
+					},
+					getSelectionHeightBefore: function(item) {
+						var y = 0;
+						var items = item.getRoot().getDescendants();
+						for (var i = 0; i < items.length; i++) {
+							if (item === items[i]) {
+								break;
+							}
+							if (items[i].selected) {
+								y += items[i].getBox().height;
+							}
 						}
 						return y;
 					},
@@ -136,10 +188,19 @@ var Selection = {
 
 						var choosen = items.shift();
 
+
+
+
 						for (var i = 0; i < items.length; i++) {
 							var zoneBox = items[i].zone.element.getBoundingClientRect();
-							// var zoneBox = items[i].element && items[i].getBox() && items[i].zone.element.getBoundingClientRect();
-							if (zoneBox && selection.rect.top+selection.rect.height > zoneBox.top && selection.rect.left > zoneBox.left) {
+
+							// var zoneBox = items[i].getBox() || items[i].zone.element.getBoundingClientRect();
+
+
+							var offset = this.getSelectionHeightBefore(items[i]);
+
+
+							if (zoneBox && selection.rect.top + selection.rect.height/2 + offset > zoneBox.top && selection.rect.left > zoneBox.left) {
 								choosen = items[i];
 							}
 						}
@@ -195,25 +256,65 @@ var Selection = {
 									selectedItem.resetBox();
 								}
 							});
-							var prev = itemUnder.zone.items.find(function(item, index, items) {
-								return !item.selected && selection.items.some(function(selectedItem) {
-									return item.getBox().top < selectedItem.getBox().top && selection.rect.top < item.getBox().top + item.getBox().height/2;
-								});
-							});
-							var next = !prev && itemUnder.zone.items.find(function(item, index, items) {
-								return !item.selected && selection.items.some(function(selectedItem) {
-									return item.getBox().top+item.getBox().height > selectedItem.getBox().top+selectedItem.getBox().height && selection.rect.top + selection.rect.height > item.getBox().top + item.getBox().height/2;
-								});
-							});
-							if (prev) {
-								itemUnder.zone.insertAfter(prev, selection.items[selection.items.length-1]);
+
+							// var prev = itemUnder.zone.items.filter(function(item, index) {
+							// 	return index < itemUnder.zone.items.indexOf()
+							// })
+							//
+							//
+							//
+							// find(function(item, index, items) {
+							// 	return !item.selected && selection.items.some(function(selectedItem) {
+							// 		return item.getBox().top < selectedItem.getBox().top && selection.rect.top < item.getBox().top + item.getBox().height/2;
+							// 	});
+							// });
+
+							var prev = selection.getFirst().getPrevSibling();
+
+							while (prev && selection.rect.top < prev.getBox().top + prev.getBox().height/2) {
+								itemUnder.zone.insertAfter(prev, selection.getLast());
 								selection.reset();
 								prev.resetBox();
-							} else if (next) {
-								itemUnder.zone.insertBefore(next, selection.items[0]);
+								prev = selection.getFirst().getPrevSibling();
+							}
+
+							var next = selection.getLast().getNextSibling();
+
+							while (next && selection.rect.top + selection.rect.height > next.getBox().top + next.getBox().height/2) {
+								itemUnder.zone.insertBefore(next, selection.getFirst());
 								selection.reset();
 								next.resetBox();
+								next = selection.getLast().getNextSibling();
 							}
+
+
+
+							// var prev = itemUnder.zone.items.find(function(item, index, items) {
+							// 	return !item.selected && selection.items.some(function(selectedItem) {
+							// 		return index < items.indexOf(selectedItem)  && selection.rect.top < item.getBox().top + item.getBox().height/2
+							//
+							// 		// return item.getBox().top < selectedItem.getBox().top && selection.rect.top < item.getBox().top + item.getBox().height/2;
+							// 	});
+							// });
+							// var next = !prev && itemUnder.zone.items.find(function(item, index, items) {
+							// 	return !item.selected && selection.items.some(function(selectedItem) {
+							// 		return index > items.indexOf(selectedItem)  && selection.rect.top + selection.rect.height > item.getBox().top + item.getBox().height/2
+							//
+							//
+							// 		// return item.getBox().top+item.getBox().height > selectedItem.getBox().top+selectedItem.getBox().height && selection.rect.top + selection.rect.height > item.getBox().top + item.getBox().height/2;
+							// 	});
+							// });
+							//
+							// if (prev) {
+							// 	console.log(prev);
+							// 	itemUnder.zone.insertAfter(prev, selection.items[selection.items.length-1]);
+							// 	selection.reset();
+							// 	prev.resetBox();
+							// } else if (next) {
+							// 	itemUnder.zone.insertBefore(next, selection.items[0]);
+							// 	selection.reset();
+							// 	next.resetBox();
+							// }
 						}
 						this.items.forEach(function(item) {
 							var tx = selection.rect.left - item.getBox().left;
