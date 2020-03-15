@@ -63,6 +63,7 @@ KarmaFieldMedia.fields.multimedia = function(value, options, onSave) {
 		items: items,
 		columns: columns
 	};
+	
 
 	return build({
 		class: "karma-multimedia",

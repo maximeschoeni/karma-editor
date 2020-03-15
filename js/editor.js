@@ -601,7 +601,10 @@ Karma.buildListTable = function(query, tableManager, options) {
 
 Karma.buildListHierarchy = function(query, tableManager, options) {
 
-  var rootItem = Selection.createItem();
+  var selectionSystem = Selection.createSystem();
+  var zone = selectionSystem.addZone();
+
+
 
   var buildList = function(parentItem) {
 
@@ -616,7 +619,7 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
       tag: "ul",
       init: function(ul) {
         // zone = selectManager.addZone(ul);
-        parentItem.zone.element = ul;
+        parentItem.zone = ul;
         parentItem.onActivate = function() {
           ul.classList.add("active");
         };
@@ -626,7 +629,7 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
       },
       children: tableManager.getChildren(parentItem.id || 0).map(function(post) {
 
-        var dragItem = parentItem.addChild();
+        var dragItem = parentItem.createChild();
         dragItem.id = parseInt(post.ID);
         dragItem.index = parseInt(post.menu_order);
         dragItem.parentId = parseInt(post.post_parent);
@@ -638,7 +641,6 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
             tableManager.getClusterPromise(post).then(function(results) {
               update(results);
             });
-            // dragItem = selectManager.addItem(li, zone);
             dragItem.element = li;
 
             dragItem.onChange = function() {
@@ -681,6 +683,7 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
                         text: cluster.post_title
                       }),
                       init: function(row) {
+                        dragItem.handle = row;
                         row.addEventListener("mousedown", dragItem.mousedown);
                         row.addEventListener("mousemove", dragItem.mousemove);
                       }
@@ -695,7 +698,13 @@ Karma.buildListHierarchy = function(query, tableManager, options) {
       })
     });
   };
-  return buildList(rootItem);
+  return build({
+    class: "selection-zone",
+    child: buildList(zone),
+    init: function(element) {
+      zone.element = element;
+    }
+  });
 }
 
 
