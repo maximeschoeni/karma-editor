@@ -276,7 +276,16 @@ var Selection = {
 					}
 				},
 				updateShadow: function() {
-
+					var activeItem = this.getFirst().item.parent;
+					if (this.shadowItem !== activeItem) {
+						if (this.shadowItem && this.shadowItem.onDeactivate) {
+							this.shadowItem.onDeactivate();
+						}
+						if (activeItem.onActivate) {
+							activeItem.onActivate();
+							this.shadowItem = activeItem;
+						}
+					}
 				},
 				move: function(root, currentItem) {
 					if (root && root !== currentItem.getRoot()) {
@@ -299,15 +308,7 @@ var Selection = {
 						this.moveLeft();
 						this.moveRight();
 					}
-					if (this.shadowItem !== currentItem.parent) {
-						if (this.shadowItem && this.shadowItem.onDeactivate) {
-							this.shadowItem.onDeactivate();
-						}
-						if (currentItem.parent.onActivate) {
-							currentItem.parent.onActivate();
-							this.shadowItem = currentItem.parent;
-						}
-					}
+					this.updateShadow();
 
 					for (var i = 0; i < this.selectedItems.length; i++) {
 						var tx = this.left - this.selectedItems[i].box.left;
@@ -316,6 +317,10 @@ var Selection = {
 					}
 				},
 				stop: function() {
+					if (this.shadowItem && this.shadowItem.onDeactivate) {
+						this.shadowItem.onDeactivate();
+					}
+					this.shadowItem = null;
 					for (var i = 0; i < this.selectedItems.length; i++) {
 						this.selectedItems[i].item.element.style.transform = "none";
 					}

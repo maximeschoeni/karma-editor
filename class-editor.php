@@ -6,17 +6,20 @@ Class Karma_Editor {
   public function __construct() {
     global $karma_clusters;
 
-    define('KARMA_CLUSTER_URL', KARMA_EDITOR_URL . '/plugins/clusters');
-    define('KARMA_CLUSTER_PATH', KARMA_EDITOR_PATH . '/plugins/clusters');
+    require_once KARMA_EDITOR_PATH . '/plugins/karma-cache/karma-cache.php';
 
-    require_once KARMA_CLUSTER_PATH . '/class-clusters.php';
 
-    $karma_clusters = new Karma_Clusters;
+    // define('KARMA_CLUSTER_URL', KARMA_EDITOR_URL . '/plugins/clusters');
+    // define('KARMA_CLUSTER_PATH', KARMA_EDITOR_PATH . '/plugins/clusters');
+    //
+    // require_once KARMA_CLUSTER_PATH . '/class-clusters.php';
+    //
+    // $karma_clusters = new Karma_Clusters;
 
-    define('KARMA_FIELDS_URL', KARMA_EDITOR_URL . '/plugins/karma-field');
-    define('KARMA_FIELDS_PATH', KARMA_EDITOR_PATH . '/plugins/karma-field');
+    define('KARMA_FIELDS_URL', KARMA_EDITOR_URL . '/plugins/karma-fields');
+    define('KARMA_FIELDS_PATH', KARMA_EDITOR_PATH . '/plugins/karma-fields');
 
-    require_once KARMA_FIELDS_PATH . '/class-field.php';
+    require_once KARMA_FIELDS_PATH . '/class-fields.php';
 
     add_action('admin_menu', array($this, 'register_page'));
     add_action('admin_enqueue_scripts', array($this, 'scripts_styles'));
@@ -31,7 +34,7 @@ Class Karma_Editor {
 
 
 
-    add_action('karma_clusters_update_'.'page', array($this, 'update_page_cluster'), 10, 5);
+    // add_action('karma_clusters_update_'.'page', array($this, 'update_page_cluster'), 10, 5);
 
     // wp_update_post(array(
     //   'ID' => 7,
@@ -90,16 +93,16 @@ Class Karma_Editor {
   /**
    * hook "karma_clusters_update_$post_type"
    */
-  public function update_page_cluster($cluster, $post, $dependency_instance, $clusters, $query) {
-
-    $cluster->post_title = get_the_title($post);
-    $cluster->permalink = get_permalink($post);
-    $cluster->post_date = $post->post_date;
-
-    $cluster->meta = get_post_meta($post->ID);
-    $cluster->post = $post;
-
-  }
+  // public function update_page_cluster($cluster, $post, $dependency_instance, $clusters, $query) {
+  //
+  //   $cluster->post_title = get_the_title($post);
+  //   $cluster->permalink = get_permalink($post);
+  //   $cluster->post_date = $post->post_date;
+  //
+  //   $cluster->meta = get_post_meta($post->ID);
+  //   $cluster->post = $post;
+  //
+  // }
 
   /**
    * get_post_type_options

@@ -14,13 +14,6 @@ class Karma_Clusters_Options {
 	var $options;
 
 	/**
-	 *	Constructor
-	 */
-	public function __construct() {
-
-	}
-
-	/**
 	 *	get option
 	 */
 	public function get_option($name, $fallback = false) {

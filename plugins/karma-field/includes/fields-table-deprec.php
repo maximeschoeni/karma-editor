@@ -1,7 +1,8 @@
 <table>
   <?php foreach ($fields as $field) {
+    $meta_key = isset($field['meta_key']) ? $field['meta_key'] : $this->generate_key();
     if (!isset($args['id'])) {
-      $field['id'] = 'karma_field-'.$field['meta_key'];
+      $field['id'] = 'karma_field-'.$meta_key;
     }
     ?>
     <tr>
