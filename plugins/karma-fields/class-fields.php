@@ -50,7 +50,7 @@ Class Karma_Fields {
 			//
 			//
 			// // add_action('admin_footer', array($this, 'print_footer'));
-			// add_action('admin_head', array($this, 'print_footer'));
+			add_action('admin_head', array($this, 'print_footer'));
 		}
 
 
@@ -104,6 +104,12 @@ Class Karma_Fields {
 		// v2
 		wp_enqueue_script('date-field', KARMA_FIELDS_URL . '/js/fields/date.js', array('media-field', 'build', 'calendar'), $this->version, false);
 
+
+		wp_enqueue_script('karma-fields-grid', KARMA_FIELDS_URL . '/js/tables/grid.js', array('media-field', 'build'), $this->version, false);
+
+		wp_enqueue_script('table-manager', KARMA_FIELDS_URL . '/js/table-manager.js', array('media-field', 'karma-fields-grid'), $this->version, false);
+
+
 		wp_enqueue_script('multimedia-field', KARMA_FIELDS_URL . '/js/multimedia.js', array('build', 'sortable', 'media-field'), $this->version, false);
 
 	}
@@ -112,20 +118,24 @@ Class Karma_Fields {
 	 * @hook admin_footer
 	 */
 	public function print_footer() {
-		global $karma_cache;
+		// global $karma_cache;
 
 		$karma_fields = array(
 			'ajax_url' => admin_url('admin-ajax.php'),
-			'queryPostURL' => rest_url().'karma-fields/v1/get',
-			'savePostURL' => rest_url().'karma-fields/v1/update',
-			'queryTermsURL' => rest_url().'karma-fields/v1/taxonomy',
+			'icons_url' => plugin_dir_url( $file ).'dashicons',
+			'getURL' => apply_filters('karma_cache_dir', rest_url().'karma-fields/v1/get'), // -> apply_filters('karma_fields_get')
+			'queryURL' => rest_url().'karma-fields/v1/query',
+			'saveURL' => rest_url().'karma-fields/v1/update',
+			'filterURL' => rest_url().'karma-fields/v1/update'
+			// 'queryTermsURL' => rest_url().'karma-fields/v1/taxonomy',
 		);
 
-		if (isset($karma_cache)) {
 
-			$karma_fields['queryPostURL'] = home_url().'/'.$karma_cache->path;
-
-		}
+		// if (isset($karma_cache)) {
+		//
+		// 	$karma_fields['getPostURL'] = home_url().'/'.$karma_cache->path;
+		//
+		// }
 
 		echo '<script>KarmaFields = '.json_encode($karma_fields).';</script>';
 
@@ -417,7 +427,7 @@ Class Karma_Fields {
 		$filename = basename($path);
 		$key = pathinfo($filename, PATHINFO_FILENAME);
 
-		$post_id = apply_filters('karma_fields_parse_uri', $post_uri);
+		$post_id = apply_filters('karma_cache_parse_uri', $post_uri, $post_uri);
 
 		$post = get_post($post_id);
 
@@ -457,9 +467,9 @@ Class Karma_Fields {
 		$filename = basename($path);
 		$key = pathinfo($filename, PATHINFO_FILENAME);
 
-		$post_id = apply_filters('karma_fields_parse_uri', $post_uri);
+		$post_id = apply_filters('karma_cache_parse_uri', $post_uri, $post_uri);
 
-		$post = get_post($id);
+		$post = get_post($post_id);
 
 		if (!$post) {
 
@@ -1006,7 +1016,7 @@ Class Karma_Fields {
 
 				$filtered_fields = array_merge(
 					$filtered_fields,
-					$this->filter_fields($fields, $key, $value)
+					$this->filter_fields($field['children'], $key, $value)
 				);
 
 			}

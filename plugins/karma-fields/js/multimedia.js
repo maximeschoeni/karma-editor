@@ -20,13 +20,23 @@
 
 KarmaFieldMedia.buildSection = function(section, post) {
 
-	var manager = KarmaFieldMedia.createFieldManager(section, post);
+	var manager = KarmaFieldMedia.managers.field(middleware, section, post);
 
 	return build({
 		class: "karma-field-section",
 		child: manager.build()
-	})
+	});
 }
+
+
+KarmaFieldMedia.buildTable = function(table, posts) {
+	var manager = KarmaFieldMedia.managers.table(table, posts);
+	return build({
+		class: "karma-field-table",
+		child: manager.build()
+	});
+}
+
 
 
 // KarmaFieldMedia.parseField = function(field, parent) {
@@ -87,6 +97,7 @@ KarmaFieldMedia.buildSection = function(section, post) {
 KarmaFieldMedia.cache = {
 	values: {},
 	query: function(key) {
+		return;
 		return this.values[key];
 	},
 	put: function(key, value) {
@@ -120,210 +131,6 @@ KarmaFieldMedia.cache = {
 
 
 
-KarmaFieldMedia.createFieldManager = function(resource, post, parent) {
-	var manager = {
-		resource: resource,
-		post: post,
-		parent: parent,
-		build: function() {
-			if (KarmaFieldMedia.customfields[resource["field"] || "group"]) {
-				return KarmaFieldMedia.customfields[resource["field"] || "group"](this);
-			}
-		},
-		getChildren: function() {
-			return resource.children.map(function(resource) {
-				return KarmaFieldMedia.createFieldManager(resource, post, manager);
-			});
-		},
-		value: function() {
-			if (post.uri) {
-				return this.request(post.uri);
-			} else {
-				return Promise.reject(new Error("Field ("+resource.key+") cannot get value: no uri"));
-			}
-
-			// if (resource.key) {
-			// 	if (resource.object) {
-			// 		var postURI = post[resource.locator || "uri"];
-			// 		if (postURI) {
-			// 			var file = postURI+"/"+resource.key+"."+(resource.extension || "json");
-			// 			return this.query(file);
-			// 		} else {
-			// 			return Promise.reject(new Error("Field ("+resource.key+") cannot get value: no postURI"));
-			// 		}
-			// 	} else if (parent) {
-			// 		return parent.value().then(function(result) {
-			// 			return result[resource.key];
-			// 		});
-			// 	} else {
-			// 		return Promise.reject(new Error("Field ("+resource.key+") cannot get value: no object and no parent"));
-			// 	}
-			// } else {
-			// 	return Promise.reject(new Error("Field Manager cannot get value: no key"));
-			// }
-		},
-		default: function() {
-			if (post.default_uri) {
-				return this.request(post.default_uri);
-			} else {
-				return Promise.resolve("");
-			}
-			// if (resource.key) {
-			// 	if (resource.object) {
-			// 		if (resource.default_locator) {
-			// 			var postURI = post[resource.default_locator];
-			// 			if (postURI) {
-			// 				var file = postURI+"/"+resource.key+"."+(resource.extension || "json");
-			// 				return this.query(file);
-			// 			} else {
-			// 				return Promise.reject(new Error("Field ("+resource.key+") cannot get default: no postURI"));
-			// 			}
-			// 		} else {
-			// 			return Promise.resolve(resource.default || "");
-			// 		}
-			// 	} else if (parent) {
-			// 		return parent.default().then(function(result) {
-			// 			return result[key || field.key];
-			// 		});
-			// 	} else {
-			// 		return Promise.reject(new Error("Field ("+resource.key+") cannot get default: no object and no parent"));
-			// 	}
-			// } else {
-			// 	return Promise.reject(new Error("Field Manager cannot get default: no key"));
-			// }
-		},
-		request: function(uri) {
-			if (resource.key) {
-				if (resource.object) {
-					var file = uri+"/"+resource.key+(resource.extension || ".json");
-					return this.query(file);
-				} else if (parent) {
-					return parent.request(uri).then(function(result) {
-						return result[resource.key];
-					});
-				} else {
-					return Promise.reject(new Error("Field ("+resource.key+") cannot request uri ("+uri+"): no object and no parent"));
-				}
-			} else if (parent) {
-				return parent.request(uri).then(function(result) {
-					return result;
-				});
-			} else {
-				return Promise.reject(new Error("Field Manager cannot request uri ("+uri+"): no key and no parent"));
-			}
-		},
-		format: function(response) {
-			if (response.ok) {
-				var result;
-				if (response.url.slice(-5) === ".json") { // file.endsWith(".json")
-					return response.json();
-					// .then(function(result) {
-					// 	if (typeof result !== "object") {
-					// 		return {};
-					// 	}
-					// 	return result;
-					// });
-				} else {
-					return response.text();
-				}
-			} else {
-				return response;
-			}
-		},
-		query: function(file) {
-			var url = KarmaFields.queryPostURL+"/"+file;
-			return (KarmaFieldMedia.cache.query(url) || fetch(url, {
-				cache: "reload"
-			})).then(function(response) {
-				KarmaFieldMedia.cache.put(url, response);
-				return manager.format(response);
-			});
-
-			// KarmaFieldMedia.cache.match(url).then(function(response) {
-			// 	if (!response) {
-			// 		return fetch(url, {
-			// 			cache: "reload"
-			// 		}).then(function(response) {
-			// 			KarmaFieldMedia.cache.put(url, response);
-			// 		});
-			// 	}
-			// 	return response;
-			// }).then(function(response) {
-			// 	return manager.format(response);
-			// });
-
-
-			// var promise = KarmaFieldMedia.cache.query(file);
-			// if (!promise) {
-			// 	var url = KarmaFields.queryPostURL+"/"+file;
-			// 	// var isJson = file.slice(-5) === ".json"; // file.endsWith(".json")
-			// 	// promise = fetch(url, {
-			// 	// 	cache: "reload"
-			// 	// }).then(function(response) {
-			// 	// 	if (isJson) {
-			// 	// 		return response.json();
-			// 	// 	} else {
-			// 	// 		return response.text();
-			// 	// 	}
-			// 	// }).then(function(value) {
-			// 	// 	if (isJson && typeof value !== "object") {
-			// 	// 		value = {};
-			// 	// 	}
-			// 	// 	return value;
-			// 	// });
-			// 	promise = KarmaFieldMedia.cache.query(file) || fetch(KarmaFields.queryPostURL+"/"+file, {
-			// 		cache: "reload"
-			// 	}).then(function(response) {
-			// 		return manager.format(response);
-			// 	});
-			// 	KarmaFieldMedia.cache.add(file, promise);
-			// }
-			// return promise;
-		},
-		update: function(file, value) {
-			return fetch(KarmaFields.savePostURL+"/"+file, {
-				method: "post",
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify({
-					value: value
-				}),
-				mode: "same-origin"
-			}).then(function(response) {
-				KarmaFieldMedia.cache.put(KarmaFields.queryPostURL+"/"+file, response);
-				return response.json();
-			});
-		},
-		save: function(value) {
-			if (resource.key) {
-				if (resource.object) {
-					var postURI = post[resource.locator || "uri"];
-					if (postURI) {
-						var file = postURI+"/"+resource.key+(resource.extension || ".json");
-						return this.update(file, value);
-					} else {
-						return Promise.reject(new Error("Field ("+resource.key+") cannot save: no postURI"));
-					}
-				} else if (parent) {
-					return parent.value().then(function(result) {
-						result[resource.key] = value;
-						return parent.save(result);
-					});
-				} else {
-					return Promise.reject(new Error("Field ("+resource.key+") cannot save: no object and no parent"));
-				}
-			} else if (parent) {
-				return parent.save(value);
-			} else {
-				return Promise.reject(new Error("Field Manager cannot save: no key and no parent"));
-			}
-		}
-	};
-	// resource.children.forEach(function(resource) {
-	// 	var child = KarmaFieldMedia.createFieldManager(resource, post, parent);
-	// 	manager.children.push(child);
-	// });
-	return manager;
-}
 
 // KarmaFieldMedia.buildField = function(field, post, parent) {
 // 	var manager = field.key && KarmaFieldMedia.createFieldManager(item, parent) || parent;
@@ -507,39 +314,7 @@ KarmaFieldMedia.customfields.group = function(field) {
 // 	})
 // }
 
-KarmaFieldMedia.customfields.text = function(field) {
-	return build({
-		class: "karma-field-text-input",
-		children: function() {
-			return [
-				field.resource.label && build({
-					tag: "label",
-					init: function(label) {
-						label.htmlFor = field.resource.key;
-						label.innerHTML = field.resource.label;
-					}
-				}),
-				build({
-					tag: "input",
-					class: "karma-field-input",
-					init: function(input) {
-						input.type = field.resource.type || "text";
-						input.id = field.resource.key;
-						field.default().then(function(result) {
-							input.placeholder = result;
-						});
-						field.value().then(function(result) {
-							input.value = result;
-						});
-						input.addEventListener("blur", function() {
-							field.save(input.value);
-						});
-					}
-				})
-			];
-		}
-	});
-}
+
 
 
 KarmaFieldMedia.customfields.select = function(field) {
@@ -665,9 +440,9 @@ KarmaFieldMedia.customfields.taxonomy = function(field) {
 
 
 
+KarmaFieldMedia.fields1 = {};
 
-
-KarmaFieldMedia.fields.multimedia = function(value, options, onSave) {
+KarmaFieldMedia.fields1.multimedia = function(value, options, onSave) {
 	var columns = options.columns;
 	var items = value || [];
 	var sortableManager = createSortableManager();
@@ -954,20 +729,20 @@ KarmaFieldMedia.buildSelector = function(values, current, onChange) {
 		}
 	});
 };
-KarmaFieldMedia.fields.select = function(value, options, save) {
+KarmaFieldMedia.fields1.select = function(value, options, save) {
 	var values = options.values;
 	return KarmaFieldMedia.buildSelector(values, value, function() { // [{key: "", name:"-"}].concat(
 		save(this.value);
 	})
 };
-KarmaFieldMedia.fields.modes = function(value, options, save, group) {
+KarmaFieldMedia.fields1.modes = function(value, options, save, group) {
 	return KarmaFieldMedia.buildSelector(options.values, value, function() {
 		save(this.value);
 		group.update();
 	})
 };
 
-KarmaFieldMedia.fields.text = function(value, options, save) {
+KarmaFieldMedia.fields1.text = function(value, options, save) {
 	return build({
 		tag: "input",
 		class: "text",
@@ -983,7 +758,7 @@ KarmaFieldMedia.fields.text = function(value, options, save) {
 		}
 	});
 };
-KarmaFieldMedia.fields.textarea = function(value, options, save) {
+KarmaFieldMedia.fields1.textarea = function(value, options, save) {
 	return build({
 		tag: "textarea",
 		class: "text",
@@ -999,7 +774,7 @@ KarmaFieldMedia.fields.textarea = function(value, options, save) {
 	});
 }
 
-KarmaFieldMedia.fields.checkbox = function(label, current, onChange) {
+KarmaFieldMedia.fields1.checkbox = function(label, current, onChange) {
 	return build({
 		tag: "label",
 		children: [
@@ -1021,7 +796,7 @@ KarmaFieldMedia.fields.checkbox = function(label, current, onChange) {
 	});
 };
 
-KarmaFieldMedia.fields.checkboxes = function(values, current, onChange) {
+KarmaFieldMedia.fields1.checkboxes = function(values, current, onChange) {
 	return build({
 		tag: "ul",
 		class: "karma-field-checkboxes",
@@ -1045,7 +820,7 @@ KarmaFieldMedia.fields.checkboxes = function(values, current, onChange) {
 	});
 };
 
-KarmaFieldMedia.fields.taxonomy = function(options, current, onChange) {
+KarmaFieldMedia.fields1.taxonomy = function(options, current, onChange) {
 	return build({
 		classes: "karma-field-taxonomy-field",
 		init: function(element, update) {
@@ -1102,7 +877,7 @@ KarmaFieldMedia.fields.taxonomy = function(options, current, onChange) {
 // };
 
 
-KarmaFieldMedia.fields.image = function(value, options, save) {
+KarmaFieldMedia.fields1.image = function(value, options, save) {
 	var imageManager = KarmaFieldMedia.createImageUploader();
 	imageManager.imageId = value || null;
 	imageManager.mimeType = options.mimeType || null;
@@ -1256,7 +1031,7 @@ KarmaFieldMedia.fields.image = function(value, options, save) {
 
 
 
-KarmaFieldMedia.fields.gallery = function(value, options, save) {
+KarmaFieldMedia.fields1.gallery = function(value, options, save) {
 	var galleryManager = KarmaFieldMedia.createGalleryUploader();
 	galleryManager.mimeTypes = options.mimeTypes || ["image"];
 	galleryManager.imageIds = value;

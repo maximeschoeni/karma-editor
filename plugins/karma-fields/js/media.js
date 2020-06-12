@@ -4,6 +4,12 @@ if (!window.KarmaFieldMedia) {
 KarmaFieldMedia.customfields = {};
 
 KarmaFieldMedia.fields = {};
+KarmaFieldMedia.filters = {};
+KarmaFieldMedia.tables = {};
+KarmaFieldMedia.managers = {};
+KarmaFieldMedia.selectors = {};
+
+
 KarmaFieldMedia.attachmentPromises = {};
 KarmaFieldMedia.getImageSrc = function(id, callback) {
 	if (!KarmaFieldMedia.attachmentPromises[id]) {
@@ -21,6 +27,8 @@ KarmaFieldMedia.getImageSrc = function(id, callback) {
 	}
 	return KarmaFieldMedia.attachmentPromises[id];
 }
+
+
 // KarmaFieldMedia.save = function(post, data) {
 // 	return fetch(KarmaFields.rest+"/update/post/"+post.id, {
 // 		method: "post",

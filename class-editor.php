@@ -6,7 +6,7 @@ Class Karma_Editor {
   public function __construct() {
     global $karma_clusters;
 
-    require_once KARMA_EDITOR_PATH . '/plugins/karma-cache/karma-cache.php';
+    require_once KARMA_EDITOR_PATH . '/plugins/karma-cache/karma-cache-v2.php';
 
 
     // define('KARMA_CLUSTER_URL', KARMA_EDITOR_URL . '/plugins/clusters');
@@ -16,10 +16,13 @@ Class Karma_Editor {
     //
     // $karma_clusters = new Karma_Clusters;
 
-    define('KARMA_FIELDS_URL', KARMA_EDITOR_URL . '/plugins/karma-fields');
-    define('KARMA_FIELDS_PATH', KARMA_EDITOR_PATH . '/plugins/karma-fields');
+    // define('KARMA_FIELDS_URL', KARMA_EDITOR_URL . '/plugins/karma-fields');
+    // define('KARMA_FIELDS_PATH', KARMA_EDITOR_PATH . '/plugins/karma-fields');
 
-    require_once KARMA_FIELDS_PATH . '/class-fields.php';
+    // require_once KARMA_FIELDS_PATH . '/class-fields.php';
+
+    require_once KARMA_EDITOR_PATH . '/plugins/karma-fields/class-tables.php';
+
 
     add_action('admin_menu', array($this, 'register_page'));
     add_action('admin_enqueue_scripts', array($this, 'scripts_styles'));
@@ -68,7 +71,7 @@ Class Karma_Editor {
    */
   public function scripts_styles() {
 
-    wp_enqueue_style('karma-style', KARMA_EDITOR_URL.'/css/style.css', array(), false);
+    // wp_enqueue_style('karma-style', KARMA_EDITOR_URL.'/css/style.css', array(), false);
 
     wp_enqueue_script('ajax', KARMA_EDITOR_URL.'/js/ajax-v2.js', array(), false, true);
     // wp_localize_script('ajax', 'Ajax', array(

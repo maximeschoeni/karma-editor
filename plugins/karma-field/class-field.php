@@ -183,6 +183,8 @@ Class Karma_Field {
 
 					$value = isset($_REQUEST[$name]) ? $_REQUEST[$name] : '';
 
+
+
 					if ($datatype === 'json' && $value) {
 
 						$value = stripslashes($value);
@@ -200,7 +202,21 @@ Class Karma_Field {
 
 					}
 
-					if (!is_null($value)) {
+
+
+					if ($field === 'checkbox') {
+
+						if ($value) {
+
+							update_post_meta($post_id, $meta_key, $value);
+
+						} else {
+
+							delete_post_meta($post_id, $meta_key);
+
+						}
+
+					} else if (!is_null($value)) {
 
 						update_post_meta($post_id, $meta_key, $value);
 

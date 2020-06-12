@@ -2,13 +2,13 @@
  * version mai2020
  */
 
-KarmaFieldMedia.customfields.date = function(field) {
+KarmaFieldMedia.fields.date = function(field) {
   var format = field.resource.format || "dd/mm/yyyy";
   var dateManager = {};
   dateManager.calendar = Calendar.create();
 
   return build({
-   class: "karma-field-date-input karma-field-input",
+   class: "karma-field date-input",
    children: function() {
     return [
       field.resource.label && build({
@@ -176,10 +176,11 @@ KarmaFieldMedia.customfields.date = function(field) {
             }),
             build({
               tag: "input",
-              class: "text",
+              class: "karma-field-input",
               init: function(input) {
+                field.input = input;
                 input.type = "text";
-                input.id = field.resource.key;
+                // input.id = field.resource.key;
                 dateManager.update = function() {
                   var date = Calendar.parse(dateManager.sqlDate);
                   input.value = Calendar.format(date, format);
@@ -187,7 +188,7 @@ KarmaFieldMedia.customfields.date = function(field) {
                 field.default().then(function(result) {
                   input.placeholder = result && Calendar.parse(result) || field.resource.placeholder && Calendar.parse(field.resource.placeholder) || "";
                 });
-                field.value().then(function(result) {
+                field.loadValue().then(function(result) {
                   dateManager.sqlDate = result;
                   dateManager.calendar.date = result && Calendar.parse(result) || new Date();
                   dateManager.update();

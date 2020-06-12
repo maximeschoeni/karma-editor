@@ -18,7 +18,7 @@ class Karma_Cache {
 
 		add_action('parse_request', array($this, 'parse_request'));
 
-		add_action('save_post', array($this, 'save_post'), 10, 3);
+		add_action('save_post', array($this, 'save_post'), 20, 3);
 		add_action('karma_cache_save_post', array($this, 'save_post'), 10, 3);
 
 		if (is_admin()) {
@@ -33,7 +33,18 @@ class Karma_Cache {
 		// add_action('sublanguage_init', array($this, 'sublanguage_admin_init'));
 
 
-		add_action('karma_fields_parse_uri', array($this, 'get_post'));
+		// add_action('karma_fields_parse_uri', array($this, 'get_post')); // deprecated!
+
+		// Public API
+		add_filter('karma_cache_parse_uri', array($this, 'parse_post'), 10, 2);
+		add_filter('karma_cache_format_uri', array($this, 'format_uri'), 10, 2);
+		add_filter('karma_cache_url', array($this, 'get_url'));
+
+		// karma fields
+		add_filter('karma_fields_id', array($this, 'karma_fields_get_id'));
+		add_action('karma_fields_save', array($this, 'karma_fields_save'), 10, 4);
+
+
 
 	}
 
@@ -196,6 +207,7 @@ class Karma_Cache {
 		return $path;
 	}
 
+
 	/**
 	 * get_post
 	 */
@@ -263,13 +275,13 @@ class Karma_Cache {
 
 		foreach (array_reverse($ancestors) as $i => $ancestor) {
 
-			$join[] = $wpdb->prepare("INNER JOIN $wpdb->posts as p$i ON (p$i.ID = $parent.post_parent AND p$i.post_name = %s)", $ancestor);
+			$joins[] = $wpdb->prepare("INNER JOIN $wpdb->posts as p$i ON (p$i.ID = $parent.post_parent AND p$i.post_name = %s)", $ancestor);
 
 			$parent = "p$i";
 
 		}
 
-		$join_sql = implode(' ', $join);
+		$join_sql = implode(' ', $joins);
 
 		$post = $wpdb->get_row($wpdb->prepare("SELECT p.* FROM $wpdb->posts AS p $join_sql WHERE p.post_type = %s AND p.post_name = %s", $post_type, $post_name));
 
@@ -527,8 +539,62 @@ class Karma_Cache {
 
 	}
 
+	/**
+	 * Public API
+	 * @filter 'karma_cache_parse_uri'
+	 */
+	public function parse_uri($post, $uri) {
 
+		return $this->get_post($uri);
 
+	}
+
+	/**
+	 * Public API
+	 * @filter 'karma_cache_format_uri'
+	 */
+	public function format_uri($uri, $post) {
+
+		return $this->get_uri($post);
+
+	}
+
+	/**
+	 * Public API
+	 * @filter 'karma_cache_url'
+	 */
+	public function get_url($dir) {
+
+		return home_url($this->path);
+
+	}
+
+	/**
+	 * Karma Fields
+	 * @filter 'karma_field_id'
+	 */
+	public function karma_fields_get_id($uri) {
+
+		$post = $this->get_post($uri);
+
+		if ($post) {
+
+			 $uri = $post->ID;
+
+		}
+
+		return $uri;
+	}
+
+	/**
+	 * Karma Fields
+	 * @filter 'karma_fields_save'
+	 */
+	public function karma_fields_save($value, $uri, $key, $extension) {
+
+		$this->update($uri, $key.$extension, $value);
+
+	}
 
 
 
