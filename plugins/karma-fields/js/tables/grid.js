@@ -2,13 +2,15 @@ KarmaFieldMedia.tables.grid = function(manager) {
   return build({
     class: "karma-field-table grid",
     init: function(element, update) {
+
       element.addEventListener("mouseup", function() {
+        console.log("grid mouseup");
         if (manager.select && manager.select.onClick) {
           manager.select.onClick();
         }
       });
-
       update();
+
     },
     children: function() {
       return [
@@ -29,7 +31,8 @@ KarmaFieldMedia.tables.grid = function(manager) {
                 manager.request();
               },
               children: function() {
-                manager.select = KarmaFieldMedia.selectors.grid(manager);
+                manager.select.init(); // = KarmaFieldMedia.selectors.grid(manager);
+                // manager.select.onSelect = manager.renderControls;
                 return [
                   build({
                     tag: "thead",
@@ -57,15 +60,20 @@ KarmaFieldMedia.tables.grid = function(manager) {
                             return manager.resource.columns.map(function(column, colIndex) {
                               return build({
                                 tag: "td",
-                                child: function() {
+                                init: function(cell, update) {
                                   if (column.field) {
-                                    var fieldManager = KarmaFieldMedia.managers.field(manager, column.field, post);
-                                    var field = fieldManager.build();
-                                    manager.select.addField(fieldManager, rowIndex, colIndex);
-                                    return field;
+                                    var fieldManager = KarmaFieldMedia.managers.field(column.field);
+                                    fieldManager.table = manager;
+                                    fieldManager.post = post;
+                                    manager.fields.push(fieldManager);
+                                    manager.select.addField(cell, fieldManager, colIndex, rowIndex);
+                                    update(fieldManager);
                                   }
-                                  // return column.field && KarmaFieldMedia.managers.field(manager, column.field, post).build();
-                                  // manager.select.addField();
+                                },
+                                children: function(fieldManager) {
+                                  return [
+                                    fieldManager.build()
+                                  ];
                                 }
                               });
                             });

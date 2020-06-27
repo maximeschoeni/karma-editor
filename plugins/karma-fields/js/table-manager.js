@@ -2,6 +2,9 @@ KarmaFieldMedia.managers.table = function(resource) {
 	var manager = {
 		resource: resource,
 		posts: [],
+		select: KarmaFieldMedia.selectors.grid(),
+		filter: null,
+		fields: [],
     // filters: {},
     search: "",
     order: null,
@@ -9,7 +12,7 @@ KarmaFieldMedia.managers.table = function(resource) {
     page: 1,
     ppp: resource.ppp || 10,
 		build: function() {
-			
+
 			if (KarmaFieldMedia.tables[resource.name || "grid"]) {
 				return KarmaFieldMedia.tables[resource.name || "grid"](this);
 			}
@@ -78,7 +81,7 @@ KarmaFieldMedia.managers.table = function(resource) {
 		request: function() {
 			if (resource.middleware) {
         var file = KarmaFields.queryURL+"/"+resource.middleware;
-        var params = this.filter && this.filter.getDescendantParams() || [];
+        var params = [];
         // if (resource.type) {
         //   params.push("type="+resource.type);
         // }
@@ -94,6 +97,13 @@ KarmaFieldMedia.managers.table = function(resource) {
         if (this.orderby || resource.default_orderby) {
           params.push("orderby="+(this.orderby || resource.default_orderby));
         }
+				if (this.filter) {
+					var filters = this.filter.getDescendantParams();
+					for (var key in filters) {
+						params.push(key+"="+filters[key]);
+					}
+				}
+
         // if (this.search) {
         //   params.push("search="+this.search);
         // }
@@ -102,6 +112,11 @@ KarmaFieldMedia.managers.table = function(resource) {
         //   file += "?"+params.join("&");
         // }
 
+				this.loading = true;
+				if (this.renderFooter) {
+					this.renderFooter();
+				}
+
         return this.query(file, params).then(function(results) {
 					// console.log(results);
           manager.posts = results.items;
@@ -109,8 +124,9 @@ KarmaFieldMedia.managers.table = function(resource) {
           if (manager.render) {
             manager.render();
           }
-					if (manager.renderPagination) {
-						manager.renderPagination();
+					manager.loading = false;
+					if (manager.renderFooter) {
+						manager.renderFooter();
 					}
           return results;
         });
@@ -143,7 +159,190 @@ KarmaFieldMedia.managers.table = function(resource) {
 				KarmaFieldMedia.cache.put(url, results);
 				return results;
 			});
+		},
+		// getChanges: function() {
+		// 	Promise.all(this.fields.map(function(field) {
+		// 		return field.getChange();
+		// 	})).then(function(fields) {
+		// 		return fields.filter(function(field) {
+		// 			return field;
+		// 		})
+		// 	});
+		// },
+		// getFieldsModifiedValues: function() {
+		// 	return Promise.all(this.fields.map(function(field) {
+		// 		return field.original();
+		// 	})).then(function() {
+		// 		var values = {};
+		// 		manager.fields.filter(function(field) {
+		// 			return field.modifiedValue !== undefined && field.resource.key && field.post.uri;
+		// 		}).forEach(function(field) {
+		// 			if (!values[field.post.uri]) {
+		// 				values[field.post.uri] = {};
+		// 			}
+		// 			values[field.post.uri][field.resource.key] = field.modifiedValue;
+		// 		});
+		// 		return values;
+		// 	});
+		// },
+		// save: function() {
+		// 	return this.getFieldsModifiedValues().then(function(values) {
+		// 		return fetch(KarmaFields.saveURL+"/"+resource.middleware, {
+		// 			method: "post",
+		// 			headers: {"Content-Type": "application/json"},
+		// 			body: JSON.stringify({
+		// 				values: values
+		// 			}),
+		// 			mode: "same-origin"
+		// 		}).then(function(response) {
+		// 			return response.json();
+		// 		});
+		// 	});
+		// },
+		save: function(fields) {
+			// var fields = this.fields.filter(function(field) {
+			// 	return field.modifiedValue !== undefined;
+			// });
+			this.loading = true;
+			this.renderFooter();
+			return fetch(KarmaFields.saveURL+"/"+resource.middleware, {
+				method: "post",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({
+					values: fields.map(function(field) {
+						return {
+							uri: field.post.uri || "",
+							key: field.resource.key || "",
+							value: field.modifiedValue
+						};
+					})
+				}),
+				mode: "same-origin"
+			}).then(function(response) {
+				fields.forEach(function(field) {
+					field.originalValue = Promise.resolve(field.modifiedValue);
+					field.update(field.modifiedValue);
+				});
+				manager.loading = false;
+				// manager.status = "Item saved";
+				manager.renderFooter("Items saved");
+				// setTimeout(function() {
+				// 	manager.status = "";
+				// 	manager.renderFooter();
+				// }, 1000);
+				return response.json();
+			});
+		},
+
+
+		// addChange: function(uri, key, value) {
+		// 	if (!this.pool[uri]) {
+		// 		this.pool[uri] = {};
+		// 	}
+		// 	this.pool[uri][key] = value;
+		// },
+		// save: function() {
+		// 	KarmaFieldMedia.cache.put(KarmaFields.getURL+"/"+file, value);
+		// 	return fetch(KarmaFields.saveURL+"/"+file, {
+		// 		method: "post",
+		// 		headers: {"Content-Type": "application/json"},
+		// 		body: JSON.stringify({
+		// 			value: value
+		// 		}),
+		// 		mode: "same-origin"
+		// 	}).then(function(response) {
+		// 		return response.json();
+		// 	});
+		// },
+		addItem: function() {
+
+			manager.posts.push({});
+      if (manager.render) {
+        manager.render();
+      }
+
+			this.select.select(0, manager.posts.length-1, this.select.width, 1);
+			var fields = this.select.getSelectedFields();
+			fields.forEach(function(field) {
+				field.update("");
+			});
+			var field = fields.shift();
+			if (field && field.onFocus) {
+				field.onFocus();
+			}
+
+
+			// manager.loading = true;
+			// manager.renderFooter();
+			// return fetch(KarmaFields.addURL+"/"+resource.middleware, {
+			// 	method: "post",
+			// 	headers: {"Content-Type": "application/json"},
+			// 	body: JSON.stringify({
+			// 		filters: this.filter && this.filter.getDescendantParams() || {}
+			// 	}),
+			// 	mode: "same-origin"
+			// }).then(function(response) {
+			// 	return response.json();
+			// }).then(function(post) {
+			// 	if (resource.columns) {
+			// 		console.log(resource.columns);
+			// 		resource.columns.forEach(function(column) {
+			// 			post[column.key] = column.field && column.field.default || "";
+			// 		});
+			// 	}
+			// 	manager.posts.push(post);
+      //   if (manager.render) {
+      //     manager.render();
+      //   }
+			// 	manager.loading = false;
+			// 	manager.renderFooter("Items added");
+      //   return post;
+			// });
+		},
+		removeItems: function(items) {
+			manager.posts = manager.posts.filter(function(post) {
+				return items.indexOf(post) < 0;
+			});
+			this.loading = true;
+			this.renderFooter();
+
+			return fetch(KarmaFields.removeURL+"/"+resource.middleware, {
+				method: "post",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({
+					uris: items.map(function(item) {
+						return item.uri;
+					})
+				}),
+				mode: "same-origin"
+			}).then(function(response) {
+				return response.json();
+			}).then(function(result) {
+				if (manager.render) {
+					manager.render();
+				}
+				manager.loading = false;
+				// manager.status = "Items deleted";
+				manager.renderFooter("Items deleted");
+				// setTimeout(function() {
+				// 	manager.status = "";
+				// 	manager.renderFooter();
+				// }, 1000);
+        return result;
+			});
 		}
 	};
+	if (!resource.middleware) {
+		console.error("Middleware is missing");
+	}
+	manager.select.onSave = function(event) {
+		var fields = manager.fields.filter(function(field) {
+			return field.modifiedValue !== undefined;
+		});
+		if (fields.length) {
+			manager.save(fields);
+			event.preventDefault();
+		}
+	}
 	return manager;
 }

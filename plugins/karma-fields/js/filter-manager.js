@@ -46,31 +46,67 @@ KarmaFieldMedia.managers.filter = function(resource) {
 		// 		}
 		// 	})
 		// },
-		getParam: function() {
-			if (resource.key) {
-				return "filter-"+resource.key+"="+this.value;
-			} else {
-				return "search="+this.value;
+		// getParam: function() {
+		// 	// if (resource.key) {
+		// 	// 	// return "filter-"+resource.key+"="+this.value;
+		// 	// 	return {
+		// 	// 		key: "filter-"+resource.key,
+		// 	// 		value: this.value
+		// 	// 	};
+		// 	// } else {
+		// 	// 	// return "search="+this.value;
+		// 	// 	return {
+		// 	// 		key: "search",
+		// 	// 		value: this.value
+		// 	// 	};
+		// 	// }
+		// 	return {
+		// 		key: resource.key,
+		// 		value: this.value
+		// 	};
+		// },
+		// getAncestorParams: function() {
+		// 	if (this.parent) {
+		// 		params = this.parent.getAncestorParams();
+		// 		if (this.parent.value) {
+		// 			params.push(this.parent.getParam());
+		// 		}
+		// 	} else {
+		// 		params = [];
+		// 	}
+		// 	return params;
+		// },
+		getAncestorParams: function(params) {
+			if (!params) {
+				params = {};
 			}
-		},
-		getAncestorParams: function() {
 			if (this.parent) {
-				params = this.parent.getAncestorParams();
+				this.parent.getAncestorParams(params);
 				if (this.parent.value) {
-					params.push(this.parent.getParam());
+					params[this.parent.resource.key || "search"] = this.parent.value;
 				}
-			} else {
-				params = [];
 			}
 			return params;
 		},
-		getDescendantParams: function() {
-			var params = [];
+		// getDescendantParams: function() {
+		// 	var params = [];
+		// 	if (this.value) {
+		// 		params.push(this.getParam());
+		// 	}
+		// 	for (var i = 0; i < this.children.length; i++) {
+		// 		params = params.concat(this.children[i].getDescendantParams());
+		// 	}
+		// 	return params;
+		// },
+		getDescendantParams: function(params) {
+			if (!params) {
+				params = {};
+			}
 			if (this.value) {
-				params.push(this.getParam());
+				params[resource.key || "search"] = this.value;
 			}
 			for (var i = 0; i < this.children.length; i++) {
-				params = params.concat(this.children[i].getDescendantParams());
+				this.children[i].getDescendantParams(params);
 			}
 			return params;
 		},
@@ -85,7 +121,13 @@ KarmaFieldMedia.managers.filter = function(resource) {
 				if (resource.key) {
 					var file = KarmaFields.filterURL+"/"+this.table.resource.middleware+"/"+resource.key;
 					// var params = tableManager.encodeFilters();
-					var params = this.getAncestorParams();
+					// var params = this.getAncestorParams();
+					var params = [];
+					var filters = this.getDescendantParams();
+					for (var key in filters) {
+						params.push(key+"="+filters[key]);
+					}
+
 					return this.table.query(file, params, noCache);
 				} else {
 					return Promise.resolve();
@@ -105,7 +147,7 @@ KarmaFieldMedia.managers.filter = function(resource) {
 			this.resetDescendants();
 			this.value = value || "";
 			this.table.page = 1;
-			this.table.request().then(function() {
+			return this.table.request().then(function() {
 				manager.children.forEach(function(child) {
 					child.update();
 				});

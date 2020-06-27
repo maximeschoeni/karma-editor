@@ -17,9 +17,9 @@ class Karma_Cache {
 		require_once plugin_dir_path( __FILE__ ) . 'class-posts.php';
 
 
-		add_action('wp_ajax_karma_cache_delete', array($this, 'ajax_delete_cache'));
+		add_action('wp_ajax_karma_cache_flush', array($this, 'ajax_flush_cache'));
 
-		add_action('parse_request', array($this, 'parse_request'));
+		add_action('parse_request', array($this, 'parse_request'), 11);
 
 		// add_action('save_post', array($this, 'save_post'), 20, 3);
 		// add_action('karma_cache_save_post', array($this, 'save_post'), 10, 3);
@@ -32,7 +32,7 @@ class Karma_Cache {
 
 		}
 
-		add_action('sublanguage_init', array($this, 'sublanguage_init'), 11);
+		// add_action('sublanguage_init', array($this, 'sublanguage_init'), 11);
 		// add_action('sublanguage_init', array($this, 'sublanguage_admin_init'));
 
 
@@ -56,11 +56,11 @@ class Karma_Cache {
 	/**
 	 * @hook 'parse_request'
 	 */
-	public function sublanguage_init() {
-
-		require_once plugin_dir_path( __FILE__ ) . 'class-multilanguage.php';
-
-	}
+	// public function sublanguage_init() {
+	//
+	// 	require_once plugin_dir_path( __FILE__ ) . 'class-multilanguage.php';
+	//
+	// }
 
 	/**
 	 * get post value
@@ -120,41 +120,60 @@ class Karma_Cache {
 		if (strpos($wp->request, $this->path) === 0) {
 
 			$path = trim(substr($wp->request, strlen($this->path)), '/');
-			// $parts = explode('/', $path);
-			// $middleware = array_shift($parts);
-			// $filename = array_pop($parts);
-			// $type = array_pop($parts);
-			// $slug = implode('/', $parts);
 
-			$locator = $this->parse_path($path);
+			$value = $this->request($path);
 
-			// $object = $this->get_object($locator->middleware, $locator->uri);
-			//
-			// if ($object) {
+			if (isset($value)) {
 
-				// do_action('karma_cache_request', $object, $locator, $this);
-				do_action('karma_cache_request', $locator->middleware, $locator->uri, $locator->key, $this);
-				do_action("karma_cache_{$locator->middleware}_request", $locator->uri, $locator->key, $this);
+				if (pathinfo($path, PATHINFO_EXTENSION) === 'json') {
 
-				$value = $this->get($path);
+					$value = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-				if (isset($value)) {
-
-					if (pathinfo($locator->key, PATHINFO_EXTENSION) === 'json') {
-
-						$value = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-					}
-
-					echo $value;
-					exit;
-
-				} else {
-
-					header('HTTP/1.1 404 Not Found');
-					exit;
+					header('Content-Type: application/json');
 
 				}
+
+				echo $value;
+
+			} else {
+
+				header('HTTP/1.1 404 Not Found');
+
+			}
+
+			exit;
+
+
+
+			// $locator = $this->parse_path($path);
+			//
+			// // $object = $this->get_object($locator->middleware, $locator->uri);
+			// //
+			// // if ($object) {
+			//
+			// 	// do_action('karma_cache_request', $object, $locator, $this);
+			// 	do_action('karma_cache_request', $locator->middleware, $locator->uri, $locator->key, $this);
+			// 	do_action("karma_cache_{$locator->middleware}_request", $locator->uri, $locator->key, $this);
+			//
+			// 	$value = $this->get($path);
+			//
+			// 	if (isset($value)) {
+			//
+			// 		if (pathinfo($locator->key, PATHINFO_EXTENSION) === 'json') {
+			//
+			// 			$value = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+			//
+			// 		}
+			//
+			// 		echo $value;
+			// 		exit;
+			//
+			// 	} else {
+			//
+			// 		header('HTTP/1.1 404 Not Found');
+			// 		exit;
+			//
+			// 	}
 
 			// } else {
 			//
@@ -164,6 +183,28 @@ class Karma_Cache {
 			// }
 
 		}
+
+	}
+
+	/**
+	 * get
+	 */
+	public function request($path) {
+
+		$value = $this->get($path);
+
+		if (!isset($value)) {
+
+			$locator = $this->parse_path($path);
+
+			do_action('karma_cache_request', $locator->middleware, $locator->uri, $locator->key, $this);
+			do_action("karma_cache_{$locator->middleware}_request", $locator->uri, $locator->key, $this);
+
+			$value = $this->get($path);
+
+		}
+
+		return $value;
 
 	}
 
@@ -205,15 +246,8 @@ class Karma_Cache {
 			}
 
 			return $value;
-
 		}
-		// else {
-		//
-		// 	$value = '';
-		//
-		// }
-		//
-		// return $value;
+
 	}
 
 	/**
@@ -333,11 +367,13 @@ class Karma_Cache {
 
 
 	/**
-	 * @ajax 'karma_cache_delete'
+	 * @ajax 'karma_cache_flush'
 	 */
-	public function ajax_delete_cache() {
+	public function ajax_flush_cache() {
 
 		$this->rrmdir(ABSPATH.$this->path);
+
+		do_action('karma_cache_flush'); // -> clear posts dependancies
 
 		echo json_encode('ok');
 		exit;
@@ -352,12 +388,12 @@ class Karma_Cache {
 		if (current_user_can('manage_options')) {
 
 			$wp_admin_bar->add_node(array(
-				'id'    => 'delete-clusters',
+				'id'    => 'karma-cache-flush',
 				// 'parent' => 'clusters-group',
 				'title' => 'Delete Cache',
 				'href'  => '#',
 				'meta'  => array(
-					'onclick' => 'fetch("'.admin_url('admin-ajax.php').'", {method: "post", headers: {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}, body: "action=karma_cache_delete", credentials: "same-origin"}).then(function(response) {console.log(response.json())});'
+					'onclick' => 'var link = this;fetch("'.admin_url('admin-ajax.php').'", {method: "post", headers: {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}, body: "action=karma_cache_flush", credentials: "same-origin"}).then(function(response) {link.innerText="Delete Cache"});link.innerText="...";link.blur();return false;'
 				)
 			));
 

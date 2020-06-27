@@ -18,24 +18,24 @@
 
 
 
-KarmaFieldMedia.buildSection = function(section, post) {
-
-	var manager = KarmaFieldMedia.managers.field(middleware, section, post);
-
-	return build({
-		class: "karma-field-section",
-		child: manager.build()
-	});
-}
-
-
-KarmaFieldMedia.buildTable = function(table, posts) {
-	var manager = KarmaFieldMedia.managers.table(table, posts);
-	return build({
-		class: "karma-field-table",
-		child: manager.build()
-	});
-}
+// KarmaFieldMedia.buildSection = function(section, post) {
+//
+// 	var manager = KarmaFieldMedia.managers.field(middleware, section, post);
+//
+// 	return build({
+// 		class: "karma-field-section",
+// 		child: manager.build()
+// 	});
+// }
+//
+//
+// KarmaFieldMedia.buildTable = function(table, posts) {
+// 	var manager = KarmaFieldMedia.managers.table(table, posts);
+// 	return build({
+// 		class: "karma-field-table",
+// 		child: manager.build()
+// 	});
+// }
 
 
 

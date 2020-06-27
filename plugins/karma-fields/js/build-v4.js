@@ -21,7 +21,9 @@ function build(args) {
 		if (args.children && typeof args.children === "function") {
 			if (children) {
 				for (var i = 0; i < children.length; i++) {
-					element.removeChild(children[i]);
+					if (children[i]) {
+						element.removeChild(children[i]);
+					}
 				}
 			}
 			children = args.children.apply(null, arguments);

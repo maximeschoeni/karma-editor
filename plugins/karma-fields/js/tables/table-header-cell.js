@@ -27,36 +27,8 @@ KarmaFieldMedia.tables.headerCell = function(manager, column) {
                   build({
                     class: "order-icon change-order",
                     init: function(element) {
-                      var url = KarmaFields.icons_url+"/sort.svg";
-                      element.style.backgroundImage = "url("+url+")";
-                      // fetch(url, {
-                      //   cache: "force-cache"
-                      // }).then(function(response) {
-                      // 	return response.text();
-                      // }).then(function(svg) {
-                      //   element.innerHTML = svg;
-                      // });
-                    }
-                  }),
-                  build({
-                    class: "order-icon order-up",
-                    init: function(element) {
-                      var url = KarmaFields.icons_url+"/arrow-up.svg";
-                      element.style.backgroundImage = "url("+url+")";
-                      // fetch(url, {
-                      //   cache: "force-cache"
-                      // }).then(function(response) {
-                      // 	return response.text();
-                      // }).then(function(svg) {
-                      //   element.innerHTML = svg;
-                      // });
-                    }
-                  }),
-                  build({
-                    class: "order-icon order-down",
-                    init: function(element) {
-                      var url = KarmaFields.icons_url+"/arrow-down.svg";
-                      element.style.backgroundImage = "url("+url+")";
+                      // var url = KarmaFields.icons_url+"/sort.svg";
+                      // element.style.backgroundImage = "url("+url+")";
                       // fetch(url, {
                       //   cache: "force-cache"
                       // }).then(function(response) {
@@ -66,6 +38,34 @@ KarmaFieldMedia.tables.headerCell = function(manager, column) {
                       // });
                     }
                   })
+                  // build({
+                  //   class: "order-icon order-up",
+                  //   init: function(element) {
+                  //     var url = KarmaFields.icons_url+"/arrow-up.svg";
+                  //     element.style.backgroundImage = "url("+url+")";
+                  //     // fetch(url, {
+                  //     //   cache: "force-cache"
+                  //     // }).then(function(response) {
+                  //     // 	return response.text();
+                  //     // }).then(function(svg) {
+                  //     //   element.innerHTML = svg;
+                  //     // });
+                  //   }
+                  // }),
+                  // build({
+                  //   class: "order-icon order-down",
+                  //   init: function(element) {
+                  //     var url = KarmaFields.icons_url+"/arrow-down.svg";
+                  //     element.style.backgroundImage = "url("+url+")";
+                  //     // fetch(url, {
+                  //     //   cache: "force-cache"
+                  //     // }).then(function(response) {
+                  //     // 	return response.text();
+                  //     // }).then(function(svg) {
+                  //     //   element.innerHTML = svg;
+                  //     // });
+                  //   }
+                  // })
                 ];
               },
               init: function(a, update) {

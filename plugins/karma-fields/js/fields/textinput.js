@@ -20,13 +20,37 @@ KarmaFieldMedia.fields.textinput = function(field) {
 						field.default().then(function(result) {
 							input.placeholder = result;
 						});
-						field.loadValue().then(function(result) {
-							input.value = result;
+						field.original().then(function(result) {
+							input.value = result || "";
+							field.onUpdate();
 						});
-						input.addEventListener("blur", function() {
-							field.save(input.value);
+						// input.addEventListener("blur", function() {
+						// 	field.save(input.value);
+						// });
+						field.onUpdate = function() {
+							if (field.modifiedValue !== undefined) {
+								input.classList.add("modified");
+							} else {
+								input.classList.remove("modified");
+							}
+						};
+						input.addEventListener("input", function() {
+							// field.currentValue = input.value;
+							field.update(input.value);
+							// .then(function(modifiedValue) {
+							// 	field.onUpdate();
+							// });
 						});
+						field.onFocus = function() {
+							input.focus();
+						}
+						field.onBlur = function() {
+							input.blur();
+						}
 					}
+				}),
+				build({
+					class: "field-info",
 				})
 			];
 		}

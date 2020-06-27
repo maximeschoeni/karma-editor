@@ -2,7 +2,7 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 	// var filterManager = KarmaFieldMedia.managers.filter(manager, filter);
 	return build({
 		tag: "ul",
-		class: "karma-filter post-status",
+		class: "filter-item filter-post-status",
 		children: function(options) {
 			// return [{
 			// 	title: filter.title || "All",
@@ -21,7 +21,11 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 									}
 									element.addEventListener("click", function() {
 										// filterManager.toggle(option.value);
-										filterManager.set(option.value);
+										// filterManager.table.loading = true;
+										filterManager.set(option.value).then(function() {
+											// filterManager.table.loading = false;
+											filterManager.render(options);
+										});
 										filterManager.render(options);
 									});
 									update();
@@ -53,6 +57,17 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 					}
 				});
 			});
+			// .concat([
+			// 	build({
+			// 		tag: "li",
+			// 		class: "placeholder"+(filterManager.loading ? " loading" : ""),
+			// 		child: function() {
+			// 			return build({
+			// 				class: "table-spinner"
+			// 			});
+			// 		}
+			// 	})
+			// ]);
 		},
 		init: function(element, update) {
 			filterManager.render = update;
@@ -67,7 +82,11 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 			// 	// 	};
 			// 	// });
 			// });
-			update([]);
+			update([{
+				value: "",
+				title: "All",
+				total: "0"
+			}]);
 		}
 	})
 }

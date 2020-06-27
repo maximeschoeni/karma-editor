@@ -133,7 +133,13 @@ KarmaFieldMedia.fields.date = function(field) {
                                               event.preventDefault();
                                               dateManager.sqlDate = day.sqlDate;
                                               dateManager.update();
-                                              field.save(dateManager.sqlDate);
+                                              // field.save(dateManager.sqlDate);
+                                              // field.currentValue = dateManager.sqlDate;
+                                              field.update(dateManager.sqlDate).then(function(value) {
+                                                if (value !== undefined) {
+                                                  // -> has change
+                                                }
+                                              });
                                               dateManager.close();
                                             }
                                             update();
@@ -178,17 +184,19 @@ KarmaFieldMedia.fields.date = function(field) {
               tag: "input",
               class: "karma-field-input",
               init: function(input) {
-                field.input = input;
+                // field.input = input;
                 input.type = "text";
                 // input.id = field.resource.key;
                 dateManager.update = function() {
-                  var date = Calendar.parse(dateManager.sqlDate);
-                  input.value = Calendar.format(date, format);
+                  if (dateManager.sqlDate) {
+                    var date = Calendar.parse(dateManager.sqlDate);
+                    input.value = Calendar.format(date, format);
+                  }
                 };
                 field.default().then(function(result) {
                   input.placeholder = result && Calendar.parse(result) || field.resource.placeholder && Calendar.parse(field.resource.placeholder) || "";
                 });
-                field.loadValue().then(function(result) {
+                field.original().then(function(result) {
                   dateManager.sqlDate = result;
                   dateManager.calendar.date = result && Calendar.parse(result) || new Date();
                   dateManager.update();
@@ -205,7 +213,13 @@ KarmaFieldMedia.fields.date = function(field) {
                     dateManager.sqlDate = '';
                   }
                   //onSave && onSave(sqlDate);
-                  field.save(dateManager.sqlDate);
+                  // field.save(dateManager.sqlDate);
+                  // field.currentValue = dateManager.sqlDate;
+                  field.update(dateManager.sqlDate).then(function(value) {
+                    if (value !== undefined) {
+                      // -> has change
+                    }
+                  });
                 });
                 var keyChange = function(dir) {
                   var index = input.selectionStart || 0;
@@ -240,6 +254,9 @@ KarmaFieldMedia.fields.date = function(field) {
                 input.addEventListener("focusout", function() {
                   dateManager.close();
                 });
+                field.onBlur = function() {
+    							input.blur();
+    						}
               }
             })
           ];

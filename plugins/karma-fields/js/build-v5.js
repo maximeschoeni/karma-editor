@@ -1,5 +1,5 @@
 /**
- * build (V4)
+ * build (V5)
  */
 function build(args) {
 	var element = document.createElement(args.tag || "div");
@@ -7,13 +7,13 @@ function build(args) {
 	var children;
 	var update = function() {
 		if (args.text) {
-			element.innerHTML = args.text.apply(null, arguments) || "";
+			element.innerHTML = args.text(arguments) || "";
 		}
 		if (args.child) {
 			if (child) {
 				element.removeChild(child);
 			}
-			child = args.child.apply(null, arguments);
+			child = args.child(arguments);
 			if (child) {
 				element.appendChild(child);
 			}
@@ -21,10 +21,12 @@ function build(args) {
 		if (args.children) {
 			if (children) {
 				for (var i = 0; i < children.length; i++) {
-					element.removeChild(children[i]);
+					if (children[i]) {
+						element.removeChild(children[i]);
+					}
 				}
 			}
-			children = args.children.apply(null, arguments);
+			children = args.children(arguments);
 			if (children) {
 				for (var i = 0; i < children.length; i++) {
 					if (children[i]) {

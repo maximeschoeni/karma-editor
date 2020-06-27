@@ -1,9 +1,10 @@
 
-KarmaFieldMedia.managers.field = function(tableManager, resource, post, parent) {
+KarmaFieldMedia.managers.field = function(resource) {
 	var manager = {
 		resource: resource,
-		post: post,
-		parent: parent,
+		post: null,
+		parent: null,
+		table: null,
 		build: function() {
 			if (KarmaFieldMedia.fields[resource.name || "group"]) {
 				this.element = KarmaFieldMedia.fields[resource.name || "group"](this);
@@ -12,95 +13,177 @@ KarmaFieldMedia.managers.field = function(tableManager, resource, post, parent) 
 		},
 		getChildren: function() {
 			return (resource.children || []).map(function(resource) {
-				return KarmaFieldMedia.managers.field(tableManager.resource.middleware, resource, post, manager);
+				var child = KarmaFieldMedia.managers.field(resource);
+				child.table = manager.table;
+				child.post = manager.post;
+				child.parent = manager;
+				return child;
 			});
 		},
 		getRoot: function() {
-			return parent && parent.getRoot() || this;
+			return this.parent && this.parent.getRoot() || this;
 		},
-		loadValue: function() {
-			if (resource.key && post[resource.key] !== undefined) {
-				manager.value = post[resource.key];
-				return Promise.resolve(manager.value);
-			} else if (post.uri) {
-				return this.request(post.uri).then(function(value) {
-					manager.value = value;
-					return value;
-				});
-			} else {
-				return Promise.reject(new Error("Field ("+resource.key+") cannot get value: no uri"));
-			}
-
-			// if (resource.key) {
-			// 	if (resource.object) {
-			// 		var postURI = post[resource.locator || "uri"];
-			// 		if (postURI) {
-			// 			var file = postURI+"/"+resource.key+"."+(resource.extension || "json");
-			// 			return this.query(file);
-			// 		} else {
-			// 			return Promise.reject(new Error("Field ("+resource.key+") cannot get value: no postURI"));
-			// 		}
-			// 	} else if (parent) {
-			// 		return parent.value().then(function(result) {
-			// 			return result[resource.key];
-			// 		});
-			// 	} else {
-			// 		return Promise.reject(new Error("Field ("+resource.key+") cannot get value: no object and no parent"));
-			// 	}
-			// } else {
-			// 	return Promise.reject(new Error("Field Manager cannot get value: no key"));
-			// }
+		// getChange: function() {
+		// 	return this.original().then(function(value) {
+		// 		if (value !== manager.currentValue) {
+		// 			return manager;
+		// 		}
+		// 	});
+		// },
+		update: function(value) {
+			return this.original().then(function(originalValue) {
+				if (value === originalValue) {
+					manager.modifiedValue = undefined;
+				} else {
+					manager.modifiedValue = value;
+				}
+				if (manager.onUpdate) {
+					manager.onUpdate();
+				}
+				if (manager.table.renderFooter) {
+					manager.table.renderFooter();
+				}
+				return manager.modifiedValue;
+			});
 		},
-		default: function() {
-			if (post.default_uri) {
-				return this.request(post.default_uri);
-			} else {
-				return Promise.resolve("");
-			}
-			// if (resource.key) {
-			// 	if (resource.object) {
-			// 		if (resource.default_locator) {
-			// 			var postURI = post[resource.default_locator];
-			// 			if (postURI) {
-			// 				var file = postURI+"/"+resource.key+"."+(resource.extension || "json");
-			// 				return this.query(file);
-			// 			} else {
-			// 				return Promise.reject(new Error("Field ("+resource.key+") cannot get default: no postURI"));
-			// 			}
-			// 		} else {
-			// 			return Promise.resolve(resource.default || "");
-			// 		}
-			// 	} else if (parent) {
-			// 		return parent.default().then(function(result) {
-			// 			return result[key || field.key];
-			// 		});
-			// 	} else {
-			// 		return Promise.reject(new Error("Field ("+resource.key+") cannot get default: no object and no parent"));
-			// 	}
-			// } else {
-			// 	return Promise.reject(new Error("Field Manager cannot get default: no key"));
-			// }
-		},
-		request: function(uri) {
+		// modified: function() {
+		// 	return this.original().then(function(originalValue) {
+		// 		if (originalValue === manager.currentValue) {
+		// 			return undefined;
+		// 		} else {
+		// 			return manager.currentValue;
+		// 		}
+		// 	});
+		// },
+		original: function() {
 			if (resource.key) {
 				if (resource.type) {
-					var file = tableManager.resource.middleware+"/"+uri+"/"+resource.key;
-					return this.query(file);
-				} else if (parent) {
-					return parent.request(uri).then(function(result) {
+					if (!this.originalValue) {
+						if (this.post[resource.key] !== undefined) {
+							this.originalValue = Promise.resolve(this.post[resource.key]);
+						} else if (this.post.uri) {
+							var file = this.table.resource.middleware+"/"+this.post.uri+"/"+resource.key;
+							this.originalValue = this.query(file).then(function(value) {
+								return value;
+							});
+						} else {
+							this.originalValue = Promise.resolve(undefined);
+							// this.originalValue = Promise.reject(new Error("Karma Fields field manager error: no uri"));
+						}
+					}
+					return this.originalValue;
+				} else if (this.parent) {
+					return this.parent.original().then(function(result) {
 						return result[resource.key];
 					});
 				} else {
-					return Promise.reject(new Error("Karma Fields Get Error: no type and no parent"));
+					return Promise.reject(new Error("Karma Fields field manager Error: no type and no parent"));
 				}
-			} else if (parent) {
-				return parent.request(uri).then(function(result) {
-					return result;
-				});
+			} else if (this.parent) {
+				return this.parent.original();
 			} else {
-				return Promise.reject(new Error("Karma Fields Get Error: no key and no parent"));
+				return Promise.reject(new Error("Karma Fields field manager Error: no key and no parent"));
 			}
 		},
+		// original: function() {
+		// 	if (this.originalValue !== undefined) {
+		// 		return Promise.resolve(this.originalValue);
+		// 	} else if (resource.key && this.post[resource.key] !== undefined) {
+		// 		this.originalValue = this.post[resource.key];
+		// 		return Promise.resolve(this.post[resource.key]);
+		// 	} else if (this.post.uri) {
+		// 		return this.request(this.post.uri).then(function(value) {
+		// 			manager.originalValue = value;
+		// 			return value;
+		// 		});
+		// 	} else {
+		// 		return Promise.reject(new Error("Karma Fields field error: uri not found"));
+		// 	}
+		// },
+		value: function() {
+			if (this.modifiedValue !== undefined) {
+				return Promise.resolve(this.modifiedValue);
+			} else {
+				return this.original();
+			}
+			// var uri = this.post.uri;
+			// var key = resource.key;
+			//
+			// if (uri && key) {
+			// 	if (this.currentValue !== undefined) {
+			// 		return Promise.resolve(this.currentValue);
+			// 	// if (this.table.hasChange(uri, key)) {
+			// 	// 	return Promise.resolve(this.table.getChange(uri, key));
+			// 	// }
+			// 	// if (this.currentValue !== undefined) {
+			// 	// 	return Promise.resolve(this.currentValue);
+			// 	// } else {
+			// 	// 	return this.original();
+			// 	// }
+			// 	} else if (this.originalValue !== undefined) {
+			// 		return Promise.resolve(this.originalValue);
+			// 	} else if (this.post[key] !== undefined) {
+			// 		this.originalValue = this.post[key];
+			// 		return Promise.resolve(this.post[key]);
+			// 	} else {
+			// 		return this.request(uri, key).then(function(value) {
+			// 			manager.originalValue = value;
+			// 			return value;
+			// 		});
+			// 	}
+			// } else {
+			// 	return Promise.reject(new Error("Karma Fields field manager error: uri or key not found"));
+			// }
+			// else if (resource.key && this.post[resource.key] !== undefined) {
+			// 	this.originalValue = this.post[resource.key];
+			// 	return Promise.resolve(this.post[resource.key]);
+			// } else if (this.post.uri) {
+			// 	return this.request(this.post.uri).then(function(value) {
+			// 		manager.originalValue = value;
+			// 		return value;
+			// 	});
+			// } else {
+			// 	return Promise.reject(new Error("Karma Fields field error: uri not found"));
+			// }
+		},
+		default: function() {
+			if (this.post.default_uri && (resource.key && resource.type || this.parent)) {
+				if (resource.key) {
+					if (resource.type) {
+						var file = this.table.resource.middleware+"/"+uri+"/"+resource.key;
+						return this.query(file);
+					} else if (this.parent) {
+						return this.parent.default().then(function(result) {
+							return result[resource.key];
+						});
+					}
+				} else if (this.parent) {
+					return this.parent.default();
+				}
+			} else {
+				return Promise.resolve("");
+			}
+		},
+		// request: function(uri) {
+		// 	if (resource.key) {
+		// 		if (resource.type) {
+		// 			var file = this.table.resource.middleware+"/"+uri+"/"+resource.key;
+		// 			return this.query(file);
+		// 		} else if (this.parent) {
+		// 			return this.parent.request(uri).then(function(result) {
+		// 				return result[resource.key];
+		// 			});
+		// 		} else {
+		// 			return Promise.reject(new Error("Karma Fields field manager Error: no type and no parent"));
+		// 		}
+		// 	} else if (this.parent) {
+		// 		return this.parent.request(uri).then(function(result) {
+		// 			return result;
+		// 		});
+		// 	} else {
+		// 		return Promise.reject(new Error("Karma Fields field manager Error: no key and no parent"));
+		// 	}
+		// },
 		format: function(response) {
 			if (response.ok) {
 				var result;
@@ -136,103 +219,73 @@ KarmaFieldMedia.managers.field = function(tableManager, resource, post, parent) 
 				KarmaFieldMedia.cache.put(url, results);
 				return results;
 			});
-
-			// KarmaFieldMedia.cache.match(url).then(function(response) {
-			// 	if (!response) {
-			// 		return fetch(url, {
-			// 			cache: "reload"
-			// 		}).then(function(response) {
-			// 			KarmaFieldMedia.cache.put(url, response);
-			// 		});
-			// 	}
-			// 	return response;
-			// }).then(function(response) {
-			// 	return manager.format(response);
-			// });
-
-
-			// var promise = KarmaFieldMedia.cache.query(file);
-			// if (!promise) {
-			// 	var url = KarmaFields.queryPostURL+"/"+file;
-			// 	// var isJson = file.slice(-5) === ".json"; // file.endsWith(".json")
-			// 	// promise = fetch(url, {
-			// 	// 	cache: "reload"
-			// 	// }).then(function(response) {
-			// 	// 	if (isJson) {
-			// 	// 		return response.json();
-			// 	// 	} else {
-			// 	// 		return response.text();
-			// 	// 	}
-			// 	// }).then(function(value) {
-			// 	// 	if (isJson && typeof value !== "object") {
-			// 	// 		value = {};
-			// 	// 	}
-			// 	// 	return value;
-			// 	// });
-			// 	promise = KarmaFieldMedia.cache.query(file) || fetch(KarmaFields.queryPostURL+"/"+file, {
-			// 		cache: "reload"
-			// 	}).then(function(response) {
-			// 		return manager.format(response);
-			// 	});
-			// 	KarmaFieldMedia.cache.add(file, promise);
-			// }
-			// return promise;
-		},
-		update: function(file, value) {
-			KarmaFieldMedia.cache.put(KarmaFields.getURL+"/"+file, value);
-			return fetch(KarmaFields.saveURL+"/"+file, {
-				method: "post",
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify({
-					value: value
-				}),
-				mode: "same-origin"
-			}).then(function(response) {
-				return response.json();
-			});
-		},
-		save: function(value) {
-			manager.value = value;
-			if (resource.key) {
-				if (resource.type) {
-					var uri = post[resource.locator || "uri"];
-					if (uri) {
-						var file = tableManager.resource.middleware+"/"+uri+"/"+resource.key;
-						if (post[resource.key]) {
-							post[resource.key] = value;
-						}
-						return this.update(file, value).then(function() {
-							// -> update related filter
-							if (tableManager.filter) {
-								tableManager.filter.updateDescendant(resource.key);
-								//tableManager.filter.renderNode();
-							}
-
-							// if (tableManager.filters[resource.key]) {
-							// 	tableManager.filters[resource.key].update(true);
-							// }
-						});
-					} else {
-						return Promise.reject(new Error("Karma Fields Saving Error: no postURI"));
-					}
-				} else if (parent) {
-					return parent.value().then(function(result) {
-						result[resource.key] = value;
-						return parent.save(result);
-					});
-				} else {
-					return Promise.reject(new Error("Field ("+resource.key+") cannot save: no object and no parent"));
-				}
-			} else if (parent) {
-				return parent.save(value);
-			} else {
-				return Promise.reject(new Error("Field Manager cannot save: no key and no parent"));
-			}
 		}
+		// update: function(file, value) {
+		// 	KarmaFieldMedia.cache.put(KarmaFields.getURL+"/"+file, value);
+		// 	return fetch(KarmaFields.saveURL+"/"+file, {
+		// 		method: "post",
+		// 		headers: {"Content-Type": "application/json"},
+		// 		body: JSON.stringify({
+		// 			value: value
+		// 		}),
+		// 		mode: "same-origin"
+		// 	}).then(function(response) {
+		// 		return response.json();
+		// 	});
+		// },
+		// change: function() {
+		//
+		// 	this.value().then(function(originalValue) {
+		//
+		// 	});
+		//
+		//
+		// 	if (resource.key) {
+		// 		if (resource.type) {
+		// 			var uri = this.post[resource.locator || "uri"];
+		// 			if (uri) {
+		// 				// var file = this.table.resource.middleware+"/"+uri+"/"+resource.key;
+		//
+		// 				if (this.currentValue === undefined) {
+		// 					this.original().then(function(originalValue) {
+		// 						if (value === originalValue) {
+		// 							manager.currentValue = undefined;
+		// 						} else {
+		// 							manager.table.addChange(uri, resource.key, value);
+		// 						}
+		// 					});
+		// 				}
+		//
+		// 				this.table.addChange(uri, resource.key, value);
+		//
+		// 				// if (this.post[resource.key]) {
+		// 				// 	this.post[resource.key] = value;
+		// 				// }
+		// 				//
+		// 				// return this.update(file, value).then(function() {
+		// 				// 	// -> update related filter
+		// 				// 	if (manager.table.filter) {
+		// 				// 		manager.table.filter.updateDescendant(resource.key);
+		// 				// 	}
+		// 				//
+		// 				// });
+		// 			} else {
+		// 				return Promise.reject(new Error("Karma Fields Saving Error: no postURI"));
+		// 			}
+		// 		} else if (this.parent) {
+		// 			return this.parent.value().then(function(result) {
+		// 				result[resource.key] = value;
+		// 				return this.parent.save(result);
+		// 			});
+		// 		} else {
+		// 			return Promise.reject(new Error("Field ("+resource.key+") cannot save: no object and no parent"));
+		// 		}
+		// 	} else if (this.parent) {
+		// 		return this.parent.save(value);
+		// 	} else {
+		// 		return Promise.reject(new Error("Field Manager cannot save: no key and no parent"));
+		// 	}
+		// }
 	};
-	// resource.children.forEach(function(resource) {
-	// 	var child = KarmaFieldMedia.createFieldManager(resource, post, parent);
-	// 	manager.children.push(child);
-	// });
 	return manager;
 }
