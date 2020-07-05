@@ -204,8 +204,14 @@ Class Karma_Tables {
 				'middleware' => array(
 					'required' => true
 				),
-				'values' => array(
-					'required' => true
+				'items' => array(
+					'default' => array()
+				),
+				'add' => array(
+					'default' => array()
+				),
+				'delete' => array(
+					'default' => array()
 				)
 	    )
 		));
@@ -475,7 +481,7 @@ Class Karma_Tables {
 		// $middlewares = $this->get_middlewares();
 
 		// $path = $request->get_param('path');
-		$values = $request->get_param('values');
+		// $items = $request->get_param('items');
 
 		// var_dump($data);
 		//
@@ -495,7 +501,7 @@ Class Karma_Tables {
 
 			// if ($locator->middleware && $locator->uri && $locator->key) {
 
-			$args = array();
+
 
 			// foreach ($data as $uri => $values) {
 			//
@@ -523,57 +529,129 @@ Class Karma_Tables {
 			//
 			// }
 
-			foreach ($values as $value) {
 
-				// foreach ($values as $key => $value) {
+			foreach ($request->get_param('add') as $item) {
 
+				// $this->add_item($middleware_name, $item);
 
-					$field = $this->get_key_field($middleware_name, $value['key']);
+				$this->update_item($item);
 
-					if ($field) {
+			}
 
-						if (isset($value['uri']) && $value['uri'] && isset($field['save']) && is_callable($field['save'])) {
+			$delta = array();
 
-							$id = apply_filters("karma_fields_{$middleware_name}_uri", $value['uri']);
+			// var_dump($items);
 
-							$args = call_user_func($field['save'], $args, $id, $value['key'], $value['value']);
+			foreach ($request->get_param('items') as $uri => $item) {
 
-
-							// if (isset($value['uri']) && $value['uri']) {
-							//
-							//
-							//
-							// } else {
-							//
-							//
-							// }
-
-							// return call_user_func($middleware['add'], $args);
+				// $id = isset($item['uri']) ? apply_filters("karma_fields_{$middleware_name}_uri", $item['uri']) : null;
 
 
+					$id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
 
-						} else if (isset($field['add']) && is_callable($field['add'])) {
+					$item_delta = $this->update_item($middleware_name, $id, $item);
 
-							$args = call_user_func($field['add'], $args, $value['key'], $value['value']);
+					if ($item_delta) {
 
-						}
-
-					} else {
-
-						return "karma fields rest save error: field not found ($middleware_name, {$value['key']})";
+						$delta[$uri] = $item_delta;
 
 					}
 
-				// }
+
+
+					// $args = array();
+					//
+					// foreach ($item as $key => $value) {
+					//
+					// 	$field = $this->get_key_field($middleware_name, $key);
+					//
+					// 	if ($field) {
+					//
+					// 		if (isset($field['sanitize']) && is_callable($field['sanitize'])) {
+					//
+					// 			$sanitized_value = call_user_func($field['sanitize'], $value, $id, $key);
+					//
+					// 			if ($sanitized_value !== $value) {
+					//
+					// 				$delta[$uri][$key] = $sanitized_value;
+					//
+					// 			}
+					//
+					// 		}
+					//
+					// 		if (isset($field['update']) && is_callable($field['update'])) {
+					//
+					//
+					//
+					// 			$args = call_user_func($field['update'], $args, $id, $key, $value);
+					//
+					// 		}
+					//
+					// 		// if ($id && isset($field['update']) && is_callable($field['update'])) {
+					// 		//
+					// 		// 	$args = call_user_func($field['update'], $args, $id, $key, $value);
+					// 		//
+					// 		// } else if (isset($field['add']) && is_callable($field['add'])) {
+					// 		//
+					// 		// 	$args = call_user_func($field['add'], $args, $key, $value);
+					// 		//
+					// 		// }
+					//
+					// 	} else {
+					//
+					// 		return "karma fields rest save error: field not found ($middleware_name, $key)";
+					//
+					// 	}
+					//
+					// }
+					//
+					// if ($args) {
+					//
+					// 	// if ($id) {
+					//
+					// 		if (isset($middleware['update']) && is_callable($middleware['update'])) {
+					//
+					// 			call_user_func($middleware['update'], $id, $args);
+					//
+					// 		}
+					//
+					// 	// } else {
+					// 	//
+					// 	// 	if (isset($middleware['add']) && is_callable($middleware['add'])) {
+					// 	//
+					// 	// 		return call_user_func($middleware['add'], $args);
+					// 	//
+					// 	// 	}
+					// 	//
+					// 	// }
+					//
+					// }
+
 
 			}
 
+			foreach ($request->get_param('delete') as $uri) {
 
-			if ($args && isset($middleware['update']) && is_callable($middleware['update'])) {
+				$id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
 
-				return call_user_func($middleware['update'], $args);
+				if (isset($middleware['remove']) && is_callable($middleware['remove'])) {
+
+					return call_user_func($middleware['remove'], $id);
+
+				} else {
+
+					return "karma fields rest update error: remove callback not found";
+
+				}
 
 			}
+
+			return $delta;
+
+
+
+
+
 
 				// $uri = dirname($path);
 				// $filename = basename($path);
@@ -669,84 +747,7 @@ Class Karma_Tables {
 
 	}
 
-	/**
-	 *	@rest 'wp-json/karma-fields/v1/get/'
-	 */
-	public function rest_get_field_options($request) {
 
-		$middleware_name = $request->get_param('middleware');
-		$key = $request->get_param('key');
-
-		// $middlewares = $this->get_middlewares();
-		//
-		// $middleware = $this->find($middlewares, 'name', $middleware_name);
-		//
-		// if ($middleware && $field_name) {
-			//
-			// $field = $this->find($middleware['fields'], 'name', $field_name);
-			$field = $this->get_key_field($middleware_name, $key);
-
-			if ($field) {
-
-				if (isset($field['fetch']) && is_callable($field['fetch'])) {
-
-					return call_user_func($field['fetch'], $request);
-
-				} else {
-
-					return "karma fields rest get error: get callback not found";
-
-				}
-
-			} else {
-
-				return "karma fields rest field option error: field not found";
-
-			}
-
-		// } else {
-		//
-		// 	return 'karma fields rest field option error: middleware or field_name not found';
-		//
-		// }
-
-
-		// $path = $request->get_param('path');
-		//
-		// $post_uri = dirname($path);
-		// $filename = basename($path);
-		// $key = pathinfo($filename, PATHINFO_FILENAME);
-		//
-		// $post_id = apply_filters('karma_cache_parse_uri', $post_uri, $post_uri);
-		//
-		// $post = get_post($post_id);
-		//
-		// if (!$post) {
-		//
-		// 	return 'error post not exits';
-		//
-		// }
-		//
-		// $sections = $this->get_sections();
-		// $sections = $this->filter_fields($sections, 'post_type', $post->post_type, false);
-		//
-		// $field = $this->find_field($sections, 'key', $key);
-		//
-		// if (!$field) {
-		//
-		// 	return 'error field not exits';
-		//
-		// }
-		//
-		// // do_action('karma_fields_query', $request, $field, $post);
-		//
-		// $field = $this->format_field($field, false);
-		//
-		// $value = $this->get_value($field, $post);
-		//
-		// return $value;
-
-	}
 
 
 	/**
@@ -760,25 +761,24 @@ Class Karma_Tables {
 
 		$filters = $request->get_param('filters');
 
-		$args = array();
-
 		if ($middleware) {
 
-			foreach ($filters as $key => $value) {
 
-				$filter = $this->get_key_filter($middleware_name, $key);
-
-				if ($filter && isset($filter['default']) && is_callable($filter['default'])) {
-
-					$args = call_user_func($filter['default'], $args, $value);
-
-				}
-
-			}
+			// foreach ($filters as $key => $value) {
+			//
+			// 	$filter = $this->get_key_filter($middleware_name, $key);
+			//
+			// 	if ($filter && isset($filter['default']) && is_callable($filter['default'])) {
+			//
+			// 		$args = call_user_func($filter['default'], $args, $value);
+			//
+			// 	}
+			//
+			// }
 
 			if (isset($middleware['add']) && is_callable($middleware['add'])) {
 
-				return call_user_func($middleware['add'], $args);
+				return call_user_func($middleware['add'], $filters);
 
 			} else {
 
@@ -828,6 +828,168 @@ Class Karma_Tables {
 			return "karma fields rest add error: middleware not found";
 
 		}
+
+	}
+
+
+	/**
+	 *	@rest 'wp-json/karma-fields/v1/get/'
+	 */
+	public function rest_get_field_options($request) {
+
+		$middleware_name = $request->get_param('middleware');
+		$key = $request->get_param('key');
+
+		$field = $this->get_key_field($middleware_name, $key);
+
+		if ($field) {
+
+			if (isset($field['fetch']) && is_callable($field['fetch'])) {
+
+				return call_user_func($field['fetch'], $request);
+
+			} else {
+
+				return "karma fields rest get error: get callback not found";
+
+			}
+
+		} else {
+
+			return "karma fields rest field option error: field not found";
+
+		}
+
+	}
+
+	/**
+	 *	add_item
+	 */
+	public function add_item($middleware_name, $values) {
+
+		if (isset($middleware['add_item']) && is_callable($middleware['add_item'])) {
+
+			$args = array();
+
+			foreach ($values as $key => $value) {
+
+				$filter = $this->get_key_filter($middleware_name, $key);
+
+				if ($filter && isset($filter['default']) && is_callable($filter['default'])) {
+
+					$args = call_user_func($filter['default'], $args, $value);
+
+				}
+
+			}
+
+			$id = call_user_func($middleware['add_item'], $args);
+
+			$this->update_item($middleware_name, $id, $values);
+
+		} else {
+
+			return "karma fields rest add error: add_item callback not found";
+
+		}
+
+	}
+
+
+	/**
+	 *	update_item
+	 */
+	public function update_item($middleware_name, $item, $id = null) {
+
+		$delta = array();
+		$args = array();
+		$values = array();
+
+		$middleware = $this->get_middleware($middleware_name);
+
+		foreach ($item as $key => $value) {
+
+			$data_key = $this->get_key($middleware_name, $key);
+
+			if ($data_key) {
+
+				if (isset($data_key['sanitize']) && is_callable($data_key['sanitize'])) {
+
+					$values[$key] = call_user_func($data_key['sanitize'], $value);
+
+					if ($values[$key] !== $value) {
+
+						$delta[$key] = $values[$key];
+
+					}
+
+				} else {
+
+					$values[$key] = $value;
+
+				}
+
+			}
+
+		}
+
+		if (empty($id)) {
+
+			if (isset($middleware['add']) && is_callable($middleware['add'])) {
+
+				$id = call_user_func($middleware['add'], $values);
+
+			} else {
+
+				return "karma fields rest update error: add callback not found ($middleware_name)";
+
+			}
+
+		}
+
+		if (isset($id)) {
+
+			foreach ($values as $key => $value) {
+
+				$field = $this->get_key_field($middleware_name, $key);
+
+				if ($field) {
+
+					if (isset($field['update']) && is_callable($field['update'])) {
+
+						call_user_func($field['update'], $id, $key, $value, $args);
+
+					} else if (isset($value)) {
+
+						$args[$key] = $value;
+
+					}
+
+				} else {
+
+					return "karma fields rest update error: field not found ($middleware_name, $key)";
+
+				}
+
+			}
+
+		}
+
+		if ($args) {
+
+			if (isset($middleware['update']) && is_callable($middleware['update'])) {
+
+				call_user_func($middleware['update'], $id, $args);
+
+			} else {
+
+				return "karma fields rest update error: update callback not found ($middleware_name)";
+
+			}
+
+		}
+
+		return $delta;
 
 	}
 
@@ -1186,15 +1348,48 @@ Class Karma_Tables {
 	 */
 	public function register_keys($middleware, $keys) {
 
-		if (isset($this->keys[$middleware])) {
+		// if (isset($this->keys[$middleware])) {
+		//
+		// 	$this->keys[$middleware] = array_merge($keys, $this->keys[$middleware]);
+		//
+		// } else {
+		//
+		// 	$this->keys[$middleware] = $keys;
+		//
+		// }
 
-			$this->keys[$middleware] = array_merge($keys, $this->keys[$middleware]);
+		foreach ($keys as $key_name => $key) {
 
-		} else {
+			$this->register_key($middleware, $key_name, $key);
 
-			$this->keys[$middleware] = $keys;
+			// $key = isset($key_options['key']) ? $key_options['key'] : $key;
+			//
+			// $this->keys[$middleware][$key] = $key_options;
 
 		}
+
+	}
+
+	/**
+	 *	register_middleware
+	 */
+	public function register_key($middleware, $key_name, $key) {
+
+		// if (isset($this->keys[$middleware])) {
+		//
+		// 	$this->keys[$middleware] = array_merge($keys, $this->keys[$middleware]);
+		//
+		// } else {
+		//
+		// 	$this->keys[$middleware] = $keys;
+		//
+		// }
+
+
+		// $key_name = isset($key['key']) ? $key['key'] : $key_name;
+
+		$this->keys[$middleware][$key_name] = $key;
+
 
 	}
 

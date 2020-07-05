@@ -38,6 +38,8 @@ class Karma_Cache_Posts_Multilanguage {
 
 		if (isset($sublanguage) && $sublanguage->is_post_type_translatable($post->post_type)) {
 
+			remove_filter('sublanguage_postmeta_override', '__return_true');
+
 			foreach ($sublanguage->get_languages() as $language) {
 
 				if ($sublanguage->is_sub($language)) {

@@ -21,7 +21,6 @@ Class Karma_Fields_Posts {
 		$karma_fields->register_middleware('posts', array(
 			'query' => function($args) {
 				$query = new WP_Query($args);
-				// var_dump($query->query);
 				return array(
 					'query' => $query->query,
 					'num' => intval($query->found_posts),
@@ -36,19 +35,36 @@ Class Karma_Fields_Posts {
 					}, $query->posts)
 				);
 			},
-			'update' => function($args) {
-				$results = array();
-				
-				foreach (array_values($args) as $arg) {
-					$results[] = wp_update_post($arg);
-				}
-				return $results;
+			'update' => function($id, $args) {
+				$args['ID'] = $id;
+				wp_update_post($args);
+				return $args;
 			},
-			'add' => function($args) {
+			'add_item' => function($args) {
 				add_filter('wp_insert_post_empty_content', '__return_false');
 				$id = wp_insert_post($args);
+				return $id;
+			},
+			'add' => function($filters) {
+				$args = array();
+				if (isset($filters['post_type']) &&  $filters['post_type']) {
+					$args['post_type'] = $filters['post_type'];
+				} else {
+					$args['post_type'] = 'post';
+				}
+				if (isset($filters['post_status']) &&  $filters['post_status']) {
+					$args['post_status'] = $filters['post_status'];
+				} else {
+					$args['post_status'] = 'draft';
+				}
+				$args['post_date'] = date('Y-m-d h:i:s');
+				add_filter('wp_insert_post_empty_content', '__return_false');
+				$id = wp_insert_post($args);
+				$args['uri'] = apply_filters('karma_fields_posts_id', $id);
+				// return $args;
 				return array(
 					'uri' => apply_filters('karma_fields_posts_id', $id),
+					'values' => $args
 				);
 			},
 			'remove' => function($id) {
@@ -101,11 +117,11 @@ Class Karma_Fields_Posts {
 					'where' => function($key, $value) {
 						global $wpdb;
 						return $wpdb->prepare("p.$key = %s", $value);
-					},
-					'default' => function($args, $value) {
-						$args['post_type'] = $value;
-						return $args;
 					}
+					// 'default' => function($args, $value) {
+					// 	$args['post_type'] = $value;
+					// 	return $args;
+					// }
 				),
 				'poststatus' => array(
 					'name' => 'poststatus',
@@ -148,11 +164,11 @@ Class Karma_Fields_Posts {
 					'where' => function($key, $value) {
 						global $wpdb;
 						return $wpdb->prepare("p.$key = %s", $value);
-					},
-					'default' => function($args, $value) {
-						$args['post_status'] = $value;
-						return $args;
 					}
+					// 'default' => function($args, $value) {
+					// 	$args['post_status'] = $value;
+					// 	return $args;
+					// }
 				),
 				'postdate' => array(
 					'parse' => function($args, $key, $value) {
@@ -393,7 +409,7 @@ Class Karma_Fields_Posts {
 			'fields' => array(
 				'postfield' => array(
 					'name' => 'postfield',
-					'save' => function($args, $id, $key, $value) {
+					'update' => function($args, $id, $key, $value) {
 						// do_action('karma_fields_save', $value, $uri, $key, $extension);
 						// do_action('karma_cache_update', 'posts/'.$uri.'/postfield/'.$key.$extension, $value);
 
@@ -401,9 +417,10 @@ Class Karma_Fields_Posts {
 						// 	'ID' => $id,
 						// 	$key => $value
 						// );
-						$args[$id]['ID'] = $id;
-						$args[$id][$key] = $value;
-
+						// $args[$id]['ID'] = $id;
+						// $args[$id][$key] = $value;
+						// $args['ID'] = $id;
+						$args[$key] = $value;
 						return $args;
 
 						// return wp_update_post(array(
@@ -411,6 +428,12 @@ Class Karma_Fields_Posts {
 						// 	$key => $value
 						// ));
 					},
+					// 'add' => function($args, $key, $value) {
+					// 	if ($key === 'post_type' || $key === 'post_status') {
+					// 		$args[$key] = $value;
+					// 	}
+					// 	return $args;
+					// },
 					'get' => function($id, $key) {
 						// $postfield = pathinfo($key, PATHINFO_FILENAME);
 						$query = new WP_Query(array(
@@ -505,9 +528,10 @@ Class Karma_Fields_Posts {
 				),
 				'postmeta' => array(
 					'name' => 'postmeta',
-
-
-					'save' => function($value, $id, $key) {
+					'sanitize' => function($value, $id, $key) {
+						return $value;
+					},
+					'update' => function($args, $id, $key, $value) {
 						// $args = array(
 						// 	// 'ID' => apply_filters('karma_fields_id', $uri),
 						// 	'ID' => $id,
@@ -516,7 +540,9 @@ Class Karma_Fields_Posts {
 						// 	)
 						// );
 
-						return update_metadata('post', $id, $key, $value);
+						update_metadata('post', $id, $key, $value);
+
+						return $args;
 
 						// do_action('karma_fields_save', $value, $uri, $key, $extension);
 						// return wp_update_post($args);

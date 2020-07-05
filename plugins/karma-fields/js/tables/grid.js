@@ -65,6 +65,15 @@ KarmaFieldMedia.tables.grid = function(manager) {
                                     var fieldManager = KarmaFieldMedia.managers.field(column.field);
                                     fieldManager.table = manager;
                                     fieldManager.post = post;
+                                    fieldManager.onModify = function(isModified) {
+                        							if (isModified) {
+                        								cell.classList.add("modified");
+                        							} else {
+                        								cell.classList.remove("modified");
+                        							}
+                        						};
+                                    // fieldManager.init();
+                                    // fieldManager.update(field.modifiedValue);
                                     manager.fields.push(fieldManager);
                                     manager.select.addField(cell, fieldManager, colIndex, rowIndex);
                                     update(fieldManager);

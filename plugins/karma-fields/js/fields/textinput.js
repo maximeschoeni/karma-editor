@@ -16,31 +16,25 @@ KarmaFieldMedia.fields.textinput = function(field) {
 					init: function(input) {
 						field.input = input;
 						input.type = field.resource.type || "text";
-						input.id = field.resource.key;
-						field.default().then(function(result) {
-							input.placeholder = result;
-						});
-						field.original().then(function(result) {
-							input.value = result || "";
-							field.onUpdate();
-						});
-						// input.addEventListener("blur", function() {
-						// 	field.save(input.value);
+						// input.id = field.resource.key;
+						// field.default().then(function(result) {
+						// 	input.placeholder = result;
 						// });
-						field.onUpdate = function() {
-							if (field.modifiedValue !== undefined) {
-								input.classList.add("modified");
-							} else {
-								input.classList.remove("modified");
-							}
-						};
+						// field.original().then(function(result) {
+						// 	// input.value = result || "";
+						// 	field.onUpdate();
+						// });
+
+
 						input.addEventListener("input", function() {
-							// field.currentValue = input.value;
-							field.update(input.value);
-							// .then(function(modifiedValue) {
-							// 	field.onUpdate();
-							// });
+							field.set(input.value);
 						});
+						field.onDefault = function(value) {
+							input.placeholder = value || "";
+						}
+						field.onUpdate = function(value) {
+							input.value = value || "";
+						}
 						field.onFocus = function() {
 							input.focus();
 						}

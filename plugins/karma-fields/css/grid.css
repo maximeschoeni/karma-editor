@@ -288,6 +288,9 @@
   color: #525a61;
 }
 .karma-field-table.grid .table-body td input:focus {
+  box-shadow: none;
+}
+.karma-field-table.grid .table-body td input:focus {
   /* background-color: #03a9f423; */
   /* background-color: transparent; */
 }
@@ -349,7 +352,7 @@
   display: block;
 } */
 
-.karma-field-table.grid .table-body td input.modified {
+.karma-field-table.grid .table-body td.modified input {
   background-image: url(../dashicons/pets.svg);
   /* background-size: 67px; */
   background-position: center right;

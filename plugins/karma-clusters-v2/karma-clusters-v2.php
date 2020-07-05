@@ -8,13 +8,6 @@ Version: 2.0
 */
 
 
-// define('KARMA_CACHE_URL', WP_PLUGIN_URL . '/' . basename(dirname(__FILE__)).'/plugins/karma-cache');
-//
-//
-// define('KARMA_CACHE_PATH', dirname(__FILE__).'/plugins/karma-cache');
-
-
-
 
 
 class Karma_Clusters {
@@ -85,12 +78,5 @@ function karma_get_cluster($post_id, $post_type = null) {
 
   return $karma_cache_posts->request($post_id, 'data.json');
 
-  // $typeface = get_post($typeface_id);
-  //
-  // if ($typeface) {
-  //
-  //   return $karma_cache->get_value($typeface, 'data.json');
-  //
-  // }
-
+  
 }

@@ -10,6 +10,23 @@ KarmaFieldMedia.managers = {};
 KarmaFieldMedia.selectors = {};
 
 
+KarmaFieldMedia.cache = Window.sessionStorage || {
+	values: {},
+	getItem: function(key) {
+		return this.values[key];
+	},
+	setItem: function(key, value) {
+		this.values[key] = value;
+	}
+}
+
+
+
+
+
+
+
+
 KarmaFieldMedia.attachmentPromises = {};
 KarmaFieldMedia.getImageSrc = function(id, callback) {
 	if (!KarmaFieldMedia.attachmentPromises[id]) {

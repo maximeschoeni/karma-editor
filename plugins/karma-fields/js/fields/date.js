@@ -135,11 +135,13 @@ KarmaFieldMedia.fields.date = function(field) {
                                               dateManager.update();
                                               // field.save(dateManager.sqlDate);
                                               // field.currentValue = dateManager.sqlDate;
-                                              field.update(dateManager.sqlDate).then(function(value) {
-                                                if (value !== undefined) {
-                                                  // -> has change
-                                                }
-                                              });
+                                              // field.update(dateManager.sqlDate).then(function(value) {
+                                              //   if (value !== undefined) {
+                                              //     // -> has change
+                                              //   }
+                                              // });
+                                              field.set(dateManager.sqlDate);
+
                                               dateManager.close();
                                             }
                                             update();
@@ -193,14 +195,30 @@ KarmaFieldMedia.fields.date = function(field) {
                     input.value = Calendar.format(date, format);
                   }
                 };
-                field.default().then(function(result) {
-                  input.placeholder = result && Calendar.parse(result) || field.resource.placeholder && Calendar.parse(field.resource.placeholder) || "";
-                });
-                field.original().then(function(result) {
-                  dateManager.sqlDate = result;
-                  dateManager.calendar.date = result && Calendar.parse(result) || new Date();
+                field.onDefault = function(value) {
+    							input.placeholder = result && Calendar.parse(result) || field.resource.placeholder && Calendar.parse(field.resource.placeholder) || "";
+    						}
+    						field.onUpdate = function(value) {
+                  dateManager.sqlDate = value;
+                  dateManager.calendar.date = value && Calendar.parse(value) || new Date();
                   dateManager.update();
-                });
+    						}
+    						field.onFocus = function() {
+    							input.focus();
+    						}
+    						field.onBlur = function() {
+    							input.blur();
+    						}
+
+
+                // field.default().then(function(result) {
+                //   input.placeholder = result && Calendar.parse(result) || field.resource.placeholder && Calendar.parse(field.resource.placeholder) || "";
+                // });
+                // field.original().then(function(result) {
+                //   dateManager.sqlDate = result;
+                //   dateManager.calendar.date = result && Calendar.parse(result) || new Date();
+                //   dateManager.update();
+                // });
 
                 input.addEventListener("keyup", function() {
                   var date = Calendar.parse(this.value, format);
@@ -215,11 +233,12 @@ KarmaFieldMedia.fields.date = function(field) {
                   //onSave && onSave(sqlDate);
                   // field.save(dateManager.sqlDate);
                   // field.currentValue = dateManager.sqlDate;
-                  field.update(dateManager.sqlDate).then(function(value) {
-                    if (value !== undefined) {
-                      // -> has change
-                    }
-                  });
+                  // field.update(dateManager.sqlDate).then(function(value) {
+                  //   if (value !== undefined) {
+                  //     // -> has change
+                  //   }
+                  // });
+                  field.set(dateManager.sqlDate);
                 });
                 var keyChange = function(dir) {
                   var index = input.selectionStart || 0;
@@ -254,9 +273,9 @@ KarmaFieldMedia.fields.date = function(field) {
                 input.addEventListener("focusout", function() {
                   dateManager.close();
                 });
-                field.onBlur = function() {
-    							input.blur();
-    						}
+                // field.onBlur = function() {
+    						// 	input.blur();
+    						// }
               }
             })
           ];

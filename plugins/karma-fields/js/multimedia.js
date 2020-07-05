@@ -94,40 +94,6 @@
 // 	}
 // }
 
-KarmaFieldMedia.cache = {
-	values: {},
-	query: function(key) {
-		return;
-		return this.values[key];
-	},
-	put: function(key, value) {
-		this.values[key] = value;
-	},
-	match: async function(key) {
-		return this.values[key];
-	}
-	// createKey: function(request) {
-	// 	var key = request.id+"/"+request.key;
-	//
-	// 	return key;
-	// 	// var params = [];
-	// 	// for (var i in request) {
-	// 	// 	if (request[i] || request[i] === false) {
-	// 	// 		params.push(i+"="+encodeURI(request[i]));
-	// 	// 	}
-	// 	// }
-	// 	// params.sort();
-	// 	// return params.join("&");
-	// },
-	// add: function(request, value) {
-	// 	var key = this.createKey(request);
-	// 	this.values[key] = value
-	// },
-	// find: function(request) {
-	// 	var key = this.createKey(request);
-	// 	return this.values[key];
-	// }
-}
 
 
 
