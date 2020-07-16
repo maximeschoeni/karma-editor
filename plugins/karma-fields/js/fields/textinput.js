@@ -6,7 +6,7 @@ KarmaFieldMedia.fields.textinput = function(field) {
 				field.resource.label && build({
 					tag: "label",
 					init: function(label) {
-						label.htmlFor = field.resource.key;
+						label.htmlFor = field.id;
 						label.innerHTML = field.resource.label;
 					}
 				}),
@@ -14,27 +14,33 @@ KarmaFieldMedia.fields.textinput = function(field) {
 					tag: "input",
 					class: "karma-field-input",
 					init: function(input) {
-						field.input = input;
 						input.type = field.resource.type || "text";
-						// input.id = field.resource.key;
-						// field.default().then(function(result) {
-						// 	input.placeholder = result;
-						// });
-						// field.original().then(function(result) {
-						// 	// input.value = result || "";
-						// 	field.onUpdate();
-						// });
-
+						input.id = field.id;
 
 						input.addEventListener("input", function() {
-							field.set(input.value);
+							field.set(input.value).then(function(field) {
+								if (field.isModified != field.wasModified) {
+									field.history.save();
+								}
+								field.save();
+							});
 						});
-						field.onDefault = function(value) {
-							input.placeholder = value || "";
-						}
-						field.onUpdate = function(value) {
+						// input.addEventListener("blur", function() {
+						// 	field.blur();
+						// });
+						// field.onInherit = function(value) {
+						// 	input.placeholder = value || "";
+						// }
+						// field.onUpdate = function(value) {
+						// 	input.value = value || "";
+						// }
+						field.fetch().then(function(value) {
 							input.value = value || "";
-						}
+						});
+						field.fetchPlaceholder().then(function(value) {
+							input.placeholder = value || "";
+						});
+
 						field.onFocus = function() {
 							input.focus();
 						}

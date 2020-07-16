@@ -8,18 +8,51 @@ KarmaFieldMedia.filters = {};
 KarmaFieldMedia.tables = {};
 KarmaFieldMedia.managers = {};
 KarmaFieldMedia.selectors = {};
+KarmaFieldMedia.events = {};
 
-
-KarmaFieldMedia.cache = Window.sessionStorage || {
+KarmaFieldMedia.storage = { //Window.sessionStorage || {
 	values: {},
 	getItem: function(key) {
 		return this.values[key];
 	},
 	setItem: function(key, value) {
 		this.values[key] = value;
+	},
+	removeItem: function(key) {
+		this.values[key] = undefined;
 	}
-}
+};
 
+window.addEventListener("keydown", function(event) {
+	if (event.metaKey && event.key === "c" && KarmaFieldMedia.events.onCopy) {
+		KarmaFieldMedia.events.onCopy(event);
+	}
+	if (event.metaKey && event.key === "v" && KarmaFieldMedia.events.onPast) {
+		KarmaFieldMedia.events.onPast(event);
+	}
+	if (event.metaKey && event.key === "a" && KarmaFieldMedia.events.onSelectAll) {
+		KarmaFieldMedia.events.onSelectAll(event);
+	}
+	if (event.metaKey && event.key === "s" && KarmaFieldMedia.events.onSave) {
+		KarmaFieldMedia.events.onSave(event);
+	}
+	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFieldMedia.events.onUndo) {
+		KarmaFieldMedia.events.onUndo(event);
+	}
+	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFieldMedia.events.onRedo) {
+		KarmaFieldMedia.events.onRedo(event);
+	}
+	if (event.key === "Backspace" && KarmaFieldMedia.events.onDelete) {
+		KarmaFieldMedia.events.onDelete(event);
+	}
+	if (event.key === "+" && KarmaFieldMedia.events.onAdd) {
+		KarmaFieldMedia.events.onAdd(event);
+	}
+
+
+
+	console.log(event.key);
+});
 
 
 

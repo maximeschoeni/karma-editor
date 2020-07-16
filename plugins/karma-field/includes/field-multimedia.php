@@ -12,7 +12,7 @@
 		var hiddenInput = document.getElementById("karma_field-<?php echo $meta_key; ?>");
 		var options = <?php echo json_encode($args); ?>;
 		var values = <?php echo json_encode($value); ?>;
-		
+
 		container.appendChild(
 			KarmaFieldMedia.fields.multimedia(values, options, function(values) {
 				hiddenInput.value = JSON.stringify(values);

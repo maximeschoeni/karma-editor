@@ -999,7 +999,7 @@ KarmaFieldMedia.fields.textarea = function(value, options, save) {
 	});
 }
 
-KarmaFieldMedia.fields.checkbox = function(label, current, onChange) {
+KarmaFieldMedia.fields.checkbox = function(value, options, save) {
 	return build({
 		tag: "label",
 		children: [
@@ -1007,15 +1007,15 @@ KarmaFieldMedia.fields.checkbox = function(label, current, onChange) {
 				tag: "input",
 				init: function(input) {
 					input.type = "checkbox",
-					input.checked = current,
+					input.checked = value,
 					input.addEventListener("change", function() {
-						onChange(this.checked);
+						save(this.checked);
 					});
 				}
 			}),
 			build({
 				tag: "span",
-				text: label
+				text: options.label
 			})
 		]
 	});

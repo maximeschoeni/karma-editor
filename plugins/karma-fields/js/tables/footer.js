@@ -10,6 +10,8 @@ KarmaFieldMedia.tables.footer = function(manager) {
       var editedFields = manager.fields.filter(function(field) {
         return field.modifiedValue !== undefined;
       });
+
+      var modifiedURIs = Object.keys(manager.getChanges());
       var items = manager.select.getSelectedItems();
       return [
         build({
@@ -161,6 +163,35 @@ KarmaFieldMedia.tables.footer = function(manager) {
                 tag: "button",
                 class: "button footer-item",
                 init: function(element, update) {
+                  element.innerText = "Undo";
+                  element.disabled = manager.history.index < 1;
+                  element.addEventListener("click", function(event) {
+
+                    manager.history.undo();
+                  });
+                  element.addEventListener("mouseup", function(event) {
+                    event.stopPropagation();
+                  });
+                }
+              }),
+              build({
+                tag: "button",
+                class: "button footer-item",
+                init: function(element, update) {
+                  element.innerText = "Redo";
+                  element.disabled = manager.history.index >= manager.history.total;
+                  element.addEventListener("click", function(event) {
+                    manager.history.redo();
+                  });
+                  element.addEventListener("mouseup", function(event) {
+                    event.stopPropagation();
+                  });
+                }
+              }),
+              build({
+                tag: "button",
+                class: "button footer-item",
+                init: function(element, update) {
                   element.innerText = "Add";
                   element.addEventListener("click", function(event) {
                     window.scrollTo(0, document.body.scrollHeight);
@@ -190,9 +221,9 @@ KarmaFieldMedia.tables.footer = function(manager) {
                 class: "button footer-item",
                 init: function(element, update) {
                   element.innerText = "Save";
-                  element.disabled = editedFields.length === 0;
+                  element.disabled = modifiedURIs.length === 0;
                   element.addEventListener("click", function(event) {
-                    manager.save(editedFields);
+                    manager.sync();
                   });
                   element.addEventListener("mouseup", function(event) {
                     event.stopPropagation();

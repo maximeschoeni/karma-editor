@@ -4,13 +4,13 @@ KarmaFieldMedia.tables.grid = function(manager) {
     init: function(element, update) {
 
       element.addEventListener("mouseup", function() {
-        console.log("grid mouseup");
+        // console.log("grid mouseup");
+        // handle outside mouseup
         if (manager.select && manager.select.onClick) {
           manager.select.onClick();
         }
       });
       update();
-
     },
     children: function() {
       return [
@@ -29,9 +29,13 @@ KarmaFieldMedia.tables.grid = function(manager) {
               init: function(table, update) {
                 manager.render = update;
                 manager.request();
+                // .then(function() {
+                //   manager.history.save();
+                // });
               },
               children: function() {
                 manager.select.init(); // = KarmaFieldMedia.selectors.grid(manager);
+                manager.fields = [];
                 // manager.select.onSelect = manager.renderControls;
                 return [
                   build({
@@ -52,8 +56,14 @@ KarmaFieldMedia.tables.grid = function(manager) {
                   build({
                     tag: "tbody",
                     children: function() {
-                      return manager.posts.map(function(post, rowIndex) {
+                      return manager.getItems().map(function(post, rowIndex) {
                         manager.select.addRow(post, rowIndex);
+
+                        // var rowManager = KarmaFieldMedia.managers.row(post, table);
+                        // manager.rows.push(rowManager);
+
+                        // manager.addRow(post, rowIndex);
+
                         return build({
                           tag: "tr",
                           children: function() {
@@ -62,9 +72,8 @@ KarmaFieldMedia.tables.grid = function(manager) {
                                 tag: "td",
                                 init: function(cell, update) {
                                   if (column.field) {
-                                    var fieldManager = KarmaFieldMedia.managers.field(column.field);
-                                    fieldManager.table = manager;
-                                    fieldManager.post = post;
+                                    var fieldManager = KarmaFieldMedia.managers.field(column.field, post, manager.resource.middleware, manager.history, null);
+
                                     fieldManager.onModify = function(isModified) {
                         							if (isModified) {
                         								cell.classList.add("modified");
@@ -72,6 +81,10 @@ KarmaFieldMedia.tables.grid = function(manager) {
                         								cell.classList.remove("modified");
                         							}
                         						};
+                                    fieldManager.onSave = manager.renderFooter;
+
+
+
                                     // fieldManager.init();
                                     // fieldManager.update(field.modifiedValue);
                                     manager.fields.push(fieldManager);

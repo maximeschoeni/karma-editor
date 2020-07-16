@@ -108,6 +108,11 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 
 			this.height = Math.max(row+1, this.height);
 		},
+		getField: function(x, y) {
+			if (manager.grid[x] && manager.grid[x][y] && manager.grid[x][y].field) {
+				return manager.grid[x][y].field;
+			}
+		},
 		// getRow: function(y) {
 		// 	return this.rows.find(function(row) {
 		// 		return row.row === y;
@@ -126,7 +131,10 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 			var fields = [];
 			for (var i = 0; i < this.rect.width; i++) {
 				for (var j = 0; j < this.rect.height; j++) {
-					fields.push(this.grid[this.rect.x+i][this.rect.y+j].field);
+					var obj = this.grid[this.rect.x+i][this.rect.y+j];
+					if (obj) {
+						fields.push(obj.field);
+					}
 				}
 			}
 			return fields;
@@ -231,18 +239,25 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 		selectCells: function() {
 			for (var i = 0; i < this.rect.width; i++) {
 				for (var j = 0; j < this.rect.height; j++) {
-					this.grid[this.rect.x+i][this.rect.y+j].cell.classList.add("selected");
-					if (i === 0) {
-						this.grid[this.rect.x+i][this.rect.y+j].cell.classList.add("selected-left");
-					}
-					if (i === this.rect.width-1) {
-						this.grid[this.rect.x+i][this.rect.y+j].cell.classList.add("selected-right");
-					}
-					if (j === 0) {
-						this.grid[this.rect.x+i][this.rect.y+j].cell.classList.add("selected-top");
-					}
-					if (j === this.rect.height-1) {
-						this.grid[this.rect.x+i][this.rect.y+j].cell.classList.add("selected-bottom");
+					var obj = this.grid[this.rect.x+i][this.rect.y+j];
+					if (obj) {
+						obj.cell.classList.add("selected");
+						if (i === 0) {
+							obj.cell.classList.add("selected-left");
+						}
+						if (i === this.rect.width-1) {
+							obj.cell.classList.add("selected-right");
+						}
+						if (j === 0) {
+							obj.cell.classList.add("selected-top");
+						}
+						if (j === this.rect.height-1) {
+							obj.cell.classList.add("selected-bottom");
+						}
+						// var field = this.getField(this.rect.x+i, this.rect.y+j);
+						if (obj.field && obj.field.onSelect) {
+							obj.field.onSelect();
+						}
 					}
 				}
 			}
@@ -250,11 +265,18 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 		unselectCells: function() {
 			for (var i = 0; i < this.rect.width; i++) {
 				for (var j = 0; j < this.rect.height; j++) {
-					this.grid[this.rect.x+i][this.rect.y+j].cell.classList.remove("selected");
-					this.grid[this.rect.x+i][this.rect.y+j].cell.classList.remove("selected-left");
-					this.grid[this.rect.x+i][this.rect.y+j].cell.classList.remove("selected-right");
-					this.grid[this.rect.x+i][this.rect.y+j].cell.classList.remove("selected-top");
-					this.grid[this.rect.x+i][this.rect.y+j].cell.classList.remove("selected-bottom");
+					var obj = this.grid[this.rect.x+i][this.rect.y+j];
+					if (obj) {
+						obj.cell.classList.remove("selected");
+						obj.cell.classList.remove("selected-left");
+						obj.cell.classList.remove("selected-right");
+						obj.cell.classList.remove("selected-top");
+						obj.cell.classList.remove("selected-bottom");
+						// var field = this.getField(this.rect.x+i, this.rect.y+j);
+						if (obj.field && obj.field.onUnselect) {
+							obj.field.onUnselect();
+						}
+					}
 				}
 			}
 			// for (var col in this.rect) {
@@ -321,42 +343,62 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 
 
 		},
-		onCopy: function() {
+		onCopy: function(event) {
+			event.preventDefault();
 			if (navigator.clipboard && navigator.clipboard.writeText) {
 				var rows = [];
 				for (var j = 0; j < this.rect.height; j++) {
 					var cols = [];
-					for (var i = 0; i <= this.rect.width; i++) {
-						cols.push(this.grid[this.rect.x+i][this.rect.y+j].field.value); // should use getValue() promise!!
+					for (var i = 0; i < this.rect.width; i++) {
+						cols.push(this.grid[this.rect.x+i][this.rect.y+j].field.get());
 					}
 					rows.push(cols.join("\t"));
 				}
 				if (rows.length) {
-					navigator.clipboard.writeText(rows.join("\n"));
+					var text = rows.join("\n");
+					navigator.clipboard.writeText(text);
 				}
 			}
 		},
-		onSelectAll: function() {
-			// var cells = this.getCells(0, 0, this.numRow, this.numCol);
+		onPast: function(event) {
+			event.preventDefault();
+			navigator.clipboard.readText().then(function(text) {
+				var rows = text.split("\n").map(function(row) {
+					return row.split("\t");
+				});
+				if (manager.rect.height === rows.length && manager.rect.width === rows[0].length) {
+					var field = manager.getField(manager.rect.x, manager.rect.y);
+					if (field) {
+						field.history.save();
+					}
 
-			// this.rect.x = 0;
-			// this.rect.y = 0;
-			// this.rect.width = this.width;
-			// this.rect.height = this.height;
-			// manager.current = {
-			// 	col: 0,
-			// 	row:0,
-			// 	colEnd: this.width - 1,
-			// 	rowEnd: this.height - 1,
-			// 	// cells: cells,
-			// 	selecting: false
-			// };
-			// this.updateCells();
-			// this.selectCells();
-			this.select(0, 0, this.width, this.height);
+					for (var j = 0; j < rows.length; j++) {
+						for (var i = 0; i < rows[j].length; i++) {
+							var value = rows[j][i];
+							var field = manager.getField(manager.rect.x+i, manager.rect.y+j);
+							if (value && field) {
 
-			if (manager.onSelect) {
-				manager.onSelect();
+								field.set(value).then(function(field, history) {
+									field.save();
+								});
+
+							}
+						}
+					}
+					if (manager.onSelect) {
+						manager.onSelect(); // -> update table footer
+					}
+				}
+			});
+		},
+
+		onSelectAll: function(event) {
+			if (document.activeElement === document.body) {
+				this.select(0, 0, this.width, this.height);
+				if (manager.onSelect) {
+					manager.onSelect();
+				}
+				event.preventDefault();
 			}
 		},
 		addField: function(cell, field, col, row) {
@@ -489,15 +531,24 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 	return manager;
 };
 
-window.addEventListener("keydown", function(event) {
-	if (event.metaKey && event.key === "c" && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onCopy) {
-		KarmaFieldMedia.currentSelector.onCopy();
-	}
-	if (event.metaKey && event.key === "a" && document.activeElement === document.body && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onSelectAll) {
-		KarmaFieldMedia.currentSelector.onSelectAll();
-		event.preventDefault();
-	}
-	if (event.metaKey && event.key === "s" && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onSave) {
-		KarmaFieldMedia.currentSelector.onSave(event);
-	}
-});
+// window.addEventListener("keydown", function(event) {
+// 	if (event.metaKey && event.key === "c" && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onCopy) {
+// 		KarmaFieldMedia.currentSelector.onCopy(event);
+// 	}
+// 	if (event.metaKey && event.key === "v" && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onPast) {
+// 		KarmaFieldMedia.currentSelector.onPast(event);
+// 	}
+// 	if (event.metaKey && event.key === "a" && document.activeElement === document.body && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onSelectAll) {
+// 		KarmaFieldMedia.currentSelector.onSelectAll();
+// 		event.preventDefault();
+// 	}
+// 	if (event.metaKey && event.key === "s" && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onSave) {
+// 		KarmaFieldMedia.currentSelector.onSave(event);
+// 	}
+// 	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onUndo) {
+// 		KarmaFieldMedia.currentSelector.onUndo(event);
+// 	}
+// 	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFieldMedia.currentSelector && KarmaFieldMedia.currentSelector.onRedo) {
+// 		KarmaFieldMedia.currentSelector.onRedo(event);
+// 	}
+// });

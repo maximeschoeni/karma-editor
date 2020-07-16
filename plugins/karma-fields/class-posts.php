@@ -23,10 +23,12 @@ Class Karma_Fields_Posts {
 				$query = new WP_Query($args);
 				return array(
 					'query' => $query->query,
+					'request' => $query->request,
 					'num' => intval($query->found_posts),
 					'items' => array_map(function($post) {
 						return array(
 							'uri' => apply_filters('karma_fields_posts_id', $post->ID),
+							'post_type' => $post->post_type,
 							'post_title' => $post->post_title,
 							'post_date' => $post->post_date,
 							'post_parent' => $post->post_parent,
@@ -40,35 +42,46 @@ Class Karma_Fields_Posts {
 				wp_update_post($args);
 				return $args;
 			},
-			'add_item' => function($args) {
-				add_filter('wp_insert_post_empty_content', '__return_false');
-				$id = wp_insert_post($args);
-				return $id;
-			},
-			'add' => function($filters) {
+			// 'add_item' => function($args, $filters) {
+			// 	add_filter('wp_insert_post_empty_content', '__return_false');
+			// 	$id = wp_insert_post($args);
+			// 	// $args['inserted_id'] = $id;
+			// 	return $id;
+			// },
+			'add' => function($fields, $params) {
 				$args = array();
-				if (isset($filters['post_type']) &&  $filters['post_type']) {
-					$args['post_type'] = $filters['post_type'];
+				if (isset($params['post_type']) &&  $params['post_type']) {
+					$args['post_type'] = $params['post_type'];
 				} else {
 					$args['post_type'] = 'post';
 				}
-				if (isset($filters['post_status']) &&  $filters['post_status']) {
-					$args['post_status'] = $filters['post_status'];
-				} else {
-					$args['post_status'] = 'draft';
+				if (isset($params['post_status']) &&  $params['post_status']) {
+					$args['post_status'] = $params['post_status'];
 				}
-				$args['post_date'] = date('Y-m-d h:i:s');
+				if (isset($fields['post_title']) &&  $fields['post_title']) {
+					$args['post_title'] = $fields['post_title'];
+				}
+				if (isset($fields['post_name']) &&  $fields['post_name']) {
+					$args['post_name'] = $fields['post_name'];
+				}
+				if (isset($fields['post_content']) &&  $fields['post_content']) {
+					$args['post_content'] = $fields['post_content'];
+				}
+				if (isset($fields['post_excerpt']) &&  $fields['post_excerpt']) {
+					$args['post_excerpt'] = $fields['post_excerpt'];
+				}
+				if (isset($fields['post_date']) &&  $fields['post_date']) {
+					$args['post_date'] = $fields['post_date'];
+				}
+
+				// $args['post_date'] = date('Y-m-d h:i:s');
 				add_filter('wp_insert_post_empty_content', '__return_false');
+
 				$id = wp_insert_post($args);
-				$args['uri'] = apply_filters('karma_fields_posts_id', $id);
-				// return $args;
-				return array(
-					'uri' => apply_filters('karma_fields_posts_id', $id),
-					'values' => $args
-				);
+				return $id;
 			},
-			'remove' => function($id) {
-				return wp_delete_post($id);
+			'remove' => function($id, $params = null) {
+				wp_delete_post($id, true);
 			},
 			'search' => function($args, $search) {
 				$this->update_query_search($args);
@@ -409,25 +422,25 @@ Class Karma_Fields_Posts {
 			'fields' => array(
 				'postfield' => array(
 					'name' => 'postfield',
-					'update' => function($args, $id, $key, $value) {
-						// do_action('karma_fields_save', $value, $uri, $key, $extension);
-						// do_action('karma_cache_update', 'posts/'.$uri.'/postfield/'.$key.$extension, $value);
-
-						// $args[] = array(
-						// 	'ID' => $id,
-						// 	$key => $value
-						// );
-						// $args[$id]['ID'] = $id;
-						// $args[$id][$key] = $value;
-						// $args['ID'] = $id;
-						$args[$key] = $value;
-						return $args;
-
-						// return wp_update_post(array(
-						// 	'ID' => $id,
-						// 	$key => $value
-						// ));
-					},
+					// 'update' => function($args, $id, $key, $value) {
+					// 	// do_action('karma_fields_save', $value, $uri, $key, $extension);
+					// 	// do_action('karma_cache_update', 'posts/'.$uri.'/postfield/'.$key.$extension, $value);
+					//
+					// 	// $args[] = array(
+					// 	// 	'ID' => $id,
+					// 	// 	$key => $value
+					// 	// );
+					// 	// $args[$id]['ID'] = $id;
+					// 	// $args[$id][$key] = $value;
+					// 	// $args['ID'] = $id;
+					// 	$args[$key] = $value;
+					// 	return $args;
+					//
+					// 	// return wp_update_post(array(
+					// 	// 	'ID' => $id,
+					// 	// 	$key => $value
+					// 	// ));
+					// },
 					// 'add' => function($args, $key, $value) {
 					// 	if ($key === 'post_type' || $key === 'post_status') {
 					// 		$args[$key] = $value;
@@ -436,12 +449,13 @@ Class Karma_Fields_Posts {
 					// },
 					'get' => function($id, $key) {
 						// $postfield = pathinfo($key, PATHINFO_FILENAME);
-						$query = new WP_Query(array(
-							'p' => $id
-						));
-						foreach ($query->posts as $post) {
-							return $post->$key;
-						}
+						return get_post($id)->$key;
+						// $query = new WP_Query(array(
+						// 	'p' => $id
+						// ));
+						// foreach ($query->posts as $post) {
+						// 	return $post->$key;
+						// }
 					},
 					'sort' => function($args, $order_key, $order) {
 						if ($order_key === 'post_title') {

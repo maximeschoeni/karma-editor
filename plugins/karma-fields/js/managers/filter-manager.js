@@ -24,6 +24,21 @@ KarmaFieldMedia.managers.filter = function(resource) {
 				return child;
 			});
 		},
+		getDescendants: function() {
+			// if (!filters) {
+			// 	filters = [];
+			// }
+			// filters.push(this);
+			// for (var i = 0; i < this.children.length; i++) {
+			// 	this.children[i].getDescendants(filters);
+			// }
+			// return filters;
+			var filters = [this];
+			for (var i = 0; i < this.children.length; i++) {
+				filters = filters.concat(this.children[i].getDescendants());
+			}
+			return filters;
+		},
 		// build: function() {
 		// 	return build({
 		// 		class: "filter-node",
@@ -97,6 +112,11 @@ KarmaFieldMedia.managers.filter = function(resource) {
 		// 		params = params.concat(this.children[i].getDescendantParams());
 		// 	}
 		// 	return params;
+		// },
+		// getDescendantParams: function(params) {
+		// 	return this.getDescendants().reduce(function(obj, filter) {
+		// 		obj[filter.resource.key || "search"] = filter.value;
+		// 	}, {});
 		// },
 		getDescendantParams: function(params) {
 			if (!params) {
