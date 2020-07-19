@@ -1,6 +1,10 @@
 KarmaFieldMedia.fields.textinput = function(field) {
 	return build({
 		class: "karma-field text-input",
+		init: function(element, update) {
+			field.render = update;
+			update();
+		},
 		children: function() {
 			return [
 				field.resource.label && build({
@@ -18,7 +22,7 @@ KarmaFieldMedia.fields.textinput = function(field) {
 						input.id = field.id;
 
 						input.addEventListener("input", function() {
-							field.set(input.value).then(function(field) {
+							field.set(input.value).then(function() {
 								if (field.isModified != field.wasModified) {
 									field.history.save();
 								}

@@ -21,6 +21,8 @@ Class Karma_Tables {
 
 		require_once dirname(__FILE__) . '/class-posts.php';
 
+		require_once dirname(__FILE__) . '/class-posts-fields.php';
+
 		add_action('init', array($this, 'init'));
 
 		add_action('rest_api_init', array($this, 'rest_api_init'));
@@ -93,6 +95,7 @@ Class Karma_Tables {
 			wp_enqueue_script('karma-field-group', $plugin_url . '/js/fields/group.js', array('media-field', 'build'), $this->version, false);
 			wp_enqueue_script('karma-field-date', $plugin_url . '/js/fields/date.js', array('media-field', 'build', 'calendar'), $this->version, false);
 			wp_enqueue_script('karma-field-textinput', $plugin_url . '/js/fields/textinput.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-field-grid', $plugin_url . '/js/fields/grid.js', array('media-field', 'build'), $this->version, false);
 
 			//filters
 			wp_enqueue_script('karma-filter-postdate', $plugin_url . '/js/filters/postdate.js', array('media-field', 'build'), $this->version, false);
@@ -138,7 +141,9 @@ Class Karma_Tables {
 			$karma_fields = array(
 				// 'ajax_url' => admin_url('admin-ajax.php'),
 				'icons_url' => plugin_dir_url(__FILE__).'dashicons',
-				'getURL' => apply_filters('karma_cache_url', rest_url().'karma-fields/v1/get'), // -> apply_filters('karma_fields_get')
+				'getURL' => rest_url().'karma-fields/v1/get',
+				// 'getURL' => apply_filters('karma_cache_url', rest_url().'karma-fields/v1/get'), // -> apply_filters('karma_fields_get')
+				'cacheURL' => apply_filters('karma_cache_url', false),
 				'queryURL' => rest_url().'karma-fields/v1/query',
 				'saveURL' => rest_url().'karma-fields/v1/update',
 				'filterURL' => rest_url().'karma-fields/v1/filters',
@@ -371,7 +376,13 @@ Class Karma_Tables {
 
 		$path = $request->get_param('path');
 
-		$locator = $this->parse_path($path);
+		// $locator = $this->parse_path($path);
+
+		$parts = explode('/', $path);
+
+		$middleware = array_shift($parts);
+		$key = array_pop($parts);
+		$uri = implode('/', $parts);
 
 
 		// $middleware_name = $request->get_param('middleware');
@@ -383,22 +394,22 @@ Class Karma_Tables {
 
 		// if ($middleware) {
 
-			if ($locator->middleware && $locator->uri && $locator->key) {
+			// if ($middleware && $uri && $key) {
 
 				// $uri = dirname($path);
 				// $filename = basename($path);
 				// $key = pathinfo($filename, PATHINFO_FILENAME);
 				// $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-				$field = $this->get_key_field($locator->middleware, $locator->key);
+				$field = $this->get_key_field($middleware, $key);
 
 				if ($field) {
 
 					if (isset($field['get']) && is_callable($field['get'])) {
 
-						$uri = apply_filters("karma_fields_{$locator->middleware}_uri", $locator->uri);
+						$uri = apply_filters("karma_fields_{$middleware}_uri", $uri);
 
-						return call_user_func($field['get'], $uri, $locator->key);
+						return call_user_func($field['get'], $uri, $key);
 
 					} else {
 
@@ -412,11 +423,11 @@ Class Karma_Tables {
 
 				}
 
-			} else {
-
-				return "karma fields rest get error: incorrect locator";
-
-			}
+			// } else {
+			//
+			// 	return "karma fields rest get error: incorrect locator";
+			//
+			// }
 
 		// } else {
 		//
@@ -782,6 +793,24 @@ Class Karma_Tables {
 	}
 
 	/**
+	 *	get_field
+	 */
+	public function get_type($middleware_name, $type_name) {
+
+		$middleware = $this->get_middleware($middleware_name);
+
+		if ($middleware && isset($middleware['types'][$type_name])) {
+
+			return $middleware['types'][$type_name];
+
+		}
+
+	}
+
+
+
+
+	/**
 	 *	register_middleware
 	 */
 	// public function get_column($middleware_name, $column_name) {
@@ -840,6 +869,21 @@ Class Karma_Tables {
 	}
 
 	/**
+	 *	get_field
+	 */
+	public function get_key_type($middleware_name, $key_name) {
+
+		$key = $this->get_key($middleware_name, $key_name);
+
+		if (isset($key['type'])) {
+
+			return $this->get_type($middleware_name, $key['type']);
+
+		}
+
+	}
+
+	/**
 	 *	register_middleware
 	 */
 	public function register_middleware($middleware_name, $middleware) {
@@ -872,27 +916,27 @@ Class Karma_Tables {
 	/**
 	 * parse_path
 	 */
-	public function parse_path($path) {
-
-		$locator = new stdClass();
-
-		$locator->path = $path;
-
-		$parts = explode('/', $path);
-
-		$locator->middleware = array_shift($parts);
-		$locator->key = array_pop($parts);
-		$locator->uri = implode('/', $parts);
-
-		// $file_parts = explode('.', $locator->filename);
-		//
-		// $locator->extension = array_pop($file_parts);
-		// $locator->key = array_pop($file_parts);
-		// $locator->group = array_pop($file_parts);
-
-		return $locator;
-
-	}
+	// public function parse_path($path) {
+	//
+	// 	$locator = new stdClass();
+	//
+	// 	$locator->path = $path;
+	//
+	// 	$parts = explode('/', $path);
+	//
+	// 	$locator->middleware = array_shift($parts);
+	// 	$locator->key = array_pop($parts);
+	// 	$locator->uri = implode('/', $parts);
+	//
+	// 	// $file_parts = explode('.', $locator->filename);
+	// 	//
+	// 	// $locator->extension = array_pop($file_parts);
+	// 	// $locator->key = array_pop($file_parts);
+	// 	// $locator->group = array_pop($file_parts);
+	//
+	// 	return $locator;
+	//
+	// }
 
 	/**
 	 * parse_args

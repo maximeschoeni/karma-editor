@@ -134,7 +134,7 @@ KarmaFieldMedia.fields.date = function(field) {
                                               dateManager.sqlDate = day.sqlDate;
                                               dateManager.update();
 
-                                              field.set(dateManager.sqlDate).then(function(field, history) {
+                                              field.set(dateManager.sqlDate).then(function() {
                                 								if (field.isModified != field.wasModified) {
                                 									field.history.save();
                                 								}
@@ -233,7 +233,7 @@ KarmaFieldMedia.fields.date = function(field) {
                   } else {
                     dateManager.sqlDate = '';
                   }
-                  field.set(dateManager.sqlDate).then(function(field, history) {
+                  field.set(dateManager.sqlDate).then(function() {
     								if (field.isModified != field.wasModified) {
     									field.history.save();
     								}

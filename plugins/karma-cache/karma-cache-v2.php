@@ -85,31 +85,32 @@ class Karma_Cache {
 	/**
 	 * parse_path
 	 */
-	public function parse_path($path) {
-
-		$parts = explode('/', $path);
-
-		$locator = new stdClass();
-		$locator->path = $path;
-		$locator->middleware = array_shift($parts);
-		$locator->key = array_pop($parts);
-		$locator->uri = implode('/', $parts);
-
-		// $file_parts = explode('.', $locator->filename);
-		//
-		// $locator->extension = array_pop($file_parts);
-		// $locator->key = array_pop($file_parts);
-		// $locator->group = array_pop($file_parts);
-
-		// if (isset($this->middlewares[$middleware])) {
-		//
-		// 	$locator->object = $this->middlewares[$middleware]->get_object($locator->uri);
-		//
-		// }
-
-		return $locator;
-
-	}
+	// public function parse_path($path) {
+	//
+	// 	$parts = explode('/', $path);
+	//
+	// 	$locator = new stdClass();
+	// 	$locator->path = $path;
+	// 	$locator->middleware = array_shift($parts);
+	// 	$locator->key = array_pop($parts);
+	// 	$locator->uri = implode('/', $parts);
+	//
+	//
+	// 	// $file_parts = explode('.', $locator->filename);
+	// 	//
+	// 	// $locator->extension = array_pop($file_parts);
+	// 	// $locator->key = array_pop($file_parts);
+	// 	// $locator->group = array_pop($file_parts);
+	//
+	// 	// if (isset($this->middlewares[$middleware])) {
+	// 	//
+	// 	// 	$locator->object = $this->middlewares[$middleware]->get_object($locator->uri);
+	// 	//
+	// 	// }
+	//
+	// 	return $locator;
+	//
+	// }
 
 
 	/**
@@ -195,10 +196,17 @@ class Karma_Cache {
 
 		if (!isset($value)) {
 
-			$locator = $this->parse_path($path);
+			$parts = explode('/', $path);
 
-			do_action('karma_cache_request', $locator->middleware, $locator->uri, $locator->key, $this);
-			do_action("karma_cache_{$locator->middleware}_request", $locator->uri, $locator->key, $this);
+			$middleware = array_shift($parts);
+			$file = array_pop($parts);
+			$uri = implode('/', $parts);
+
+			$extension = pathinfo($file, PATHINFO_EXTENSION);
+			$key = pathinfo($file, PATHINFO_FILENAME);
+
+			do_action('karma_cache_request', $middleware, $uri, $key, $this);
+			do_action("karma_cache_{$middleware}_request", $uri, $key, $this);
 
 			$value = $this->get($path);
 

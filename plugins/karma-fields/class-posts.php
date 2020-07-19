@@ -118,6 +118,23 @@ Class Karma_Fields_Posts {
 			// 		);
 			// 	}, $results->posts);
 			// },
+			'types' => array(
+				'text' => array(
+					'sanitize' => function($value) {
+						return $value;
+					}
+				),
+				'date' => array(
+					'sanitize' => function($value) {
+						return $value;
+					}
+				),
+				'json' => array(
+					'sanitize' => function($value) {
+						return $value;
+					}
+				)
+			),
 			'filters' => array(
 				'posttype' => array(
 					'parse' => function($args, $key, $value) {
@@ -363,62 +380,62 @@ Class Karma_Fields_Posts {
 					}
 				)
 			),
-			'columns' => array(
-				array(
-					'name' => 'post_title',
-					'title' => 'Title',
-					'search' => true,
-					'default_order' => 'ASC',
-					'order' => function($args, $key, $order) {
-						$args['orderby'] = 'post_title';
-						$args['order'] = $order;
-						return $args;
-					},
-					'field_type' => 'post_title'
-					// 'format' => function($post, $resource) {
-					//
-					// 	return get_post_title($format, $time);
-					// }
-				),
-				array(
-					'name' => 'date',
-					'title' => 'Date',
-					'order' => function($args, $key, $order) {
-						$args['orderby'] = 'date';
-						$args['order'] = $order;
-						return $args;
-					},
-					'field_type' => 'date'
-					// 'format' => function($value, $resource) {
-					// 	$time = strtotime($value);
-					// 	$format = isset($resource['format']) ? $resource['format'] : 'd/m/Y';
-					// 	return date_i18n($format, $time);
-					// }
-				),
-				array(
-					'name' => 'custom-date',
-					'default' => true,
-					'order' => function($args, $key, $order) {
-						$args['orderby'] = array('meta_value' => $order, 'title' => 'ASC');
-						$args['meta_key'] = $key;
-						return $args;
-					}
-					// 'format' => function($value, $resource) {
-					// 	$time = strtotime($value);
-					// 	$format = isset($resource['format']) ? $resource['format'] : 'd/m/Y';
-					// 	return date_i18n($format, $time);
-					// }
-				),
-				array(
-					'name' => 'thumbnail',
-					// 'field' => array(
-					// 	'key' => '_thumbnail_id',
-					// 	'editable' => false,
-					// 	'field' => 'image',
-					// 	'object' => 'postmeta'
-					// )
-				)
-			),
+			// 'columns' => array(
+			// 	array(
+			// 		'name' => 'post_title',
+			// 		'title' => 'Title',
+			// 		'search' => true,
+			// 		'default_order' => 'ASC',
+			// 		'order' => function($args, $key, $order) {
+			// 			$args['orderby'] = 'post_title';
+			// 			$args['order'] = $order;
+			// 			return $args;
+			// 		},
+			// 		'field_type' => 'post_title'
+			// 		// 'format' => function($post, $resource) {
+			// 		//
+			// 		// 	return get_post_title($format, $time);
+			// 		// }
+			// 	),
+			// 	array(
+			// 		'name' => 'date',
+			// 		'title' => 'Date',
+			// 		'order' => function($args, $key, $order) {
+			// 			$args['orderby'] = 'date';
+			// 			$args['order'] = $order;
+			// 			return $args;
+			// 		},
+			// 		'field_type' => 'date'
+			// 		// 'format' => function($value, $resource) {
+			// 		// 	$time = strtotime($value);
+			// 		// 	$format = isset($resource['format']) ? $resource['format'] : 'd/m/Y';
+			// 		// 	return date_i18n($format, $time);
+			// 		// }
+			// 	),
+			// 	array(
+			// 		'name' => 'custom-date',
+			// 		'default' => true,
+			// 		'order' => function($args, $key, $order) {
+			// 			$args['orderby'] = array('meta_value' => $order, 'title' => 'ASC');
+			// 			$args['meta_key'] = $key;
+			// 			return $args;
+			// 		}
+			// 		// 'format' => function($value, $resource) {
+			// 		// 	$time = strtotime($value);
+			// 		// 	$format = isset($resource['format']) ? $resource['format'] : 'd/m/Y';
+			// 		// 	return date_i18n($format, $time);
+			// 		// }
+			// 	),
+			// 	array(
+			// 		'name' => 'thumbnail',
+			// 		// 'field' => array(
+			// 		// 	'key' => '_thumbnail_id',
+			// 		// 	'editable' => false,
+			// 		// 	'field' => 'image',
+			// 		// 	'object' => 'postmeta'
+			// 		// )
+			// 	)
+			// ),
 			'fields' => array(
 				'postfield' => array(
 					'name' => 'postfield',
@@ -545,7 +562,7 @@ Class Karma_Fields_Posts {
 					'sanitize' => function($value, $id, $key) {
 						return $value;
 					},
-					'update' => function($args, $id, $key, $value) {
+					'update' => function($id, $key, $value, $args) {
 						// $args = array(
 						// 	// 'ID' => apply_filters('karma_fields_id', $uri),
 						// 	'ID' => $id,
@@ -554,9 +571,10 @@ Class Karma_Fields_Posts {
 						// 	)
 						// );
 
+
 						update_metadata('post', $id, $key, $value);
 
-						return $args;
+						// return $args;
 
 						// do_action('karma_fields_save', $value, $uri, $key, $extension);
 						// return wp_update_post($args);
@@ -805,15 +823,45 @@ Class Karma_Fields_Posts {
 	public function update_cache($post_id, $key, $posts_cache) {
 		global $karma_fields;
 
-		$field = $karma_fields->get_key_field('posts', $key);
+		$key_obj = $karma_fields->get_key('posts', $key);
 
-		if ($field) {
+		if (isset($key_obj['cache'], $key_obj['field']) && $key_obj['cache']) {
 
-			$value = call_user_func($field['get'], $post_id, $key);
+			$field = $karma_fields->get_field('posts', $key_obj['field']);
 
-			$posts_cache->update($post_id, $key, $value);
+			if ($field) {
+
+				$value = call_user_func($field['get'], $post_id, $key);
+
+				if ($key_obj['cache'] === true) {
+
+					$key_obj['cache'] = $key.'.txt';
+
+				}
+
+				$posts_cache->update($post_id, $key_obj['cache'], $value);
+
+			}
 
 		}
+
+		// $field = $karma_fields->get_key_field('posts', $key);
+		//
+		// if ($field) {
+		//
+		// 	$value = call_user_func($field['get'], $post_id, $key);
+		//
+		// 	$type = $karma_fields->get_key_type('posts', $key);
+		//
+		// 	if (isset($type['extension']) && $type['extension']) {
+		//
+		// 		$key .= '.'.$type['extension'];
+		//
+		// 	}
+		//
+		// 	$posts_cache->update($post_id, $key, $value);
+		//
+		// }
 
 	}
 

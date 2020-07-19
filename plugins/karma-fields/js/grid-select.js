@@ -99,30 +99,49 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 				event.stopPropagation();
 			});
 		},
+
+		// deprecated: only for getSelectedItems()
 		addRow: function(item, row) {
 			this.rows[row] = item;
-			// this.rows.push({
-			// 	item: item,
-			// 	row: row
-			// });
-
 			this.height = Math.max(row+1, this.height);
 		},
+		getCell: function(x, y) {
+			if (manager.grid[x] && manager.grid[x][y]) {
+				return manager.grid[x][y];
+			}
+		},
+
+		// deprecated
 		getField: function(x, y) {
 			if (manager.grid[x] && manager.grid[x][y] && manager.grid[x][y].field) {
 				return manager.grid[x][y].field;
 			}
 		},
-		// getRow: function(y) {
-		// 	return this.rows.find(function(row) {
-		// 		return row.row === y;
-		// 	});
-		// },
+
+		// deprecated: use getSelectedRows
 		getSelectedItems: function() {
 			var items = [];
 			for (var i = 0; i < this.rect.height; i++) {
-				if (this.rows[this.rect.y+i] && this.rect.x === 0 && this.rect.width === this.width) {
+				if (this.rect.x === 0 && this.rect.width === this.width) {
 					items.push(this.rows[this.rect.y+i]);
+				}
+			}
+			return items;
+		},
+		getSelectedRows: function() {
+			var items = [];
+			for (var i = 0; i < this.height; i++) {
+				if (i >= this.rect.y && i < this.rect.y + this.rect.height && this.rect.x === 0 && this.rect.width === this.width) {
+					items.push(i);
+				}
+			}
+			return items;
+		},
+		getSelectedCols: function() {
+			var items = [];
+			for (var i = 0; i < this.width; i++) {
+				if (i >= this.rect.x && i < this.rect.x + this.rect.width && this.rect.y === 0 && this.rect.height === this.height) {
+					items.push(i);
 				}
 			}
 			return items;
@@ -298,6 +317,7 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 			this.rect.width = width || 0;
 			this.rect.height = height || 0;
 			this.selectCells();
+
 		},
 		// unselectCells: function(cells) {
 		// 	cells.forEach(function(cell) {
@@ -328,6 +348,18 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 		// 		selecting: selecting
 		// 	};
 		// },
+
+		updateCell: function(x, y, value) {
+			var cell = manager.getCell(x, y);
+			if (cell) {
+				cell.field.set(value).then(function() {
+					cell.field.save();
+
+					cell.field.render();
+				});
+			}
+		},
+
 		onClick: function() {
 			if (this.selection) {
 				this.selection = null;
@@ -367,21 +399,16 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 					return row.split("\t");
 				});
 				if (manager.rect.height === rows.length && manager.rect.width === rows[0].length) {
-					var field = manager.getField(manager.rect.x, manager.rect.y);
-					if (field) {
-						field.history.save();
+					var cell = manager.getCell(manager.rect.x, manager.rect.y);
+					if (cell.field) {
+						cell.field.history.save();
 					}
 
 					for (var j = 0; j < rows.length; j++) {
 						for (var i = 0; i < rows[j].length; i++) {
 							var value = rows[j][i];
-							var field = manager.getField(manager.rect.x+i, manager.rect.y+j);
-							if (value && field) {
-
-								field.set(value).then(function(field, history) {
-									field.save();
-								});
-
+							if (value !== undefined) {
+								manager.updateCell(manager.rect.x+i, manager.rect.y+j, value);
 							}
 						}
 					}
@@ -408,17 +435,17 @@ KarmaFieldMedia.selectors.grid = function(tableManager) {
 			// 	row: row
 			// });
 
-			// if (!this.fields[col]) {
-			// 	this.fields[col] = {};
-			// }
+			if (!this.grid[col]) {
+				this.grid[col] = {};
+			}
 
 			this.grid[col][row] = {
 				cell: cell,
 				field: field
 			};
 
-			// this.width = Math.max(col+1, this.width);
-			// this.height = Math.max(row+1, this.height);
+			this.width = Math.max(col+1, this.width);
+			this.height = Math.max(row+1, this.height);
 
 			cell.addEventListener("mousedown", function(event) {
 				// var cell = manager.getCell(col, row)

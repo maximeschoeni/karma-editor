@@ -225,10 +225,12 @@ KarmaFieldMedia.managers.table = function(resource) {
 		}
 	};
 
-	KarmaFieldMedia.events.onCopy = manager.select.onCopy;
-	KarmaFieldMedia.events.onPast = manager.select.onPast;
-
-
+	KarmaFieldMedia.events.onCopy = function(event) {
+		manager.select.onCopy(event);
+	}
+	KarmaFieldMedia.events.onPast = function(event) {
+		manager.select.onPast(event);
+	}
 
 	KarmaFieldMedia.events.onSave = function(event) {
 		manager.sync();

@@ -1,6 +1,6 @@
 KarmaFieldMedia.tables.grid = function(manager) {
   return build({
-    class: "karma-field-table grid",
+    class: "karma-field-table karma-fields",
     init: function(element, update) {
 
       element.addEventListener("mouseup", function() {
@@ -26,6 +26,7 @@ KarmaFieldMedia.tables.grid = function(manager) {
           child: function() {
             return build({
               tag: "table",
+              class: "grid",
               init: function(table, update) {
                 manager.render = update;
                 manager.request();

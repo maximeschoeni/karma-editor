@@ -7,6 +7,7 @@ KarmaFieldMedia.managers.history = function() {
 		posts: [],
 		archives: [],
 		save: function() {
+
 			this.archives[this.index] = JSON.stringify(this.posts);
 			this.index++;
 			this.pool.delete(this.index);
@@ -16,6 +17,7 @@ KarmaFieldMedia.managers.history = function() {
 			this.total = this.index;
 		},
 		undo: function() {
+			console.log("undo", this.pool);
 			if (this.index > 0) {
 				this.archives[this.index] = JSON.stringify(this.posts);
 				this.index--;
