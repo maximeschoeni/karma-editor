@@ -39,6 +39,10 @@ class Karma_Cache_Posts {
 		// multilanguage
 		add_action('init', array($this, 'sublanguage_init'));
 
+
+		// dependancy
+		add_action('karma_cache_posts_add_dependancy', array($this, 'add_dependancy'), 10, 3);
+		add_action('karma_cache_posts_remove_dependancy', array($this, 'remove_dependancy'), 10, 3);
 	}
 
 	/**
@@ -361,21 +365,45 @@ class Karma_Cache_Posts {
 	}
 
 
+
 	/**
-	 * add_dependancy
+	 * @hook 'karma_cache_posts_add_dependancy'
 	 */
-	public function add_dependancy($post_id, $dependant_post_id, $value = '', $context = '') {
+	public function add_dependancy($post_id, $path, $context = '') {
+		global $wpdb;
 
-		$dependant_post_id = intval($dependant_post_id);
-		$context = esc_sql($context);
+		$meta_key = "{$this->dependancy_meta_key}_{$context}";
 
-		$meta_key = "{$this->dependancy_meta_key}_{$dependant_post_id}_{$context}";
+		$meta_id = $wpdb->get_var($wpdb->prepare(
+			"SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s AND meta_value = %s LIMIT 1",
+			$post_id,
+			$meta_key,
+			$path
+		));
 
-		if (!in_array($value, get_post_meta($post_id, $meta_key))) {
+		if (!$meta_id) {
 
-			update_post_meta($post_id, $meta_key, $value);
+			update_post_meta($post_id, $meta_key, $path);
 
 		}
+
+	}
+
+	/**
+	 * @hook 'karma_cache_posts_remove_dependancy'
+	 */
+	public function remove_dependancy($post_id, $path, $context = '') {
+		global $wpdb;
+
+		$wpdb->delete($wpdb->postmeta, array(
+			'post_id' => $post_id,
+			'meta_key' => "{$this->dependancy_meta_key}_{$context}",
+			'meta_value' => $path
+		), array(
+			'%d',
+			'%s',
+			'%s'
+		));
 
 	}
 
@@ -383,33 +411,39 @@ class Karma_Cache_Posts {
 	 * update_dependancies
 	 */
 	public function update_dependancies($post_id, $context = '') {
-		global $wpdb;
+		global $wpdb, $karma_cache;
 
-		$post_id = intval($post_id);
-		$context = esc_sql($context);
+		static $updates = array();
 
-		$meta_key = "{$this->dependancy_meta_key}_{$post_id}_{$context}";
+		if ($context && empty($updates[$context][$post_id]) || empty($updates[$post_id])) {
 
-		// $dependancy_ids = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'karma_dependancy' AND meta_value = %d", $post_id));
+			$meta_key = "{$this->dependancy_meta_key}_{$context}";
 
-		$dependancies = $wpdb->get_results("SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '$meta_key'");
+			$paths = $wpdb->get_col($wpdb->prepare(
+				"SELECT meta_value FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = %s",
+				$post_id,
+				$meta_key
+			));
 
-		// if ($dependancies) {
+			foreach ($paths as $path) {
 
-			foreach ($dependancies as $dependancy) {
+				$karma_cache->delete("posts/$path");
 
-				// if ($dependancy->meta_value) {
-
-					$this->delete($dependancy->post_id, $dependancy->meta_value);
-
-				// }
-
-				// only needed when value is empty
-				// do_action("karma_cache_posts_dependancy_updated", $dependancy->post_id, $dependancy->meta_value, $this);
+				// $this->remove_dependancy($post_id, $path, $context);
 
 			}
 
-		// }
+			if ($context) {
+
+				$updates[$context][$post_id] = true;
+
+			} else {
+
+				$updates[$post_id] = true;
+
+			}
+
+		}
 
 	}
 
@@ -422,6 +456,69 @@ class Karma_Cache_Posts {
 		$wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key LIKE '{$this->dependancy_meta_key}_%'");
 
 	}
+
+
+	// /**
+	//  * add_dependancy
+	//  */
+	// public function add_dependancy($post_id, $dependant_post_id, $value = '', $context = '') {
+	//
+	// 	$dependant_post_id = intval($dependant_post_id);
+	// 	$context = esc_sql($context);
+	//
+	// 	$meta_key = "{$this->dependancy_meta_key}_{$dependant_post_id}_{$context}";
+	//
+	// 	if (!in_array($value, get_post_meta($post_id, $meta_key))) {
+	//
+	// 		update_post_meta($post_id, $meta_key, $value);
+	//
+	// 	}
+	//
+	// }
+	//
+	// /**
+	//  * update_dependancies
+	//  */
+	// public function update_dependancies($post_id, $context = '') {
+	// 	global $wpdb;
+	//
+	// 	$post_id = intval($post_id);
+	// 	$context = esc_sql($context);
+	//
+	// 	$meta_key = "{$this->dependancy_meta_key}_{$post_id}_{$context}";
+	//
+	// 	// $dependancy_ids = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'karma_dependancy' AND meta_value = %d", $post_id));
+	//
+	// 	$dependancies = $wpdb->get_results("SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '$meta_key'");
+	//
+	// 	// if ($dependancies) {
+	//
+	// 		foreach ($dependancies as $dependancy) {
+	//
+	// 			// if ($dependancy->meta_value) {
+	//
+	// 				$this->delete($dependancy->post_id, $dependancy->meta_value);
+	//
+	// 			// }
+	//
+	// 			// only needed when value is empty
+	// 			// do_action("karma_cache_posts_dependancy_updated", $dependancy->post_id, $dependancy->meta_value, $this);
+	//
+	// 		}
+	//
+	// 	// }
+	//
+	// }
+	//
+	// /**
+	//  * @hook 'karma_cache_flush'
+	//  */
+	// public function flush_dependancies() {
+	// 	global $wpdb;
+	//
+	// 	$wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key LIKE '{$this->dependancy_meta_key}_%'");
+	//
+	// }
 
 
 
@@ -460,7 +557,8 @@ class Karma_Cache_Posts {
 	 */
 	public function added_post_meta($meta_id, $object_id, $meta_key, $meta_value) {
 
-		// $this->update_dependancies($post_id, $meta_key);
+		$this->update_dependancies($object_id);
+		$this->update_dependancies($object_id, $meta_key);
 
 		do_action('karma_cache_posts_update_meta', $object_id, $meta_key, $meta_value, $this);
 
@@ -471,6 +569,9 @@ class Karma_Cache_Posts {
 	 */
 	public function updated_post_meta($meta_id, $object_id, $meta_key, $meta_value) {
 
+		$this->update_dependancies($object_id);
+		$this->update_dependancies($object_id, $meta_key);
+
 		do_action('karma_cache_posts_update_meta', $object_id, $meta_key, $meta_value, $this);
 
 	}
@@ -480,7 +581,10 @@ class Karma_Cache_Posts {
 	 */
 	public function deleted_post_meta($meta_id, $object_id, $meta_key, $meta_value) {
 
-		$this->delete($object_id, $meta_key);
+		// $this->delete($object_id, $meta_key);
+
+		$this->update_dependancies($object_id);
+		$this->update_dependancies($object_id, $meta_key);
 
 		do_action('karma_cache_posts_delete_meta', $object_id, $meta_key, $meta_value, $this);
 

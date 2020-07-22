@@ -63,13 +63,19 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 				this.onModify(this.isModified);
 			}
 			if (resource.key) {
-				this.prevValue = this.value;
-				this.value = JSON.stringify(value);
-				this.updateState(resource.key, value); // for external use
+				var encodedValue = JSON.stringify(value);
+				if (encodedValue !== this.value) {
+					this.prevValue = this.value;
+					this.value = encodedValue;
+					this.updateState(resource.key, value); // for external use
+				}
 				return Promise.resolve();
 			} else if (this.parent) {
 				var parentValue = this.parent.get() || {};
 				if (resource.child_key) {
+					// if (value === parentValue[resource.child_key]) { // do not update parent if value is the same
+					// 	return Promise.resolve();
+					// }
 					parentValue[resource.child_key] = value;
 				}
 				return this.parent.set(parentValue);
@@ -78,17 +84,34 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 			}
 		},
 		save: function() {
-			if (resource.key) {
-				if (this.value !== this.prevValue) {
-					history.updatePool(this.post.uri || this.post.pseudo_uri, resource.key, this.value);
-					if (this.isModified != this.wasModified && this.onSave) {
-						this.onSave(); // -> render footer
+			// if (this.get() !== this.getPrevious()) { // ! not working with objects...
+				if (resource.key) {
+					if (this.value !== this.prevValue) {
+						history.updatePool(this.post.uri || this.post.pseudo_uri, resource.key, this.value);
+						if (this.isModified != this.wasModified && this.onSave) {
+							this.onSave(); // -> render footer
+						}
 					}
+				} else if (parent) {
+					parent.save();
 				}
-			} else if (parent) {
-				parent.save();
-			}
+			// }
 		},
+		// getPrevious: function() {
+		// 	if (resource.key) {
+		// 		if (this.prevValue === undefined) {
+		// 			return undefined;
+		// 		}
+		// 		return JSON.parse(this.prevValue);
+		// 	} else if (parent) {
+		// 		var previous = parent.getPrevious();
+		// 		if (previous && resource.child_key) {
+		// 			return previous[resource.child_key];
+		// 		} else {
+		// 			return previous;
+		// 		}
+		// 	}
+		// },
 		getOriginal: function() {
 			if (resource.key) {
 				if (this.originalValue === undefined) {
@@ -105,11 +128,15 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 			}
 		},
 		fetch: function(defaultValue) {
+
+
 			if (resource.key) {
 				var historyIndex = history.index;
 				var dbIndex = history.dbIndex;
 				var uri = this.post.uri || this.post.pseudo_uri;
 				var cacheValue = history.get(uri, resource.key);
+
+
 
 				if (cacheValue) {
 					var value = JSON.parse(cacheValue);

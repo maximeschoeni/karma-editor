@@ -23,8 +23,11 @@
 				// console.log(state);
 				input.value = JSON.stringify(state);
 			};
-			field = fieldManager.build();
-			container.appendChild(field);
+			fieldManager.build().then(function(element) {
+				field = element;
+				container.appendChild(field);
+			});
+
 		}
 
 		container.addEventListener("focusin", function() {

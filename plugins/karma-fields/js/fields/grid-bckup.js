@@ -5,7 +5,7 @@ KarmaFieldMedia.fields.grid = function(field) {
     isEmptyValue: function(value) {
       return !value || !value.rows || !value.rows.length || !value.rows[0].cells || !value.rows[0].cells.length;
     },
-    addRow: async function(index) {
+    addRow: function(index) {
       field.history.save();
       var value = field.get();
       value.rows.splice(index, 0, {cells: value.rows[0].cells.map(function() {
@@ -13,7 +13,6 @@ KarmaFieldMedia.fields.grid = function(field) {
       })});
       field.set(value).then(function() {
         field.save();
-      }).then(function() {
         gridManager.update();
       });
     },
@@ -41,6 +40,7 @@ KarmaFieldMedia.fields.grid = function(field) {
       }
       field.set(value).then(function() {
         field.save();
+        console.log("ok")
         gridManager.update();
       });
 
@@ -90,45 +90,6 @@ KarmaFieldMedia.fields.grid = function(field) {
   KarmaFieldMedia.events.onClick = function(event) {
 		select.onClick();
 	};
-  KarmaFieldMedia.events.onClick = function(event) {
-		select.onClick();
-	};
-  KarmaFieldMedia.events.onArrowUp = function(event) {
-    var rect = select.getSelectionRect();
-    if (rect.top > 0) {
-      rect.top--;
-      rect.width = 1;
-      rect.height = 1;
-      select.select(rect);
-    }
-	};
-  KarmaFieldMedia.events.onArrowDown = function(event) {
-    var rect = select.getSelectionRect();
-    if (rect.top + rect.height < select.rect.height) {
-      rect.top = rect.top + rect.height;
-      rect.width = 1;
-      rect.height = 1;
-      select.select(rect);
-    }
-	};
-  KarmaFieldMedia.events.onArrowLeft = function(event) {
-    var rect = select.getSelectionRect();
-    if (rect.left > 0) {
-      rect.left--;
-      rect.width = 1;
-      rect.height = 1;
-      select.select(rect);
-    }
-	};
-  KarmaFieldMedia.events.onArrowRight = function(event) {
-    var rect = select.getSelectionRect();
-    if (rect.left + rect.width < select.rect.width) {
-      rect.left = rect.left + rect.width;
-      rect.width = 1;
-      rect.height = 1;
-      select.select(rect);
-    }
-	};
 
 	return build({
 		class: "karma-field grid-field",
@@ -150,15 +111,6 @@ KarmaFieldMedia.fields.grid = function(field) {
                 return [
                   build({
                     tag: "button",
-                    // text: function() {
-                    //   return fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
-                    //     return response.text();
-                    //   });
-                    // },
-                    // text: () => fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
-                    //   return response.text();
-                    // }),
-                    fetch: KarmaFields.icons_url+"/table-row-before.svg",
                     init: function(element, update) {
                       element.addEventListener("click", function(event) {
                         event.preventDefault();
@@ -173,11 +125,11 @@ KarmaFieldMedia.fields.grid = function(field) {
                       element.addEventListener("mouseup", function(event) {
                         event.stopPropagation();
                       });
-                      // fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
-                      //   return response.text();
-                      // }).then(function(result) {
-                      //   element.innerHTML = result;
-                      // });
+                      fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
+                        return response.text();
+                      }).then(function(result) {
+                        element.innerHTML = result;
+                      });
                     }
                   }),
                   build({
@@ -332,20 +284,20 @@ KarmaFieldMedia.fields.grid = function(field) {
                         child_key: "cells",
                       }, field.post, field.middleware, field.history, rowField);
                       return cellsField.get().map(function(col, x) {
-                        var cellField = KarmaFieldMedia.managers.field({
-                          child_key: x.toString()
-                        }, field.post, field.middleware, field.history, cellsField);
-                        var inputField = KarmaFieldMedia.managers.field({
-                          child_key: "text",
-                          field: "textinput"
-                        }, field.post, field.middleware, field.history, cellField);
                         return build({
                           tag: "td",
                           init: function(cell, update) {
+                            var cellField = KarmaFieldMedia.managers.field({
+                              child_key: x.toString()
+                            }, field.post, field.middleware, field.history, cellsField);
+                            var inputField = KarmaFieldMedia.managers.field({
+                              child_key: "text",
+                              field: "textinput"
+                            }, field.post, field.middleware, field.history, cellField);
                             select.addField(cell, inputField, x, y);
-                            update();
+                            update(inputField);
                           },
-                          child: function() {
+                          child: function(inputField) {
                             return inputField.build();
                           }
                         });

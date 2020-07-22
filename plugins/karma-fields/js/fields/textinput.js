@@ -29,8 +29,11 @@ KarmaFieldMedia.fields.textinput = function(field) {
 								field.save();
 							});
 						});
-						// input.addEventListener("blur", function() {
-						// 	field.blur();
+						// input.addEventListener("focus", function() {
+						// 	console.log("focus");
+						// 	// if (field.onReceiveFocus) {
+						// 	// 	field.onReceiveFocus();
+						// 	// }
 						// });
 						// field.onInherit = function(value) {
 						// 	input.placeholder = value || "";
@@ -52,10 +55,10 @@ KarmaFieldMedia.fields.textinput = function(field) {
 							input.blur();
 						}
 					}
-				}),
-				build({
-					class: "field-info",
 				})
+				// build({
+				// 	class: "field-info",
+				// })
 			];
 		}
 	});

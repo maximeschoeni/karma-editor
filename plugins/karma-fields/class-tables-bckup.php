@@ -17,19 +17,6 @@ Class Karma_Tables {
 		// print_r(get_option('rewrite_rules'));
 		// die();
 
-		// spl_autoload_register(function ($class) {
-		//
-		// 	if (strpos($class, 'Karma_Fields_Driver_') === 0) {
-		//
-		// 		$class = str_replace('Karma_Fields_Driver_', '', $class);
-		// 		include dirname(__FILE__) . "/drivers/$class.php";
-		//
-		// 	}
-		//
-		// });
-
-
-
 		require_once dirname(__FILE__) . '/multilanguage.php';
 
 		require_once dirname(__FILE__) . '/class-posts.php';
@@ -772,72 +759,72 @@ Class Karma_Tables {
 	}
 
 
-	// /**
-	//  *	get_middlewares
-	//  */
-	// public function get_middlewares() {
-	//
-	// 	return $this->middlewares;
-	//
-	// }
-	//
-	// /**
-	//  *	get_middleware
-	//  */
-	// public function get_middleware($name) {
-	//
-	// 	if (isset($this->middlewares[$name])) {
-	//
-	// 		return $this->middlewares[$name];
-	//
-	// 	}
-	//
-	// }
+	/**
+	 *	get_middlewares
+	 */
+	public function get_middlewares() {
 
-	// /**
-	//  *	get_filter
-	//  */
-	// public function get_filter($middleware_name, $filter_name) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	if ($middleware && isset($middleware['filters'][$filter_name])) {
-	//
-	// 		return $middleware['filters'][$filter_name];
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	get_field
-	//  */
-	// public function get_field($middleware_name, $field_name) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	if ($middleware && isset($middleware['fields'][$field_name])) {
-	//
-	// 		return $middleware['fields'][$field_name];
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	get_field
-	//  */
-	// public function get_type($middleware_name, $type_name) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	if ($middleware && isset($middleware['types'][$type_name])) {
-	//
-	// 		return $middleware['types'][$type_name];
-	//
-	// 	}
-	//
-	// }
+		return $this->middlewares;
+
+	}
+
+	/**
+	 *	get_middleware
+	 */
+	public function get_middleware($name) {
+
+		if ($name && isset($this->middlewares[$name])) {
+
+			return $this->middlewares[$name];
+
+		}
+
+	}
+
+	/**
+	 *	get_filter
+	 */
+	public function get_filter($middleware_name, $filter_name) {
+
+		$middleware = $this->get_middleware($middleware_name);
+
+		if ($middleware && isset($middleware['filters'][$filter_name])) {
+
+			return $middleware['filters'][$filter_name];
+
+		}
+
+	}
+
+	/**
+	 *	get_field
+	 */
+	public function get_field($middleware_name, $field_name) {
+
+		$middleware = $this->get_middleware($middleware_name);
+
+		if ($middleware && isset($middleware['fields'][$field_name])) {
+
+			return $middleware['fields'][$field_name];
+
+		}
+
+	}
+
+	/**
+	 *	get_field
+	 */
+	public function get_type($middleware_name, $type_name) {
+
+		$middleware = $this->get_middleware($middleware_name);
+
+		if ($middleware && isset($middleware['types'][$type_name])) {
+
+			return $middleware['types'][$type_name];
+
+		}
+
+	}
 
 
 
@@ -857,160 +844,151 @@ Class Karma_Tables {
 	//
 	// }
 
-	// /**
-	//  *	get_resource
-	//  */
-	// public function get_resource($middleware_name, $key_name) {
-	//
-	// 	if (isset($this->keys[$middleware_name][$key_name])) {
-	//
-	// 		return $this->keys[$middleware_name][$key_name];
-	//
-	// 	}
-	//
-	// }
-
 	/**
-	 *	get_middleware
+	 *	get_resource
 	 */
-	public function get_middleware($name) {
+	public function get_resource($middleware_name, $key_name) {
 
-		if (isset($this->middlewares[$name]['path']) && file_exists($this->middlewares[$name]['path'])) {
+		if (isset($this->keys[$middleware_name][$key_name])) {
 
-			require_once $this->middlewares[$name]['path'];
-
-		}
-
-		if (isset($this->middlewares[$name]['class']) && class_exists($this->middlewares[$name]['class'])) {
-
-			$middleware = new $this->middlewares[$name]['class'];
-			$middleware->keys = $this->keys[$name];
-			$middleware->drivers = $this->drivers[$name];
-
-			return $middleware;
+			return $this->keys[$middleware_name][$key_name];
 
 		}
 
 	}
 
+	/**
+	 *	get_resource
+	 */
+	public function get_driver($middleware_name, $key_name) {
 
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function get_key($middleware_name, $key_name) {
-	//
-	// 	if (isset($this->keys[$middleware_name][$key_name])) {
-	//
-	// 		return $this->keys[$middleware_name][$key_name];
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function get_key_field($middleware_name, $key_name) {
-	//
-	// 	$key = $this->get_key($middleware_name, $key_name);
-	//
-	// 	if (isset($key['field'])) {
-	//
-	// 		return $this->get_field($middleware_name, $key['field']);
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function get_key_filter($middleware_name, $key_name) {
-	//
-	// 	$key = $this->get_key($middleware_name, $key_name);
-	//
-	// 	if (isset($key['filter'])) {
-	//
-	// 		return $this->get_filter($middleware_name, $key['filter']);
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	get_field
-	//  */
-	// public function get_key_type($middleware_name, $key_name) {
-	//
-	// 	$key = $this->get_key($middleware_name, $key_name);
-	//
-	// 	if (isset($key['type'])) {
-	//
-	// 		return $this->get_type($middleware_name, $key['type']);
-	//
-	// 	}
-	//
-	// }
+		if (isset($this->keys[$middleware_name][$key_name])) {
+
+			$resource = $this->keys[$middleware_name][$key_name];
+
+			if (isset($resource['driver_class'])) {
+
+				$class = $resource['driver_class'];
+
+			} else if (isset($resource['driver'])) {
+
+				$class = 'Karma_Fields_Driver_'.$resource['driver'];
+
+			}
+
+			if (isset($resource['driver_path'])) {
+
+				$path = $resource['driver_path'];
+
+			} else if (isset($resource['driver'])) {
+
+				$path = dirname(__FILE__) . '/driver/'.$resource['driver'].'.php';
+
+			}
+
+			if (isset($path) && file_exists($path)) {
+
+				include_once $path;
+
+			}
+
+			if (isset($class) && class_exists($class)) {
+
+				return new $class($middleware_name, $key_name, $resource);
+
+			}
+
+		}
+
+	}
 
 	/**
 	 *	register_middleware
 	 */
-	public function register_middleware($name, $path, $class) {
+	public function get_key($middleware_name, $key_name) {
 
-		$this->middlewares[$name] = array(
-			'path' => $path,
-			'class' => $class
-		);
+		if (isset($this->keys[$middleware_name][$key_name])) {
 
-	}
-
-	/**
-	 *	register_driver
-	 */
-	public function register_driver($middleware, $name, $path, $class) {
-
-		$this->drivers[$middleware][$name] = array(
-			'path' => $path,
-			'class' => $class
-		);
-
-	}
-
-
-
-	/**
-	 *	register_keys
-	 */
-	public function register_keys($middleware, $keys) {
-
-		foreach ($keys as $key => $resource) {
-
-			$this->keys[$middleware][$key] = $resource;
+			return $this->keys[$middleware_name][$key_name];
 
 		}
+
+	}
+
+	/**
+	 *	register_middleware
+	 */
+	public function get_key_field($middleware_name, $key_name) {
+
+		$key = $this->get_key($middleware_name, $key_name);
+
+		if (isset($key['field'])) {
+
+			return $this->get_field($middleware_name, $key['field']);
+
+		}
+
+	}
+
+	/**
+	 *	register_middleware
+	 */
+	public function get_key_filter($middleware_name, $key_name) {
+
+		$key = $this->get_key($middleware_name, $key_name);
+
+		if (isset($key['filter'])) {
+
+			return $this->get_filter($middleware_name, $key['filter']);
+
+		}
+
+	}
+
+	/**
+	 *	get_field
+	 */
+	public function get_key_type($middleware_name, $key_name) {
+
+		$key = $this->get_key($middleware_name, $key_name);
+
+		if (isset($key['type'])) {
+
+			return $this->get_type($middleware_name, $key['type']);
+
+		}
+
+	}
+
+	/**
+	 *	register_middleware
+	 */
+	public function register_middleware($middleware_name, $middleware) {
+
+		$this->middlewares[$middleware_name] = $middleware;
 
 	}
 
 	/**
 	 *	unregister_middleware
 	 */
-	// public function unregister_middleware($middleware_name) {
-	//
-	// 	$middleware = $this->find($this->middlewares, 'name', $middleware_name);
-	//
-	// 	if ($middleware) {
-	//
-	// 		$index = array_search($this->middlewares, $middleware);
-	//
-	// 		if ($index !== false) {
-	//
-	// 			array_splice($this->middlewares, $index, 1);
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
+	public function unregister_middleware($middleware_name) {
+
+		$middleware = $this->find($this->middlewares, 'name', $middleware_name);
+
+		if ($middleware) {
+
+			$index = array_search($this->middlewares, $middleware);
+
+			if ($index !== false) {
+
+				array_splice($this->middlewares, $index, 1);
+
+			}
+
+		}
+
+	}
 
 	/**
 	 * parse_path
@@ -1204,47 +1182,72 @@ Class Karma_Tables {
 	}
 
 
-	// /**
-	//  * @helper find
-	//  */
-	// public function find($items, $key, $value) {
-	//
-	// 	foreach ($items as $item) {
-	//
-	// 		if (isset($item[$key]) && $item[$key] === $value) {
-	//
-	// 			return $item;
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
+	/**
+	 * @helper find
+	 */
+	public function find($items, $key, $value) {
+
+		foreach ($items as $item) {
+
+			if (isset($item[$key]) && $item[$key] === $value) {
+
+				return $item;
+
+			}
+
+		}
+
+	}
+
+	/**
+	 *	register_middleware
+	 */
+	public function register_keys($middleware, $keys) {
+
+		// if (isset($this->keys[$middleware])) {
+		//
+		// 	$this->keys[$middleware] = array_merge($keys, $this->keys[$middleware]);
+		//
+		// } else {
+		//
+		// 	$this->keys[$middleware] = $keys;
+		//
+		// }
+
+		foreach ($keys as $key_name => $key) {
+
+			$this->register_key($middleware, $key_name, $key);
+
+			// $key = isset($key_options['key']) ? $key_options['key'] : $key;
+			//
+			// $this->keys[$middleware][$key] = $key_options;
+
+		}
+
+	}
+
+	/**
+	 *	register_middleware
+	 */
+	public function register_key($middleware, $key_name, $key) {
+
+		// if (isset($this->keys[$middleware])) {
+		//
+		// 	$this->keys[$middleware] = array_merge($keys, $this->keys[$middleware]);
+		//
+		// } else {
+		//
+		// 	$this->keys[$middleware] = $keys;
+		//
+		// }
 
 
+		// $key_name = isset($key['key']) ? $key['key'] : $key_name;
 
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function register_key($middleware, $key_name, $key) {
-	//
-	// 	// if (isset($this->keys[$middleware])) {
-	// 	//
-	// 	// 	$this->keys[$middleware] = array_merge($keys, $this->keys[$middleware]);
-	// 	//
-	// 	// } else {
-	// 	//
-	// 	// 	$this->keys[$middleware] = $keys;
-	// 	//
-	// 	// }
-	//
-	//
-	// 	// $key_name = isset($key['key']) ? $key['key'] : $key_name;
-	//
-	// 	$this->keys[$middleware][$key_name] = $key;
-	//
-	//
-	// }
+		$this->keys[$middleware][$key_name] = $key;
+
+
+	}
 
 
 

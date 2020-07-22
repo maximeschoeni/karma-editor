@@ -1,87 +1,123 @@
 /**
  * build (V4)
  */
-function build(args) {
+// function build(args) {
+// 	var element = document.createElement(args.tag || "div");
+// 	var child;
+// 	var children;
+// 	var update = function() {
+// 		if (args.text && typeof args.text === "function") {
+// 			element.innerHTML = args.text.apply(null, arguments) || "";
+// 		}
+// 		if (args.child && typeof args.child === "function") {
+// 			if (child) {
+// 				element.removeChild(child);
+// 			}
+// 			child = args.child.apply(null, arguments);
+// 			if (child) {
+// 				element.appendChild(child);
+// 			}
+// 		}
+// 		if (args.children && typeof args.children === "function") {
+// 			if (children) {
+// 				for (var i = 0; i < children.length; i++) {
+// 					if (children[i]) {
+// 						element.removeChild(children[i]);
+// 					}
+// 				}
+// 			}
+// 			children = args.children.apply(null, arguments);
+// 			if (children) {
+// 				for (var i = 0; i < children.length; i++) {
+// 					if (children[i]) {
+// 						element.appendChild(children[i]);
+// 					}
+// 				}
+// 			}
+// 		}
+// 	};
+//
+// 	if (args.class) {
+// 		element.className = args.class;
+// 	}
+// 	if (args.text && typeof args.text === "string") {
+// 		var string = args.text;
+// 		args.text = function() {
+// 			return string;
+// 		};
+// 	}
+// 	if (args.child && typeof args.child === "object") {
+// 		var compatChild = args.child;
+// 		args.child = function() {
+// 			return compatChild;
+// 		}
+// 	}
+// 	if (args.children && typeof args.children === "object") {
+// 		var compatChildren = args.children;
+// 		args.children = function() {
+// 			return compatChildren;
+// 		}
+// 	}
+// 	if (args.init) {
+// 		args.init(element, update);
+// 	} else {
+// 		update();
+// 	}
+//
+// 	return element;
+// }
+//
+
+
+async function build(args) {
+
 	var element = document.createElement(args.tag || "div");
 	var child;
 	var children;
-	var update = function() {
-		if (args.text && typeof args.text === "function") {
-			element.innerHTML = args.text.apply(null, arguments) || "";
+	async function update() {
+		if (args.text) {
+			Promise.resolve(args.text(arguments)).then(function(text) {
+				element.innerHTML = text || "";
+			});
 		}
-		if (args.child && typeof args.child === "function") {
-			if (child) {
-				element.removeChild(child);
-			}
-			child = args.child.apply(null, arguments);
-			if (child) {
-				element.appendChild(child);
-			}
+		if (args.child) {
+			await child && child.then(function(child) {
+				child && element.removeChild(child);
+			});
+			child = Promise.resolve(args.child(arguments)).then(function(child) {
+				return child && element.appendChild(child);
+			});
 		}
-		if (args.children && typeof args.children === "function") {
-			if (children) {
-				for (var i = 0; i < children.length; i++) {
-					if (children[i]) {
-						element.removeChild(children[i]);
-					}
-				}
-			}
-			children = args.children.apply(null, arguments);
-			if (children) {
-				for (var i = 0; i < children.length; i++) {
-					if (children[i]) {
-						element.appendChild(children[i]);
-					}
-				}
-			}
+		if (args.children) {
+			await children && children.then(function(children) {
+				children.forEach(function(child) {
+					element.removeChild(child);
+				});
+			});
+			children = Promise.all(args.children(arguments) || []).then(function(children) {
+				return children.filter(function(child) {
+					return child && element.appendChild(child);
+				});
+			});
 		}
-	};
-
+	}
 	if (args.class) {
 		element.className = args.class;
 	}
-	if (args.text && typeof args.text === "string") {
-		var string = args.text;
-		args.text = function() {
-			return string;
-		};
-	}
-	if (args.child && typeof args.child === "object") {
-		var compatChild = args.child;
-		args.child = function() {
-			return compatChild;
-		}
-	}
-	if (args.children && typeof args.children === "object") {
-		var compatChildren = args.children;
-		args.children = function() {
-			return compatChildren;
-		}
+	if (args.fetch) {
+		fetch(args.fetch).then(function(response) {
+			return response.text();
+		}).then(function(text) {
+			element.innerHTML = text;
+		});
 	}
 	if (args.init) {
-		args.init(element, update);
+		await args.init(element, update);
 	} else {
-		update();
+		await update();
 	}
-
 	return element;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

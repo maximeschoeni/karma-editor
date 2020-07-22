@@ -8,6 +8,8 @@ KarmaFieldMedia.filters = {};
 KarmaFieldMedia.tables = {};
 KarmaFieldMedia.managers = {};
 KarmaFieldMedia.selectors = {};
+KarmaFieldMedia.utils = {};
+KarmaFieldMedia.includes = {};
 KarmaFieldMedia.events = {};
 
 KarmaFieldMedia.storage = { //Window.sessionStorage || {
@@ -49,12 +51,27 @@ window.addEventListener("keydown", function(event) {
 		KarmaFieldMedia.events.onAdd(event);
 	}
 
-
+	if (event.key === "ArrowUp" && KarmaFieldMedia.events.onArrowUp) {
+		KarmaFieldMedia.events.onArrowUp(event);
+	}
+	if (event.key === "ArrowDown" && KarmaFieldMedia.events.onArrowDown) {
+		KarmaFieldMedia.events.onArrowDown(event);
+	}
+	if (event.key === "ArrowLeft" && KarmaFieldMedia.events.onArrowLeft) {
+		KarmaFieldMedia.events.onArrowLeft(event);
+	}
+	if (event.key === "ArrowRight" && KarmaFieldMedia.events.onArrowRight) {
+		KarmaFieldMedia.events.onArrowRight(event);
+	}
 
 	// console.log(event.key);
 });
 
-
+document.addEventListener("mouseup", function() {
+  if (KarmaFieldMedia.events.onClick) {
+    KarmaFieldMedia.events.onClick();
+  }
+});
 
 
 

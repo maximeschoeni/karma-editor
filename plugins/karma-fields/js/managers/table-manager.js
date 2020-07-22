@@ -177,9 +177,10 @@ KarmaFieldMedia.managers.table = function(resource) {
 			}
 
 			this.select.select(0, history.posts.length-1, this.select.width, 1);
-			var fields = this.select.getSelectedFields();
-			if (fields[0] && fields[0].onFocus) {
-				fields[0].onFocus();
+			
+			var cells = this.select.getSelectedCells();
+			if (cells.length && cells[0].field && cells[0].field.onFocus) {
+				cells[0].field.onFocus();
 			}
 
 			if (manager.renderFooter) {
