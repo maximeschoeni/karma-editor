@@ -202,11 +202,11 @@ class Karma_Cache {
 			$file = array_pop($parts);
 			$uri = implode('/', $parts);
 
-			$extension = pathinfo($file, PATHINFO_EXTENSION);
-			$key = pathinfo($file, PATHINFO_FILENAME);
+			// $extension = pathinfo($file, PATHINFO_EXTENSION);
+			// $key = pathinfo($file, PATHINFO_FILENAME);
 
-			do_action('karma_cache_request', $middleware, $uri, $key, $this);
-			do_action("karma_cache_{$middleware}_request", $uri, $key, $this);
+			do_action('karma_cache_request', $middleware, $uri, $file, $this);
+			do_action("karma_cache_{$middleware}_request", $uri, $file, $this);
 
 			$value = $this->get($path);
 

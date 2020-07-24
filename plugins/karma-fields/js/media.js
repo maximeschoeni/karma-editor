@@ -220,8 +220,11 @@ KarmaFieldMedia.createGalleryUploader = function() {
 						multiple: true  // Set to true to allow multiple files to be selected
 					});
 				}
-				this.frame.on("update",function(attachments) {
-					manager.imageIds = attachments.map(function(attachment){
+				this.frame.on("update",function(items) {
+					var attachments = items.map(function(item){
+						return item.attributes;
+					});
+					manager.imageIds = attachments.map(function(attachment) {
 						return attachment.id;
 					});
 					if (manager.onChange) {

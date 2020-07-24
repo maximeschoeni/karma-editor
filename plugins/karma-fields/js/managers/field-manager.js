@@ -5,13 +5,41 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 		post: post,
 		parent: parent,
 		history: history,
+		// build: function() {
+		// 	if (KarmaFieldMedia.fields[resource.field || resource.name || "group"]) {
+		// 		this.element = KarmaFieldMedia.fields[resource.field || resource.name || "group"](this);
+		// 		// this.init();
+		// 		return this.element;
+		// 	}
+		// },
 		build: function() {
-			if (KarmaFieldMedia.fields[resource.field || resource.name || "group"]) {
-				this.element = KarmaFieldMedia.fields[resource.field || resource.name || "group"](this);
-				// this.init();
-				return this.element;
-			}
+			return build({
+				class: "karma-field " + (resource.field || resource.name || "group") + " display-"+(resource.display || "block"),
+				init: function(element, update) {
+					manager.render = update;
+					update();
+				},
+				children: function() {
+					return [
+						resource.label && build({
+							tag: "label",
+							init: function(label) {
+								if (manager.id) {
+									label.htmlFor = manager.id;
+								}
+								label.innerText = resource.label;
+							}
+						}),
+						KarmaFieldMedia.fields[resource.field || resource.name || "group"](manager)
+					];
+				}
+			})
 		},
+
+
+
+
+
 		getChildren: function() {
 			return (resource.children || []).map(function(resource) {
 				return KarmaFieldMedia.managers.field(resource, post, middleware, history, manager);
@@ -38,10 +66,10 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 				}
 			}
 		},
-		get: function() {
+		get: function(defaultValue) {
 			if (resource.key) {
 				if (this.value === undefined) {
-					return undefined;
+					return defaultValue;
 				}
 				return JSON.parse(this.value);
 			} else if (this.parent) {

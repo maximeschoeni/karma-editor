@@ -1,8 +1,5 @@
 /* popup */
-.date-input-container {
-	/* display: flex;
-	flex-direction: column; */
-}
+
 .date-popup-container {
 	position: relative;
 	z-index: 100000;

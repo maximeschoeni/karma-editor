@@ -1,22 +1,8 @@
 <?php
 
+require_once KARMA_FIELDS_PATH.'/middlewares/middleware.php';
 
 Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
-
-	// /**
-	//  *	constructor
-	//  */
-	// public function __construct() {
-  //
-  //   // update cache
-	// 	add_action('karma_cache_posts_request_post_key', array($this, 'karma_cache_posts_request_post_key'), 10, 3);
-  //
-	// 	add_action('karma_cache_posts_save_post', array($this, 'karma_cache_posts_save_post'), 10, 2);
-	// 	add_action('karma_cache_posts_update_meta', array($this, 'karma_cache_posts_update_meta'), 10, 4);
-	// 	add_action('karma_cache_posts_set_post_terms', array($this, 'karma_cache_posts_set_post_terms'), 10, 5);
-  //
-	// }
-
 
   /**
 	 * query
@@ -48,26 +34,20 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
 	 */
   public function update($uri, $args) {
 
-    $args = $this->sanitize_fields($args);
+    $args['ID'] = apply_filters("karma_fields_posts_uri", $uri);
 
-    if ($args) {
-
-      $args['ID'] = apply_filters("karma_fields_posts_uri", $uri);
-
-      wp_update_post($args);
-
-    }
+    wp_update_post($args);
 
   }
 
   /**
 	 * add
 	 */
-  public function add($fields, $params) {
+  public function add($fields, $args) {
 
-    if (isset($params['post_type']) &&  $params['post_type']) {
+    if (isset($args['post_type']) &&  $args['post_type']) {
 
-      $fields['post_type'] = $params['post_type'];
+      $fields['post_type'] = $args['post_type'];
 
     } else {
 
@@ -75,19 +55,19 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
 
     }
 
-    if (isset($params['post_status']) &&  $params['post_status']) {
+    if (isset($args['post_status']) &&  $args['post_status']) {
 
-      $fields['post_status'] = $params['post_status'];
+      $fields['post_status'] = $args['post_status'];
 
     }
 
-    $args = $this->sanitize_fields($fields);
+    // $args = $this->sanitize_fields($fields);
 
     add_filter('wp_insert_post_empty_content', '__return_false');
 
-    $id = wp_insert_post($args);
+    $id = wp_insert_post($fields);
 
-    return $id;
+    return apply_filters('karma_fields_posts_id', $id);
 
   }
 
@@ -105,7 +85,7 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
   /**
 	 * search
 	 */
-  public function search($args, $search) {
+  public function search($search, &$args) {
 
     $this->update_query_search($args);
 
@@ -139,58 +119,58 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
 
   }
 
-  /**
-	 * sanitize_fields
-	 */
-  public function sanitize_fields($fields) {
-
-    $args = array();
-
-    if (isset($fields['post_type']) &&  $fields['post_type']) {
-
-      $args['post_type'] = $fields['post_type'];
-
-    }
-
-    if (isset($fields['post_status']) &&  $fields['post_status']) {
-
-      $args['post_status'] = $fields['post_status'];
-
-    }
-
-    if (isset($fields['post_title']) &&  $fields['post_title']) {
-
-      $args['post_title'] = $fields['post_title'];
-
-    }
-
-    if (isset($fields['post_name']) &&  $fields['post_name']) {
-
-      $args['post_name'] = $fields['post_name'];
-
-    }
-
-    if (isset($fields['post_content']) &&  $fields['post_content']) {
-
-      $args['post_content'] = $fields['post_content'];
-
-    }
-
-    if (isset($fields['post_excerpt']) &&  $fields['post_excerpt']) {
-
-      $args['post_excerpt'] = $fields['post_excerpt'];
-
-    }
-
-    if (isset($fields['post_date']) &&  $fields['post_date']) {
-
-      $args['post_date'] = $fields['post_date'];
-
-    }
-
-    return $args;
-
-  }
+  // /**
+	//  * sanitize_fields
+	//  */
+  // public function sanitize_fields($fields) {
+  //
+  //   $args = array();
+  //
+  //   if (isset($fields['post_type']) &&  $fields['post_type']) {
+  //
+  //     $args['post_type'] = $fields['post_type'];
+  //
+  //   }
+  //
+  //   if (isset($fields['post_status']) &&  $fields['post_status']) {
+  //
+  //     $args['post_status'] = $fields['post_status'];
+  //
+  //   }
+  //
+  //   if (isset($fields['post_title']) &&  $fields['post_title']) {
+  //
+  //     $args['post_title'] = $fields['post_title'];
+  //
+  //   }
+  //
+  //   if (isset($fields['post_name']) &&  $fields['post_name']) {
+  //
+  //     $args['post_name'] = $fields['post_name'];
+  //
+  //   }
+  //
+  //   if (isset($fields['post_content']) &&  $fields['post_content']) {
+  //
+  //     $args['post_content'] = $fields['post_content'];
+  //
+  //   }
+  //
+  //   if (isset($fields['post_excerpt']) &&  $fields['post_excerpt']) {
+  //
+  //     $args['post_excerpt'] = $fields['post_excerpt'];
+  //
+  //   }
+  //
+  //   if (isset($fields['post_date']) &&  $fields['post_date']) {
+  //
+  //     $args['post_date'] = $fields['post_date'];
+  //
+  //   }
+  //
+  //   return $args;
+  //
+  // }
 
 	// /**
 	//  * @hook 'karma_cache_posts_save_post'
@@ -252,39 +232,19 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
 	public function update_cache($post_id, $key, $posts_cache) {
 		global $karma_cache;
 
-		// $key_obj = $karma_fields->get_key('posts', $key);
-
     $driver = $this->get_driver($key);
 
     if ($driver) {
 
-      if (!isset($driver->resource['cache']) || $driver->resource['cache'] === true) {
-
-        if (isset($driver->resource['type']) && $driver->resource['type'] === 'json') {
-
-          $extension = '.json';
-
-        } else {
-
-          $extension = '.txt';
-
-        }
-
-        $cache = $driver->key.$extension;
-
-      } else if ($driver->resource['cache']) {
-
-        $cache = $driver->resource['cache'];
-
-      }
+      $cache = $driver->get_cache();
 
       if ($cache) {
 
-        $uri => apply_filters('karma_fields_posts_id', $post_id);
+        $uri = apply_filters('karma_fields_posts_id', $post_id);
 
         $value = $driver->get($uri, $key);
 
-        // $posts_cache->update($post_id, $cache, $value);
+
 
         $karma_cache->update("posts/$uri/$cache", $value);
 
@@ -330,9 +290,9 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
 
       $driver = $this->get_driver($key);
 
-      if ($driver) {
+      if ($driver && isset($driver->resource['search']) && $driver->resource['search']) {
 
-        $uri => apply_filters('karma_fields_posts_id', $post_id);
+        $uri = apply_filters('karma_fields_posts_id', $post_id);
 
         $text = $driver->get($uri, $key);
 

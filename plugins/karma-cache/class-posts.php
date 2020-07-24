@@ -19,7 +19,10 @@ class Karma_Cache_Posts {
 
 		add_action('karma_cache_request', array($this, 'karma_cache_request'), 10, 4);
 		add_action('save_post', array($this, 'save_post'), 11, 3); // -> must trigger after standard translations save
+		add_action('attachment_updated', array($this, 'attachment_updated'), 11, 3);
 		add_action('before_delete_post', array($this, 'before_delete_post'), 99);
+		add_action('delete_attachment', array($this, 'delete_attachment'), 99);
+
 
 		add_action('added_post_meta', array($this, 'updated_post_meta'), 10, 4);
 		add_action('updated_post_meta', array($this, 'updated_post_meta'), 10, 4);
@@ -278,7 +281,7 @@ class Karma_Cache_Posts {
 	/**
 	 * @hook 'karma_cache_request'
 	 */
-	public function karma_cache_request($middleware, $uri, $key, $cache) {
+	public function karma_cache_request($middleware, $uri, $file, $cache) {
 		global $karma_cache;
 
 		if ($middleware === 'posts') {
@@ -304,9 +307,9 @@ class Karma_Cache_Posts {
 
 						// API
 						do_action("karma_cache_posts_request_post", $query->post, $this);
-						do_action("karma_cache_posts_request_post_key", $query->post, $key, $this);
+						do_action("karma_cache_posts_request_post_file", $query->post, $file, $this);
 						do_action("karma_cache_posts_request_post_{$query->post->post_type}", $query->post, $this);
-						do_action("karma_cache_posts_request_post_{$query->post->post_type}_key", $query->post, $key, $this);
+						do_action("karma_cache_posts_request_post_{$query->post->post_type}_file", $query->post, $file, $this);
 
 					}
 
@@ -361,6 +364,24 @@ class Karma_Cache_Posts {
 		// }
 
 		do_action("karma_cache_posts_after_delete", $post_id, $this); // -> for multilanguage
+
+	}
+
+	/**
+	 * @hook 'attachment_updated'
+	 */
+	public function attachment_updated($post_id, $post_after, $post_before) {
+
+		$this->save_post($post_id, $post_after, null);
+
+	}
+
+	/**
+	 * @hook 'delete_attachment'
+	 */
+	public function delete_attachment($post_id) {
+
+		$this->before_delete_post($post_id);
 
 	}
 

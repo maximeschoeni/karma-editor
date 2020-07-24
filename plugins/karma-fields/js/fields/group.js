@@ -1,23 +1,23 @@
 KarmaFieldMedia.fields.group = function(field) {
-	return build({
-		class: "karma-field-group",
-		init: function(group, update) {
-			if (field.resource.class) {
-				group.classList.add(field.resource.class);
-			}
-			update();
-		},
-		children: function() {
-			return [
-				field.resource.label && build({
-					tag: "label",
-					init: function(label) {
-						// label.htmlFor = field.id;
-						label.innerHTML = field.resource.label;
-					}
-				}),
-				build({
-					class: "karma-field-group-content karma-field-input",
+	// return build({
+	// 	class: "karma-field-group",
+	// 	init: function(group, update) {
+	// 		if (field.resource.class) {
+	// 			group.classList.add(field.resource.class);
+	// 		}
+	// 		update();
+	// 	},
+	// 	children: function() {
+	// 		return [
+	// 			field.resource.label && build({
+	// 				tag: "label",
+	// 				init: function(label) {
+	// 					// label.htmlFor = field.id;
+	// 					label.innerHTML = field.resource.label;
+	// 				}
+	// 			}),
+				return build({
+					class: "karma-field-group-content",
 					init: function(content, update) {
 						update();
 					},
@@ -26,8 +26,8 @@ KarmaFieldMedia.fields.group = function(field) {
 							return child.build();
 						});
 					}
-				})
-			];
-		}
-	});
+				});
+// 			];
+// 		}
+// 	});
 }

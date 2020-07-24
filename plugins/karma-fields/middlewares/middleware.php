@@ -3,6 +3,7 @@
 
 Class Karma_Fields_Middleware {
 
+	public $drivers = array();
 	public $keys = array();
 
 	/**
@@ -26,8 +27,13 @@ Class Karma_Fields_Middleware {
 
 					$driver->resource = $this->keys[$key];
 					$driver->key = $key;
+					$driver->middleware = $this;
 
-					return $driver;
+					if (!method_exists($driver, 'verify') || $driver->verify($key)) {
+
+						return $driver;
+
+					}
 
 				}
 
@@ -36,7 +42,5 @@ Class Karma_Fields_Middleware {
 		}
 
 	}
-
-
 
 }

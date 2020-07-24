@@ -7,19 +7,19 @@ KarmaFieldMedia.fields.date = function(field) {
   var dateManager = {};
   dateManager.calendar = Calendar.create();
 
-  return build({
-   class: "karma-field date-input",
-   children: function() {
-    return [
-      field.resource.label && build({
-        tag: "label",
-        init: function(label) {
-          label.htmlFor = field.id;
-          label.innerHTML = field.resource.label;
-        }
-      }),
-      build({
-        class: "date-input-container",
+  // return build({
+  //  class: "karma-field date-input",
+  //  children: function() {
+  //   return [
+  //     field.resource.label && build({
+  //       tag: "label",
+  //       init: function(label) {
+  //         label.htmlFor = field.id
+  //         label.innerHTML = field.resource.label;
+  //       }
+  //     }),
+      return build({
+        class: "karma-field-date",
         children: function() {
           return [
             build({
@@ -281,8 +281,8 @@ KarmaFieldMedia.fields.date = function(field) {
             })
           ];
         }
-      })
-    ];
-   }
-  });
+      });
+  //   ];
+  //  }
+  // });
 }

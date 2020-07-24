@@ -234,6 +234,10 @@
 .karma-fields table.grid td .karma-field {
   display: flex;
 }
+.karma-fields table.grid td .karma-field .karma-field-text-input {
+  display: flex;
+  flex-grow: 1;
+}
 .karma-fields table.grid td input {
   margin: 0;
   padding: 1px 10px;
@@ -256,16 +260,16 @@
   border: 1px solid transparent;
 }
 .karma-fields table.grid td.selected-left .karma-field {
-  border-left-color: #007bba; /* #ca4a1f; */
+  border-left-color: #7d8993; /* #007bba; */
 }
 .karma-fields table.grid td.selected-right .karma-field {
-  border-right-color: #007bba; /* #ca4a1f; */
+  border-right-color: #7d8993; /* #007bba; */
 }
 .karma-fields table.grid td.selected-top .karma-field {
-  border-top-color: #007bba; /* #ca4a1f; */
+  border-top-color: #7d8993; /* #007bba; */
 }
 .karma-fields table.grid td.selected-bottom .karma-field {
-  border-bottom-color: #007bba; /* #ca4a1f; */
+  border-bottom-color: #7d8993; /* #007bba; */
 }
 .karma-fields table.grid td.selected input {
   background-color: white; /* #efebea; */
@@ -282,6 +286,7 @@
 }
 
 
+
 /* Field controls
 --------------------------------------*/
 
@@ -295,21 +300,19 @@
   margin-bottom: -1px;
 }
 .field-controls-group {
-  display: inline;
+  display: inline-block;
   border: 1px solid #7e8993;
-  border-bottom: none;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  border-top-left-radius: 3px;
+}
+.field-controls-group:last-child {
+  border-right-width: 1px;
+  border-top-right-radius: 3px;
 }
 .field-controls button {
-  /* margin: 0 5px; */
-  /* border-right: 1px solid #7e8993; */
   padding: 0;
   border: none;
-  /* border: 1px solid transparent; */
-
-  /* border-top: 1px solid transparent;
-  border-bottom: 1px solid transparent;
-  border-left: 2px solid transparent;
-  border-right: 2px solid transparent; */
   width: 20px;
   height: 20px;
   padding: 10px;
@@ -317,18 +320,17 @@
   background-color: transparent;
   cursor: pointer;
 }
-/* .field-controls button:first-child {
-  border-left-width: 1px;
-}
-.field-controls button:last-child {
-  border-right-width: 1px;
-} */
 .field-controls button:focus {
   outline: none;
 }
 .field-controls button:hover {
-  /* border-color: #7d8993; */
   outline: 2px solid #7d8993;
+  outline-offset: -1px;
+}
+.field-controls button:disabled {
+  outline: none;
+  opacity: 0.2;
+  cursor: default;
 }
 /* .field-controls button:hover:first-child {
   border-left-color: transparent;
@@ -412,4 +414,104 @@
   100% {
     transform: rotate(1turn);
   }
+}
+
+
+
+/* Fields
+--------------------------------------*/
+
+.karma-field label {
+  font-weight: bold;
+  vertical-align: baseline;
+  margin: 3px 0;
+  display: block;
+}
+
+
+
+/* File Field
+--------------------------------------*/
+
+.karma-field label {
+  font-weight: bold;
+  vertical-align: baseline;
+  margin: 3px 0;
+  display: block;
+}
+.karma-field .file-input-thumbs {
+  margin-top: 1px;
+}
+.karma-field-file,
+.karma-field-files {
+  display: inline-block;
+}
+
+
+
+/* Dropdown Field
+--------------------------------------*/
+
+.karma-field select:focus {
+  color: inherit;
+  border-color: inherit;
+  box-shadow: none;
+}
+
+
+
+
+/* Group
+--------------------------------------*/
+
+.karma-field.group.display-block {
+}
+.karma-field.group.display-block .karma-field-group-content {
+}
+.karma-field.group.display-block .karma-field-group-content>.karma-field {
+  margin: 10px 0;
+}
+
+
+
+/* Group Display Flex
+--------------------------------------*/
+
+.karma-field.group.display-flex {
+}
+.karma-field.group.display-flex .karma-field-group-content {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -5px;
+}
+.karma-field.group.display-flex .karma-field-group-content>.karma-field {
+  margin: 10px 5px;
+}
+
+
+
+/* Group Display Table
+--------------------------------------*/
+
+.karma-field.group.display-table .karma-field-group-content {
+  display: table;
+}
+.karma-field.group.display-table .karma-field-group-content>.karma-field {
+  display: table-row;
+}
+.karma-field.group.display-table .karma-field-group-content>.karma-field>label,
+.karma-field.group.display-table .karma-field-group-content>.karma-field>div {
+  display: table-cell;
+  /* vertical-align: baseline; */
+  padding: 10px;
+}
+.karma-field.group.display-table .karma-field-group-content>.karma-field>label {
+  padding-left: 0;
+  margin: 0;
+  font-weight: bolder;
+  min-width: 150px;
+}
+.karma-field.group.display-table .karma-field-group-content>.karma-field>div {
+  padding-right: 0;
+  width: 100%;
 }

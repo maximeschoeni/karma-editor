@@ -24,14 +24,13 @@ Class Karma_Posts_Fields {
 			add_action('save_post', array($this, 'save_post'), 10, 3);
 			add_action('karma_fields_print_field', array($this, 'print_field'), 10, 3);
 
-
-			add_action('karma_cache_posts_request_post_key', array($this, 'karma_cache_posts_request_post_key'), 10, 3);
-
-			add_action('karma_cache_posts_save_post', array($this, 'karma_cache_posts_save_post'), 10, 2);
-			add_action('karma_cache_posts_update_meta', array($this, 'karma_cache_posts_update_meta'), 10, 4);
-			add_action('karma_cache_posts_set_post_terms', array($this, 'karma_cache_posts_set_post_terms'), 10, 5);
-
 		}
+
+		add_action('karma_cache_posts_request_post_file', array($this, 'karma_cache_posts_request_post_file'), 10, 3);
+
+		add_action('karma_cache_posts_save_post', array($this, 'karma_cache_posts_save_post'), 10, 2);
+		add_action('karma_cache_posts_update_meta', array($this, 'karma_cache_posts_update_meta'), 10, 4);
+		add_action('karma_cache_posts_set_post_terms', array($this, 'karma_cache_posts_set_post_terms'), 10, 5);
 
 	}
 
@@ -75,12 +74,14 @@ Class Karma_Posts_Fields {
 
 				if (isset($_REQUEST['karma-fields-items'], $_REQUEST['karma-fields-uri']) && is_array($_REQUEST['karma-fields-items'])) {
 
+					$middleware = $karma_fields->get_middleware('posts');
+
 					foreach ($_REQUEST['karma-fields-items'] as $item) {
 
 						$item = stripslashes($item);
 						$item = json_decode($item);
 
-						$karma_fields->update_item('posts', $item, $_REQUEST['karma-fields-uri'], null);
+						$karma_fields->update_item($middleware, $item, $_REQUEST['karma-fields-uri'], null);
 
 					}
 
@@ -100,45 +101,33 @@ Class Karma_Posts_Fields {
 
 		if (isset($resources['key']) && $resources['key']) {
 
-			$key = $karma_fields->get_key('posts', $resources['key']);
+			$resources['cache'] = $karma_fields->get_cachefile('posts', $resources['key']);
 
-			// if (isset($key['type'])) {
+			// var_dump($resources['key'], $resources['cache']);
+
+
+
+			// if (isset($karma_fields->keys['posts'][$resources['key']])) {
 			//
-			// 	$resources['type'] = $key['type'];
+			// 	$key_resource = $karma_fields->keys['posts'][$resources['key']];
 			//
-			// 	// $type = $karma_fields->get_key_type('posts', $key_name);
-			// 	//
-			// 	// if (isset($type['extension']) && $type['extension']) {
-			// 	//
-			// 	// 	$resources['extension'] = $type['extension'];
-			// 	//
-			// 	// }
+			// 	if (isset($key_resource['cache'])) {
+			//
+			// 		if ($key_resource['cache'] === true) {
+			//
+			// 			$file = $resources['key'] . '.txt';
+			//
+			// 		} else {
+			//
+			// 			$file = $key_resource['cache'];
+			//
+			// 		}
+			//
+			// 		$resources['cache'] = $file;
+			//
+			// 	}
 			//
 			// }
-
-			if (isset($key['cache'])) {
-
-				if ($key['cache'] === true) {
-
-					$file = $resources['key'] . '.txt';
-
-				} else {
-
-					$file = $key['cache'];
-
-				}
-
-				$resources['cache'] = $file;
-
-				// $type = $karma_fields->get_key_type('posts', $key_name);
-				//
-				// if (isset($type['extension']) && $type['extension']) {
-				//
-				// 	$resources['extension'] = $type['extension'];
-				//
-				// }
-
-			}
 
 		}
 
@@ -163,6 +152,7 @@ Class Karma_Posts_Fields {
 	 * @hook 'karma_cache_posts_save_post'
 	 */
 	public function karma_cache_posts_save_post($post, $posts_cache) {
+		global $karma_fields;
 
 		if ($post->post_type !== 'revision') {
 
@@ -182,15 +172,22 @@ Class Karma_Posts_Fields {
 
 
 	/**
-	 * @hook 'karma_cache_posts_request_post_key'
+	 * @hook 'karma_cache_posts_request_post_file'
 	 */
-	public function karma_cache_posts_request_post_key($post, $key, $posts_cache) {
+	public function karma_cache_posts_request_post_file($post, $file, $posts_cache) {
+		global $karma_fields;
 
 		$middleware = $karma_fields->get_middleware('posts');
 
-		$middleware->update_post_search_key($post->ID, $key);
+		$key = $karma_fields->find_key('posts', $file);
 
-		$middleware->update_cache($post->ID, $key, $posts_cache);
+		if ($key) {
+
+			$middleware->update_post_search_key($post->ID, $key);
+
+			$middleware->update_cache($post->ID, $key, $posts_cache);
+
+		}
 
 	}
 
@@ -198,6 +195,7 @@ Class Karma_Posts_Fields {
 	 * @hook 'karma_cache_posts_update_meta'
 	 */
 	public function karma_cache_posts_update_meta($post_id, $meta_key, $meta_value, $posts_cache) {
+		global $karma_fields;
 
 		$middleware = $karma_fields->get_middleware('posts');
 
@@ -212,6 +210,7 @@ Class Karma_Posts_Fields {
 	 * @hook 'karma_cache_posts_set_post_terms'
 	 */
 	public function karma_cache_posts_set_post_terms($post_id, $terms, $taxonomy, $append, $posts_cache) {
+		global $karma_fields;
 
 		$middleware = $karma_fields->get_middleware('posts');
 

@@ -1,11 +1,13 @@
 <?php
 
 
+
 Class Karma_Tables {
 
 	public $version = '1';
 
 	public $middlewares = array();
+	public $drivers = array();
 	public $keys = array();
 
 	/**
@@ -32,7 +34,7 @@ Class Karma_Tables {
 
 		require_once dirname(__FILE__) . '/multilanguage.php';
 
-		require_once dirname(__FILE__) . '/class-posts.php';
+		// require_once dirname(__FILE__) . '/class-posts.php';
 
 		require_once dirname(__FILE__) . '/class-posts-fields.php';
 
@@ -75,6 +77,20 @@ Class Karma_Tables {
 		// add_action('karma_cache_request', array($this, 'karma_cache_request'), 10, 4);
 
 
+    $this->register_middleware('posts', KARMA_FIELDS_PATH.'/middlewares/posts.php', 'Karma_Fields_Middleware_Posts');
+
+    $this->register_driver('posts', 'postfield', KARMA_FIELDS_PATH.'/drivers/postfield.php', 'Karma_Fields_Driver_Postfield');
+		$this->register_driver('posts', 'postfile', KARMA_FIELDS_PATH.'/drivers/postfile.php', 'Karma_Fields_Driver_Postfile');
+		$this->register_driver('posts', 'postfiles', KARMA_FIELDS_PATH.'/drivers/postfiles.php', 'Karma_Fields_Driver_Postfiles');
+		$this->register_driver('posts', 'postmeta', KARMA_FIELDS_PATH.'/drivers/postmeta.php', 'Karma_Fields_Driver_Postmeta');
+		$this->register_driver('posts', 'metadate', KARMA_FIELDS_PATH.'/drivers/metadate.php', 'Karma_Fields_Driver_Metadate');
+		$this->register_driver('posts', 'postdate', KARMA_FIELDS_PATH.'/drivers/postdate.php', 'Karma_Fields_Driver_Postdate');
+		$this->register_driver('posts', 'poststatus', KARMA_FIELDS_PATH.'/drivers/poststatus.php', 'Karma_Fields_Driver_Poststatus');
+		$this->register_driver('posts', 'posttype', KARMA_FIELDS_PATH.'/drivers/posttype.php', 'Karma_Fields_Driver_Posttype');
+
+
+
+
 
 	}
 
@@ -87,7 +103,7 @@ Class Karma_Tables {
 			$plugin_url = trim(plugin_dir_url(__FILE__), '/');
 
 			wp_enqueue_style('date-field-styles', $plugin_url . '/css/date-field.css');
-			wp_enqueue_style('media-field-styles', $plugin_url . '/css/media-field.css');
+			// wp_enqueue_style('media-field-styles', $plugin_url . '/css/media-field.css');
 			wp_enqueue_style('multimedia-styles', $plugin_url . '/css/multimedia.css');
 			wp_enqueue_style('karma-styles-grid', $plugin_url . '/css/grid.css');
 
@@ -110,6 +126,8 @@ Class Karma_Tables {
 			wp_enqueue_script('karma-field-textinput', $plugin_url . '/js/fields/textinput.js', array('media-field', 'build'), $this->version, false);
 			wp_enqueue_script('karma-field-grid', $plugin_url . '/js/fields/grid.js', array('media-field', 'build'), $this->version, false);
 			wp_enqueue_script('karma-field-file', $plugin_url . '/js/fields/file.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-field-files', $plugin_url . '/js/fields/files.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-field-dropdown', $plugin_url . '/js/fields/dropdown.js', array('media-field', 'build'), $this->version, false);
 
 			//filters
 			wp_enqueue_script('karma-filter-postdate', $plugin_url . '/js/filters/postdate.js', array('media-field', 'build'), $this->version, false);
@@ -196,15 +214,6 @@ Class Karma_Tables {
 	 */
 	public function rest_api_init() {
 
-		// register_rest_route('karma-fields/v1', '/update/posts', array(
-		// 	'methods' => 'POST',
-		// 	'callback' => function($request) {
-		// 		var_dump('yy');
-		// 		return 'dd';
-		// 	}
-		// ));
-
-
 		register_rest_route('karma-fields/v1', '/query/(?P<middleware>[a-z0-9_-]+)', array(
 			'methods' => 'GET',
 			'callback' => array($this, 'rest_query'),
@@ -257,44 +266,44 @@ Class Karma_Tables {
 	    )
 		));
 
-		register_rest_route('karma-fields/v1', '/options/(?P<middleware>[a-z0-9_-]+)/(?P<key>[^/]+)/?', array(
-			'methods' => 'GET',
-			'callback' => array($this, 'rest_get_field_options'),
-			'args' => array(
-				'middleware' => array(
-					'required' => true
-				),
-				'key' => array(
-					'required' => true
-				)
-	    )
-		));
+		// register_rest_route('karma-fields/v1', '/options/(?P<middleware>[a-z0-9_-]+)/(?P<key>[^/]+)/?', array(
+		// 	'methods' => 'GET',
+		// 	'callback' => array($this, 'rest_get_field_options'),
+		// 	'args' => array(
+		// 		'middleware' => array(
+		// 			'required' => true
+		// 		),
+		// 		'key' => array(
+		// 			'required' => true
+		// 		)
+	  //   )
+		// ));
 
-		register_rest_route('karma-fields/v1', '/add/(?P<middleware>[a-z0-9_-]+)', array(
-			'methods' => 'POST',
-			'callback' => array($this, 'rest_add'),
-			'args' => array(
-				'middleware' => array(
-					'required' => true
-				),
-				'filters' => array(
-					'default' => array()
-				)
-	    )
-		));
-
-		register_rest_route('karma-fields/v1', '/remove/(?P<middleware>[a-z0-9_-]+)', array(
-			'methods' => 'POST',
-			'callback' => array($this, 'rest_remove'),
-			'args' => array(
-				'middleware' => array(
-					'required' => true
-				),
-				'uris' => array(
-					'required' => true
-				)
-	    )
-		));
+		// register_rest_route('karma-fields/v1', '/add/(?P<middleware>[a-z0-9_-]+)', array(
+		// 	'methods' => 'POST',
+		// 	'callback' => array($this, 'rest_add'),
+		// 	'args' => array(
+		// 		'middleware' => array(
+		// 			'required' => true
+		// 		),
+		// 		'filters' => array(
+		// 			'default' => array()
+		// 		)
+	  //   )
+		// ));
+		//
+		// register_rest_route('karma-fields/v1', '/remove/(?P<middleware>[a-z0-9_-]+)', array(
+		// 	'methods' => 'POST',
+		// 	'callback' => array($this, 'rest_remove'),
+		// 	'args' => array(
+		// 		'middleware' => array(
+		// 			'required' => true
+		// 		),
+		// 		'uris' => array(
+		// 			'required' => true
+		// 		)
+	  //   )
+		// ));
 
 
 
@@ -313,13 +322,13 @@ Class Karma_Tables {
 
 		if ($middleware) {
 
-			if (isset($middleware['query']) && is_callable($middleware['query'])) {
+			if (method_exists($middleware, 'query')) {
 
-				$args = $this->parse_args($request, $middleware_name);
+				$args = $this->parse_args($request, $middleware);
 
-				$results = call_user_func($middleware['query'], $args);
+				return $middleware->query($args);
 
-				return apply_filters("karma_fields_{$middleware_name}_results", $results, $args);
+				// return apply_filters("karma_fields_{$middleware_name}_results", $results, $args);
 
 			} else {
 
@@ -340,50 +349,31 @@ Class Karma_Tables {
 	 */
 	public function rest_filter($request) {
 
-		$middleware_name = $request->get_param('middleware');
-		$middleware = $this->get_middleware($middleware_name);
+		$middleware = $request->get_param('middleware');
 		$key = $request->get_param('key');
+		// $params = $request->get_params();
 
+		$driver = $this->get_middleware($middleware)->get_driver($key);
 
+		if ($driver) {
 
-// var_dump($middleware_name, $key);
+			if (method_exists($driver, 'fetch')) {
 
-		// return call_user_func($middleware['fetch'], $key, $request, $middleware);
+				$args = $this->parse_args($request, $middleware);
 
-		// $middlewares = $this->get_middlewares();
-		// $middleware = $this->find($middlewares, 'name', $middleware_name);
-		//
-		// if ($middleware && $filter) {
-		//
-		// 	$filter = $this->find($middleware['filters'], 'name', $filter_name);
-
-
-
-			$filter = $this->get_key_filter($middleware_name, $key);
-
-			if ($filter) {
-
-				if (isset($filter['fetch']) && is_callable($filter['fetch'])) {
-
-					return call_user_func($filter['fetch'], $key, $request, $middleware);
-
-				} else {
-
-					return "rest filter error: fetch callback not found";
-
-				}
+				return $driver->fetch($args);
 
 			} else {
 
-				return "karma fields rest filter error: filter not found";
+				return "karma fields rest filter error: fetch method does not exist";
 
 			}
 
-		// } else {
-		//
-		// 	return 'rest filter error: middleware or filter_name not found';
-		//
-		// }
+		} else {
+
+			return "karma fields rest filter error: driver not found ($key)";
+
+		}
 
 	}
 
@@ -393,101 +383,30 @@ Class Karma_Tables {
 	public function rest_get($request) {
 
 		$path = $request->get_param('path');
-
-		// $locator = $this->parse_path($path);
-
 		$parts = explode('/', $path);
-
 		$middleware = array_shift($parts);
 		$key = array_pop($parts);
 		$uri = implode('/', $parts);
 
+		$driver = $this->get_middleware($middleware)->get_driver($key);
 
-		// $middleware_name = $request->get_param('middleware');
-		// // $field_name = $request->get_param('field');
-		// $path = $request->get_param('path');
+		if ($driver) {
 
-		// $middlewares = $this->get_middlewares();
-		// $middleware = $this->find($middlewares, 'name', $locator->middleware);
+			if (method_exists($driver, 'get')) {
 
-		// if ($middleware) {
+				return $driver->get($uri, $key);
 
-			// if ($middleware && $uri && $key) {
+			} else {
 
-				// $uri = dirname($path);
-				// $filename = basename($path);
-				// $key = pathinfo($filename, PATHINFO_FILENAME);
-				// $extension = pathinfo($filename, PATHINFO_EXTENSION);
+				return "karma fields rest get error: get callback not found";
 
-				$field = $this->get_key_field($middleware, $key);
+			}
 
-				if ($field) {
+		} else {
 
-					if (isset($field['get']) && is_callable($field['get'])) {
+			return "karma fields rest get error: driver not found ($key)";
 
-						$uri = apply_filters("karma_fields_{$middleware}_uri", $uri);
-
-						return call_user_func($field['get'], $uri, $key);
-
-					} else {
-
-						return "karma fields rest get error: get callback not found";
-
-					}
-
-				} else {
-
-					return "karma fields rest get error: field not found";
-
-				}
-
-			// } else {
-			//
-			// 	return "karma fields rest get error: incorrect locator";
-			//
-			// }
-
-		// } else {
-		//
-		// 	return 'karma fields rest save error: middleware not found';
-		//
-		// }
-
-
-		// $path = $request->get_param('path');
-		//
-		// $post_uri = dirname($path);
-		// $filename = basename($path);
-		// $key = pathinfo($filename, PATHINFO_FILENAME);
-		//
-		// $post_id = apply_filters('karma_cache_parse_uri', $post_uri, $post_uri);
-		//
-		// $post = get_post($post_id);
-		//
-		// if (!$post) {
-		//
-		// 	return 'error post not exits';
-		//
-		// }
-		//
-		// $sections = $this->get_sections();
-		// $sections = $this->filter_fields($sections, 'post_type', $post->post_type, false);
-		//
-		// $field = $this->find_field($sections, 'key', $key);
-		//
-		// if (!$field) {
-		//
-		// 	return 'error field not exits';
-		//
-		// }
-		//
-		// // do_action('karma_fields_query', $request, $field, $post);
-		//
-		// $field = $this->format_field($field, false);
-		//
-		// $value = $this->get_value($field, $post);
-		//
-		// return $value;
+		}
 
 	}
 
@@ -499,180 +418,252 @@ Class Karma_Tables {
 	public function rest_update($request) {
 
 		$middleware_name = $request->get_param('middleware');
+		$fields = $request->get_param('fields');
+		// $params = $request->get_params();
 
 		$middleware = $this->get_middleware($middleware_name);
-
-		$fields = $request->get_param('fields');
-		$params = $request->get_params();
 
 		foreach ($fields as $uri => $item) {
 
 			if (isset($item['action']) && $item['action'] === 'add') {
 
-				$this->add_item($middleware_name, $item, $params);
+				$this->add_item($middleware, $item, $request);
 
 			} else if (isset($item['action']) && $item['action'] === 'remove') {
 
-				$id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
+				// $id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
 
-				$this->remove_item($middleware_name, $id);
+				$this->remove_item($middleware, $uri, $request);
 
 			// } else if (isset($item['action']) && $item['action'] === 'update') {
 			} else {
 
-				$this->update_item($middleware_name, $item, $uri, $params);
+				$this->update_item($middleware, $item, $uri, $request);
 
 			}
 
 		}
 
-		$args = $this->parse_args($request, $middleware_name);
+		$args = $this->parse_args($request, $middleware);
 
-		return call_user_func($middleware['query'], $args);
+		return $middleware->query($args);
 
 	}
 
 
 
 
-	/**
-	 *	@rest 'wp-json/karma-fields/v1/add/{middleware}
-	 */
-	public function rest_add($request) {
-
-		$middleware_name = $request->get_param('middleware');
-
-		$middleware = $this->get_middleware($middleware_name);
-
-		$filters = $request->get_param('filters');
-
-		if ($middleware) {
-
-
-			// foreach ($filters as $key => $value) {
-			//
-			// 	$filter = $this->get_key_filter($middleware_name, $key);
-			//
-			// 	if ($filter && isset($filter['default']) && is_callable($filter['default'])) {
-			//
-			// 		$args = call_user_func($filter['default'], $args, $value);
-			//
-			// 	}
-			//
-			// }
-
-			if (isset($middleware['add']) && is_callable($middleware['add'])) {
-
-				return call_user_func($middleware['add'], $filters);
-
-			} else {
-
-				return "karma fields rest add error: add callback not found";
-
-			}
-
-		} else {
-
-			return "karma fields rest add error: middleware not found";
-
-		}
-
-	}
-
-	/**
-	 *	@rest 'wp-json/karma-fields/v1/remove/{middleware}
-	 */
-	public function rest_remove($request) {
-
-		$middleware_name = $request->get_param('middleware');
-
-		$middleware = $this->get_middleware($middleware_name);
-
-		$uris = $request->get_param('uris');
-
-		if ($middleware) {
-
-			foreach ($uris as $uri) {
-
-				$id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
-
-				if (isset($middleware['remove']) && is_callable($middleware['remove'])) {
-
-					return call_user_func($middleware['remove'], $id);
-
-				} else {
-
-					return "karma fields rest add error: add callback not found";
-
-				}
-
-			}
-
-		} else {
-
-			return "karma fields rest add error: middleware not found";
-
-		}
-
-	}
+	// /**
+	//  *	@rest 'wp-json/karma-fields/v1/add/{middleware}
+	//  */
+	// public function rest_add($request) {
+	//
+	// 	$middleware_name = $request->get_param('middleware');
+	//
+	// 	$middleware = $this->get_middleware($middleware_name);
+	//
+	// 	$filters = $request->get_param('filters');
+	//
+	// 	if ($middleware) {
+	//
+	//
+	// 		// foreach ($filters as $key => $value) {
+	// 		//
+	// 		// 	$filter = $this->get_key_filter($middleware_name, $key);
+	// 		//
+	// 		// 	if ($filter && isset($filter['default']) && is_callable($filter['default'])) {
+	// 		//
+	// 		// 		$args = call_user_func($filter['default'], $args, $value);
+	// 		//
+	// 		// 	}
+	// 		//
+	// 		// }
+	//
+	// 		if (isset($middleware['add']) && is_callable($middleware['add'])) {
+	//
+	// 			return call_user_func($middleware['add'], $filters);
+	//
+	// 		} else {
+	//
+	// 			return "karma fields rest add error: add callback not found";
+	//
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		return "karma fields rest add error: middleware not found";
+	//
+	// 	}
+	//
+	// }
+	//
+	// /**
+	//  *	@rest 'wp-json/karma-fields/v1/remove/{middleware}
+	//  */
+	// public function rest_remove($request) {
+	//
+	// 	$middleware_name = $request->get_param('middleware');
+	//
+	// 	$middleware = $this->get_middleware($middleware_name);
+	//
+	// 	$uris = $request->get_param('uris');
+	//
+	// 	if ($middleware) {
+	//
+	// 		foreach ($uris as $uri) {
+	//
+	// 			$id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
+	//
+	// 			if (isset($middleware['remove']) && is_callable($middleware['remove'])) {
+	//
+	// 				return call_user_func($middleware['remove'], $id);
+	//
+	// 			} else {
+	//
+	// 				return "karma fields rest add error: add callback not found";
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		return "karma fields rest add error: middleware not found";
+	//
+	// 	}
+	//
+	// }
 
 
 	/**
 	 *	@rest 'wp-json/karma-fields/v1/get/'
 	 */
-	public function rest_get_field_options($request) {
+	// public function rest_get_field_options($request) {
+	//
+	// 	$middleware_name = $request->get_param('middleware');
+	// 	$key = $request->get_param('key');
+	//
+	// 	$field = $this->get_key_field($middleware_name, $key);
+	//
+	// 	if ($field) {
+	//
+	// 		if (isset($field['fetch']) && is_callable($field['fetch'])) {
+	//
+	// 			return call_user_func($field['fetch'], $request);
+	//
+	// 		} else {
+	//
+	// 			return "karma fields rest get error: get callback not found";
+	//
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		return "karma fields rest field option error: field not found";
+	//
+	// 	}
+	//
+	// }
 
-		$middleware_name = $request->get_param('middleware');
-		$key = $request->get_param('key');
+	/**
+	 * parse_args
+	 */
+	public function parse_args($request, $middleware) {
 
-		$field = $this->get_key_field($middleware_name, $key);
+		$args = array(
+			'order' => $request->get_param('order'),
+			'posts_per_page' => $request->get_param('ppp'),
+			'paged' => $request->get_param('page')
+		);
 
-		if ($field) {
+		foreach ($middleware->keys as $key => $resource) {
 
-			if (isset($field['fetch']) && is_callable($field['fetch'])) {
+			if ($request->has_param($key)) {
 
-				return call_user_func($field['fetch'], $request);
+				$value = $request->get_param($key);
 
-			} else {
+				$driver = $middleware->get_driver($key);
 
-				return "karma fields rest get error: get callback not found";
+				if ($driver && method_exists($driver, 'parse')) {
+
+					$driver->parse($value, $args);
+
+				} else {
+
+					$args[$key] = $value;
+
+				}
 
 			}
 
-		} else {
+		}
 
-			return "karma fields rest field option error: field not found";
+		if ($request->has_param('search')) {
+
+			$word = $request->get_param('search');
+
+			if (method_exists($middleware, 'search')) {
+
+				$middleware->search($word, $args);
+
+			} else {
+
+				$args['search'] = $word;
+
+			}
 
 		}
+
+		if ($request->has_param('orderby')) {
+
+			$key = $request->get_param('orderby');
+
+			$driver = $middleware->get_driver($key);
+
+			if ($driver && method_exists($driver, 'sort')) {
+
+				$driver->sort($order, $args);
+
+			} else {
+
+				$args['orderby'] = $key;
+
+			}
+
+		}
+
+		return $args;
 
 	}
 
 	/**
 	 *	add_item
 	 */
-	public function add_item($middleware_name, $fields, $params) {
+	public function add_item($middleware, $fields, $request) {
 
 		$middleware = $this->get_middleware($middleware_name);
 
-		if (isset($middleware['add']) && is_callable($middleware['add'])) {
+		if (method_exists($middleware, 'add')) {
 
-			$id = call_user_func($middleware['add'], $fields, $params);
+			$args = $this->parse_args($request, $middleware);
+
+			$uri = $middleware->add($fields, $args);
 
 			foreach ($fields as $key => $value) {
 
-				$field = $this->get_key_field($middleware_name, $key);
+				$driver = $middleware->get_driver($key);
 
-				if ($field) {
+				if ($driver) {
 
-					if (isset($field['update']) && is_callable($field['update'])) {
+					if (method_exists($driver, 'update')) {
 
-						call_user_func($field['update'], $id, $key, $value, $params);
+						$driver->update($uri, $value, $params);
 
 					}
 
 				} else {
 
-					return "karma fields rest add_item error: field not found ($middleware_name, $key)";
+					return "karma fields rest add_item error: driver not found ($key)";
 
 				}
 
@@ -680,35 +671,28 @@ Class Karma_Tables {
 
 		} else {
 
-			return "karma fields rest add_item error: callback not found";
+			return "karma fields rest add_item error: add method not found";
 
 		}
 
 	}
 
-
 	/**
 	 *	update_item
 	 */
-	public function update_item($middleware_name, $item_fields, $uri, $params) {
+	public function update_item($middleware, $item_fields, $uri, $request = null) {
 
 		$args = array();
 
-		$middleware = $this->get_middleware($middleware_name);
-
-		// $id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
-
 		foreach ($item_fields as $key => $value) {
 
-			$field = $this->get_key_field($middleware_name, $key);
+			$driver = $middleware->get_driver($key);
 
-			$resource = $this->get_key($middleware_name, $key);
+			if ($driver) {
 
-			if ($field) {
+				if (method_exists($driver, 'update')) {
 
-				if (isset($field['update']) && is_callable($field['update'])) {
-
-					call_user_func($field['update'], $uri, $key, $value, $resource, $args);
+					$driver->update($uri, $value, $args);
 
 				} else if (isset($value)) {
 
@@ -716,241 +700,49 @@ Class Karma_Tables {
 
 				}
 
-			} else {
-
-				return "karma fields rest update error: field not found ($middleware_name, $key)";
-
 			}
 
 		}
 
 		if ($args) {
 
-			if (isset($middleware['update']) && is_callable($middleware['update'])) {
+			if (method_exists($middleware, 'update')) {
 
-				call_user_func($middleware['update'], $uri, $args);
-
-			} else {
-
-				return "karma fields rest update error: update callback not found ($middleware_name)";
+				$middleware->update($uri, $args);
 
 			}
 
 		}
-
-		// dependancies
-
-		// $key_options = $this->get_key($middleware_name, $key);
-		//
-		// if ($key_options['dependancy']) {
-		//
-		// 	$karma_cache_posts->add_dependancy($id, $img_id, "$uri/$key");
-		//
-		// }
-
-
 
 	}
 
 	/**
 	 *	update_item
 	 */
-	public function remove_item($middleware_name, $id, $params = null) {
+	public function remove_item($middleware, $uri, $request = null) {
 
-		$middleware = $this->get_middleware($middleware_name);
+		if (method_exists($middleware, 'remove')) {
 
-		if (isset($middleware['remove']) && is_callable($middleware['remove'])) {
-
-			call_user_func($middleware['remove'], $id, $params);
-
-		} else {
-
-			return "karma fields rest remove_item error: callback not found ($middleware_name)";
+			$middleware->remove($uri);
 
 		}
 
 	}
-
-
-	// /**
-	//  *	get_middlewares
-	//  */
-	// public function get_middlewares() {
-	//
-	// 	return $this->middlewares;
-	//
-	// }
-	//
-	// /**
-	//  *	get_middleware
-	//  */
-	// public function get_middleware($name) {
-	//
-	// 	if (isset($this->middlewares[$name])) {
-	//
-	// 		return $this->middlewares[$name];
-	//
-	// 	}
-	//
-	// }
-
-	// /**
-	//  *	get_filter
-	//  */
-	// public function get_filter($middleware_name, $filter_name) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	if ($middleware && isset($middleware['filters'][$filter_name])) {
-	//
-	// 		return $middleware['filters'][$filter_name];
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	get_field
-	//  */
-	// public function get_field($middleware_name, $field_name) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	if ($middleware && isset($middleware['fields'][$field_name])) {
-	//
-	// 		return $middleware['fields'][$field_name];
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	get_field
-	//  */
-	// public function get_type($middleware_name, $type_name) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	if ($middleware && isset($middleware['types'][$type_name])) {
-	//
-	// 		return $middleware['types'][$type_name];
-	//
-	// 	}
-	//
-	// }
-
-
-
-
-	/**
-	 *	register_middleware
-	 */
-	// public function get_column($middleware_name, $column_name) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	if ($middleware) {
-	//
-	// 		return $this->find($middleware['columns'], 'name', $column_name);
-	//
-	// 	}
-	//
-	// }
-
-	// /**
-	//  *	get_resource
-	//  */
-	// public function get_resource($middleware_name, $key_name) {
-	//
-	// 	if (isset($this->keys[$middleware_name][$key_name])) {
-	//
-	// 		return $this->keys[$middleware_name][$key_name];
-	//
-	// 	}
-	//
-	// }
 
 	/**
 	 *	get_middleware
 	 */
 	public function get_middleware($name) {
 
-		if (isset($this->middlewares[$name]['path']) && file_exists($this->middlewares[$name]['path'])) {
+		require_once $this->middlewares[$name]['path'];
 
-			require_once $this->middlewares[$name]['path'];
+		$middleware = new $this->middlewares[$name]['class'];
+		$middleware->keys = $this->keys[$name];
+		$middleware->drivers = $this->drivers[$name];
 
-		}
-
-		if (isset($this->middlewares[$name]['class']) && class_exists($this->middlewares[$name]['class'])) {
-
-			$middleware = new $this->middlewares[$name]['class'];
-			$middleware->keys = $this->keys[$name];
-			$middleware->drivers = $this->drivers[$name];
-
-			return $middleware;
-
-		}
+		return $middleware;
 
 	}
-
-
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function get_key($middleware_name, $key_name) {
-	//
-	// 	if (isset($this->keys[$middleware_name][$key_name])) {
-	//
-	// 		return $this->keys[$middleware_name][$key_name];
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function get_key_field($middleware_name, $key_name) {
-	//
-	// 	$key = $this->get_key($middleware_name, $key_name);
-	//
-	// 	if (isset($key['field'])) {
-	//
-	// 		return $this->get_field($middleware_name, $key['field']);
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function get_key_filter($middleware_name, $key_name) {
-	//
-	// 	$key = $this->get_key($middleware_name, $key_name);
-	//
-	// 	if (isset($key['filter'])) {
-	//
-	// 		return $this->get_filter($middleware_name, $key['filter']);
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	get_field
-	//  */
-	// public function get_key_type($middleware_name, $key_name) {
-	//
-	// 	$key = $this->get_key($middleware_name, $key_name);
-	//
-	// 	if (isset($key['type'])) {
-	//
-	// 		return $this->get_type($middleware_name, $key['type']);
-	//
-	// 	}
-	//
-	// }
 
 	/**
 	 *	register_middleware
@@ -967,284 +759,76 @@ Class Karma_Tables {
 	/**
 	 *	register_driver
 	 */
-	public function register_driver($middleware, $name, $path, $class) {
+	public function register_driver($middleware_name, $name, $path, $class) {
 
-		$this->drivers[$middleware][$name] = array(
+		$this->drivers[$middleware_name][$name] = array(
 			'path' => $path,
 			'class' => $class
 		);
 
 	}
 
-
-
 	/**
 	 *	register_keys
 	 */
-	public function register_keys($middleware, $keys) {
+	public function register_keys($middleware_name, $keys) {
 
 		foreach ($keys as $key => $resource) {
 
-			$this->keys[$middleware][$key] = $resource;
+			$this->keys[$middleware_name][$key] = $resource;
 
 		}
 
 	}
 
 	/**
-	 *	unregister_middleware
+	 *	get_cachefile
 	 */
-	// public function unregister_middleware($middleware_name) {
-	//
-	// 	$middleware = $this->find($this->middlewares, 'name', $middleware_name);
-	//
-	// 	if ($middleware) {
-	//
-	// 		$index = array_search($this->middlewares, $middleware);
-	//
-	// 		if ($index !== false) {
-	//
-	// 			array_splice($this->middlewares, $index, 1);
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
+	public function get_cachefile($middleware_name, $key) {
 
-	/**
-	 * parse_path
-	 */
-	// public function parse_path($path) {
-	//
-	// 	$locator = new stdClass();
-	//
-	// 	$locator->path = $path;
-	//
-	// 	$parts = explode('/', $path);
-	//
-	// 	$locator->middleware = array_shift($parts);
-	// 	$locator->key = array_pop($parts);
-	// 	$locator->uri = implode('/', $parts);
-	//
-	// 	// $file_parts = explode('.', $locator->filename);
-	// 	//
-	// 	// $locator->extension = array_pop($file_parts);
-	// 	// $locator->key = array_pop($file_parts);
-	// 	// $locator->group = array_pop($file_parts);
-	//
-	// 	return $locator;
-	//
-	// }
+		if (isset($this->keys[$middleware_name][$key])) {
 
-	/**
-	 * parse_args
-	 */
-	public function parse_args($request, $middleware_name) {
+			$resource = $this->keys[$middleware_name][$key];
 
+			if (!isset($resource['cache']) || $resource['cache'] === true) {
 
+	      if (isset($resource['type']) && $resource['type'] === 'json') {
 
-		$args = array();
+	        return $key.'.json';
 
-		$middleware = $this->get_middleware($middleware_name);
+	      } else {
 
-		if (isset($this->keys[$middleware_name])) {
+	        return $key.'.txt';
 
-			foreach ($this->keys[$middleware_name] as $key => $key_options) {
+	      }
 
-				$filter_key = str_replace('.', '_', $key);
+	    } else if ($resource['cache']) {
 
-				if ($request->has_param($filter_key)) {
+	      return $resource['cache'];
 
-					if (isset($key_options['filter'])) {
-
-						$filter = $this->get_filter($middleware_name, $key_options['filter']);
-
-						if ($filter) {
-
-							$value = $request->get_param($filter_key);
-
-							$args = call_user_func($filter['parse'], $args, $key, $value);
-
-						}
-
-					}
-
-				}
-
-			}
+	    }
 
 		}
-
-		if ($request->has_param('search') && isset($middleware['search'])) {
-
-			$word = $request->get_param('search');
-
-			$args = call_user_func($middleware['search'], $args, $word);
-			// $keys = array();
-			//
-			// if (isset($this->keys[$middleware_name])) {
-			//
-			// 	foreach ($this->keys[$middleware_name] as $key => $key_options) {
-			//
-			// 		if (isset($key_options['type'], $key_options['searchable']) && $key_options['searchable']) {
-			//
-			// 			$field_name = $key_options['type'];
-			//
-			// 			$keys[$field_name][] = $key;
-			//
-			// 		}
-			//
-			// 	}
-			//
-			// }
-			//
-			// $search_args = null;
-			//
-			// foreach ($keys as $field_name => $field_keys) {
-			//
-			// 	$field = $this->get_field($middleware_name, $field_name);
-			//
-			// 	if ($field && isset($field['search1'])) {
-			//
-			// 		$search_args = call_user_func($field['search1'], $search_args, $word, $field_keys);
-			//
-			// 	}
-			//
-			// }
-			//
-			// if (!$search_args) {
-			//
-			// 	foreach ($keys as $field_name => $field_keys) {
-			//
-			// 		$field = $this->get_field($middleware_name, $field_name);
-			//
-			// 		if ($field && isset($field['search2'])) {
-			//
-			// 			$search_args = call_user_func($field['search2'], $search_args, $word, $field_keys);
-			//
-			// 		}
-			//
-			// 	}
-			//
-			// }
-			//
-			// if ($search_args) {
-			//
-			// 	$args = array_merge($args, $search_args);
-			//
-			// } else {
-			//
-			// 	return;
-			//
-			// }
-
-		}
-
-		if ($request->has_param('orderby')) {
-
-			$order_key = $request->get_param('orderby');
-
-		} else if (isset($this->keys[$middleware_name])) {
-
-			foreach ($this->keys[$middleware_name] as $key => $key_option) {
-
-				if (isset($key_option['default_orderby']) && $key_option['default_orderby']) {
-
-					$order_key = $key;
-					break;
-
-				}
-
-			}
-
-		}
-
-		if (isset($order_key, $this->keys[$middleware_name][$order_key])) {
-
-			$key_option = $this->keys[$middleware_name][$order_key];
-
-			if (isset($key_option['field'])) {
-
-				$field = $this->get_field($middleware_name, $key_option['field']);
-
-				if ($field) {
-
-					if ($request->has_param('order')) {
-
-						$order = $request->get_param('order');
-
-					} else if (isset($key_option['default_order'])) {
-
-						$order = $key_option['default_order'];
-
-					} else {
-
-						$order = 'asc';
-
-					}
-
-					if (isset($field['sort'])) {
-
-						$args = call_user_func($field['sort'], $args, $order_key, $order);
-
-					}
-
-				}
-
-			}
-
-		}
-
-		$args['posts_per_page'] = $request->get_param('ppp');
-		$args['paged'] = $request->get_param('page');
-
-		return $args;
 
 	}
 
+	/**
+	 *	find key from cache file
+	 */
+	public function find_key($middleware_name, $filename) {
 
-	// /**
-	//  * @helper find
-	//  */
-	// public function find($items, $key, $value) {
-	//
-	// 	foreach ($items as $item) {
-	//
-	// 		if (isset($item[$key]) && $item[$key] === $value) {
-	//
-	// 			return $item;
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
+		foreach ($this->keys[$middleware_name] as $key => $resource) {
 
+			if ($filename === $this->get_cachefile($middleware_name, $key)) {
 
+				return $key;
 
-	// /**
-	//  *	register_middleware
-	//  */
-	// public function register_key($middleware, $key_name, $key) {
-	//
-	// 	// if (isset($this->keys[$middleware])) {
-	// 	//
-	// 	// 	$this->keys[$middleware] = array_merge($keys, $this->keys[$middleware]);
-	// 	//
-	// 	// } else {
-	// 	//
-	// 	// 	$this->keys[$middleware] = $keys;
-	// 	//
-	// 	// }
-	//
-	//
-	// 	// $key_name = isset($key['key']) ? $key['key'] : $key_name;
-	//
-	// 	$this->keys[$middleware][$key_name] = $key;
-	//
-	//
-	// }
+			}
+
+		}
+
+	}
+
 
 
 
@@ -1259,102 +843,6 @@ Class Karma_Tables {
 		include plugin_dir_path(__FILE__) . 'includes/table.php';
 
 	}
-
-
-
-	// /**
-	//  * parse_args
-	//  */
-	// public function wp_query($args) {
-	//
-	// 	return new WP_Query($args);
-	//
-	// }
-
-
-
-
-	// POSTS
-
-	public function get_other_filters_sql($request) {
-
-		$sql_parts = array();
-
-		// $filters_before = array();
-		// $filters_after = array();
-
-		$wheres = [];
-		$joins = [];
-
-		$middleware_name = $request->get_param('middleware');
-
-		foreach ($this->keys[$middleware_name] as $key => $key_options) {
-
-			if ($request->has_param('filter-'.$key) && $key !== $request->get_param('key')) {
-
-				$filter = $this->get_filter($middleware_name, $key_options['filter']);
-				$priority = isset($key_options['priority']) ? $key_options['priority'] : 'after';
-				$value = $request->get_param('filter-'.$key);
-
-				if (isset($filter['join'])) {
-
-					$joins[$priority][] = call_user_func($filter['join'], $key, $value);
-
-				}
-
-				if (isset($filter['where'])) {
-
-					$wheres[$priority][] = call_user_func($filter['where'], $key, $value);
-
-				}
-
-			}
-
-		}
-
-		foreach ($wheres as $priority => $array) {
-
-			$sql_parts[$priority]['where'] = implode(' AND ', $array);
-
-		}
-
-		foreach ($joins as $priority => $array) {
-
-			$sql_parts[$priority]['join'] = implode(' ', $array);
-
-		}
-
-		return $sql_parts;
-
-	}
-
-	//
-	// public function merge_results($key, $results1, $results2) {
-	//
-	// 	$keyed_counts = array();
-	//
-	// 	foreach ($results2 as $result) {
-	//
-	// 		$keyed_counts[$result->$key] = $result->total;
-	//
-	// 	}
-	//
-	// 	foreach ($results1 as $result) {
-	//
-	// 		if (isset($keyed_counts[$result->$key])) {
-	//
-	// 			$result->count = $keyed_counts[$result->$key];
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// 	return $results1;
-	//
-	// }
-
-
-
 
 
 
