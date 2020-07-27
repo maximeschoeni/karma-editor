@@ -123,7 +123,7 @@ KarmaFieldMedia.managers.table = function(resource) {
 		},
 
 		getChanges: function() {
-			// return history.pool.getAt(history.index);
+			// return history.pool.get(history.index);
 
 			return this.fields.reduce(function(obj, field) {
 				var uri = field.post.uri || field.post.pseudo_uri;
@@ -159,8 +159,21 @@ KarmaFieldMedia.managers.table = function(resource) {
 			}).then(function(results) {
 				history.posts = results.items;
 				manager.num = parseInt(results.num);
-				history.dbIndex = history.index;
+				// history.dbIndex = history.index;
+
+				for (var uri in params.fields) {
+					for (var key in params.fields[key]) {
+						history.pool.deleteKey(uri, key);
+					}
+				}
+
+
+
 				manager.render();
+				// manager.fields.forEach(function(field) {
+				// 	field.fetch();
+				// });
+
 				manager.loading = false;
 				manager.renderFooter("Items saved");
 			});
@@ -169,7 +182,7 @@ KarmaFieldMedia.managers.table = function(resource) {
 			history.save();
 			var post = {};
 			post.pseudo_uri = "-draft-"+(Math.random()*1000000000000).toFixed();
-			history.set("add", post.pseudo_uri, "action");
+			history.set(post.pseudo_uri, "action", "add");
 			history.posts.push(post);
 
 			if (manager.render) {
@@ -177,7 +190,7 @@ KarmaFieldMedia.managers.table = function(resource) {
 			}
 
 			this.select.select(0, history.posts.length-1, this.select.width, 1);
-			
+
 			var cells = this.select.getSelectedCells();
 			if (cells.length && cells[0].field && cells[0].field.onFocus) {
 				cells[0].field.onFocus();
@@ -192,10 +205,10 @@ KarmaFieldMedia.managers.table = function(resource) {
 			items.forEach(function(item) {
 				if (item.uri) {
 					// manager.pool.setAt("remove", manager.history.index, item.uri, "action");
-					history.updatePool(item.uri, "action", "remove");
+					history.set(item.uri, "action", "remove");
 				} else if (item.pseudo_uri) {
 					// manager.pool.setAt("cancel", manager.history.index, item.pseudo_uri, "action");
-					history.updatePool(item.pseudo_uri, "action", "cancel");
+					history.set(item.pseudo_uri, "action", "cancel");
 				}
 			});
 			this.render();
@@ -246,7 +259,14 @@ KarmaFieldMedia.managers.table = function(resource) {
 		event.preventDefault();
 	}
 	history.onUpdate = function() {
-		manager.render();
+		// manager.render();
+		// manager.fields.forEach(function(field) {
+		// 	field.fetch();
+		// });
+
+		manager.fields.forEach(function(field) {
+			field.update();
+		});
 		manager.renderFooter();
 	}
 	manager.history = history;

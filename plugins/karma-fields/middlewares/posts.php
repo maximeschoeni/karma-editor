@@ -38,6 +38,8 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
 
     wp_update_post($args);
 
+    // $uri = apply_filters('karma_fields_posts_id', $id); // update uri -> must output new uri
+
   }
 
   /**

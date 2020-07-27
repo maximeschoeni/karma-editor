@@ -69,8 +69,59 @@
 //
 
 
-async function build(args) {
+// async function build(args) {
+//
+// 	var element = document.createElement(args.tag || "div");
+// 	var child;
+// 	var children;
+// 	async function update() {
+// 		if (args.text) {
+// 			Promise.resolve(args.text(arguments)).then(function(text) {
+// 				element.innerHTML = text || "";
+// 			});
+// 		}
+// 		if (args.child) {
+// 			await child && child.then(function(child) {
+// 				child && element.removeChild(child);
+// 			});
+// 			child = Promise.resolve(args.child(arguments)).then(function(child) {
+// 				return child && element.appendChild(child);
+// 			});
+// 		}
+// 		if (args.children) {
+// 			await children && children.then(function(children) {
+// 				children.forEach(function(child) {
+// 					element.removeChild(child);
+// 				});
+// 			});
+// 			children = Promise.all(args.children(arguments) || []).then(function(children) {
+// 				return children.filter(function(child) {
+// 					return child && element.appendChild(child);
+// 				});
+// 			});
+// 		}
+// 	}
+// 	if (args.class) {
+// 		element.className = args.class;
+// 	}
+// 	if (args.fetch) {
+// 		fetch(args.fetch).then(function(response) {
+// 			return response.text();
+// 		}).then(function(text) {
+// 			element.innerHTML = text;
+// 		});
+// 	}
+// 	if (args.init) {
+// 		await args.init(element, update);
+// 	} else {
+// 		await update();
+// 	}
+// 	return element;
+// }
+//
 
+
+function build(args) {
 	var element = document.createElement(args.tag || "div");
 	var child;
 	var children;
@@ -104,22 +155,13 @@ async function build(args) {
 	if (args.class) {
 		element.className = args.class;
 	}
-	if (args.fetch) {
-		fetch(args.fetch).then(function(response) {
-			return response.text();
-		}).then(function(text) {
-			element.innerHTML = text;
-		});
-	}
 	if (args.init) {
-		await args.init(element, update);
+		args.init(element, update);
 	} else {
-		await update();
+		update();
 	}
 	return element;
 }
-
-
 
 
 

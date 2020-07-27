@@ -19,7 +19,6 @@ KarmaFieldMedia.fields.file = function(field) {
           }
         }
       }
-      console.log(attachment);
       value = {
         id: attachment.id,
         width: attachment.width,
@@ -37,11 +36,9 @@ KarmaFieldMedia.fields.file = function(field) {
       };
       field.history.save();
     }
-    field.set(value).then(function() {
-      field.save();
-      imageManager.renderThumbs && imageManager.renderThumbs();
-      imageManager.renderControls && imageManager.renderControls();
-    });
+    field.set(value || {});
+    imageManager.renderThumbs && imageManager.renderThumbs();
+    imageManager.renderControls && imageManager.renderControls();
   };
 
   // return build({
@@ -73,9 +70,9 @@ KarmaFieldMedia.fields.file = function(field) {
                     class: "field-controls-group",
                     children: function() {
                       return [
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
-                          fetch: KarmaFields.icons_url+"/insert.svg",
+                          url: KarmaFields.icons_url+"/insert.svg",
                           init: function(element, update) {
                             element.disabled = (field.get() || {}).id;
                             element.addEventListener("click", function(event) {
@@ -85,9 +82,9 @@ KarmaFieldMedia.fields.file = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
-                          fetch: KarmaFields.icons_url+"/edit.svg",
+                          url: KarmaFields.icons_url+"/edit.svg",
                           init: function(element, update) {
                             element.disabled = !(field.get() || {}).id;
                             element.addEventListener("click", function(event) {
@@ -97,9 +94,9 @@ KarmaFieldMedia.fields.file = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
-                          fetch: KarmaFields.icons_url+"/trash.svg",
+                          url: KarmaFields.icons_url+"/trash.svg",
                           init: function(element, update) {
                             element.disabled = !(field.get() || {}).id;
                             element.addEventListener("click", function(event) {
@@ -121,6 +118,15 @@ KarmaFieldMedia.fields.file = function(field) {
               build({
             		class: "file-input-thumbs",
                 init: function(element, update) {
+                  // field.fetch().then(function(value) {
+                  //   update();
+                  //   imageManager.renderControls && imageManager.renderControls();
+                  // });
+                  field.onUpdate = function(value) {
+                    
+                    update();
+                    imageManager.renderControls && imageManager.renderControls();
+                  }
                   field.fetch().then(function(value) {
                     update();
                     imageManager.renderControls && imageManager.renderControls();
@@ -132,8 +138,13 @@ KarmaFieldMedia.fields.file = function(field) {
                   if (value && value.id) {
                     return build({
                       tag: "img",
-                      init: function(img) {
-                        img.src = value.thumb;
+                      init: function(element) {
+                        element.src = value.thumb;
+                        element.addEventListener("click", function(event) {
+                          event.preventDefault();
+                          imageUploader.imageId = value.id;
+                          imageUploader.open();
+                        });
                       }
                     })
                   }

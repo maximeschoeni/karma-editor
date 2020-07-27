@@ -12,6 +12,8 @@ Class Karma_Fields_Driver_Postfiles extends Karma_Fields_Driver_Postfile {
     $id = apply_filters("karma_fields_posts_uri", $uri);
     $img_ids = get_post_meta($id, $this->key);
 
+    $img_ids = apply_filters('karma_fields_driver_files_ids', $img_ids);
+
     $uploads = wp_get_upload_dir();
     $baseurl = $uploads['baseurl'] . '/';
 

@@ -9,31 +9,45 @@ KarmaFieldMedia.managers.pool = function() {
 		// 		return value;
 		// 	}
 		// },
-		getAt: function(index, uri, key) {
-			if (key) {
-				if (this.storage && this.storage[index] && this.storage[index][uri]) {
-					return this.storage[index][uri][key];
-				}
-			} else if (uri) {
-				if (this.storage && this.storage[index]) {
-					return this.storage[index][uri];
-				}
-			} else {
-				if (this.storage) {
-					return this.storage[index];
-				}
+		getAt: function(uri, key, index) {
+
+			 // -> compat
+			if (typeof uri === "number") {
+				console.error("Pool.getAt() -> wrong argument");
 			}
+
+
+			if (this.storage && this.storage[uri] && this.storage[uri][key]) {
+				return this.storage[uri][key][index];
+			}
+			// if (index !== undefined) {
+			// 	if (this.storage && this.storage[uri] && this.storage[uri][key]) {
+			// 		return this.storage[uri][key][index];
+			// 	}
+			// }
+			// else if (key) {
+			// 	if (this.storage && this.storage[uri]) {
+			// 		return this.storage[uri][key];
+			// 	}
+			// } else if (uri) {
+			// 	if (this.storage) {
+			// 		return this.storage[uri];
+			// 	}
+			// }
 		},
 
-		// deprecated
-		get: function(index, uri, key) {
-			var value = this.getAt(index, uri, key);
+		get: function(uri, key, index) {
+			if (typeof uri === "number") {
+				console.error("Pool.getAt() -> wrong argument")
+			}
+			var value = this.getAt(uri, key, index);
 			while ((value === null || value === undefined) && index > 0) {
 				index--;
-				value = this.getAt(index, uri, key);
+				value = this.getAt(uri, key, index);
 			}
 			return value;
 		},
+
 		// find: function(index, uri, key) {
 		// 	var value = this.getAt(index, uri, key);
 		// 	while ((value === null || value === undefined) && index > 0) {
@@ -42,60 +56,75 @@ KarmaFieldMedia.managers.pool = function() {
 		// 	}
 		// 	return value;
 		// },
-		deleteAt: function(index, uri, key) {
-			if (key) {
-				if (this.storage[index] && this.storage[index][uri] && this.storage[index][uri][key] !== undefined) {
-					this.storage[index][uri][key] = undefined;
+		deleteIndex: function(uri, key, index) {
+			if (this.storage && this.storage[uri] && this.storage[uri][key] && this.storage[uri][key][index] !== undefined) {
+				this.storage[uri][key][index] = undefined;
+			}
+			// if (key) {
+			// 	if (this.storage[index] && this.storage[index][uri] && this.storage[index][uri][key] !== undefined) {
+			// 		this.storage[index][uri][key] = undefined;
+			// 	}
+			// } else if (uri) {
+			// 	if (this.storage[index] && this.storage[index][uri]) {
+			// 		this.storage[index][uri] = undefined;
+			// 	}
+			// } else if (index !== undefined) {
+			// 	if (this.storage[index]) {
+			// 		this.storage[index] = undefined;
+			// 	}
+			// } else {
+			// 	this.storage = [];
+			// }
+		},
+		deleteUp: function(index) {
+			if (this.storage) {
+				for (var uri in this.storage) {
+					for (var key in this.storage[uri]) {
+						while (this.storage[uri][key][index] !== undefined) {
+							this.storage[uri][key][index] = undefined;
+							// this.deleteIndex(uri, key, index);
+							index++;
+						}
+					}
 				}
-			} else if (uri) {
-				if (this.storage[index] && this.storage[index][uri]) {
-					this.storage[index][uri] = undefined;
-				}
-			} else if (index !== undefined) {
-				if (this.storage[index]) {
-					this.storage[index] = undefined;
-				}
-			} else {
-				this.storage = [];
 			}
 		},
-		delete: function(index) {
-			while (this.storage[index]) {
-				this.deleteAt(index);
-				index++;
+		deleteKey: function(uri, key) {
+			if (this.storage && this.storage[uri] && this.storage[uri][key]) {
+				this.storage[uri][key] = undefined;
 			}
 		},
 		// deprecated
-		setAt: function(value, index, uri, key, type) {
+		// setAt: function(value, index, uri, key, type) {
+		// 	if (!this.storage) {
+		// 		this.storage = {};
+		// 	}
+		// 	if (!this.storage[index]) {
+		// 		this.storage[index] = {};
+		// 	}
+		// 	if (!this.storage[index][uri]) {
+		// 		this.storage[index][uri] = {};
+		// 	}
+		// 	// if (value && type === "json") {
+		// 	// 	value = JSON.stringify(value);
+		// 	// }
+		// 	this.storage[index][uri][key] = value;
+		//
+		// 	KarmaFieldMedia.storage = this.storage;
+		// },
+		set: function(uri, key, index, value) {
 			if (!this.storage) {
 				this.storage = {};
 			}
-			if (!this.storage[index]) {
-				this.storage[index] = {};
+			if (!this.storage[uri]) {
+				this.storage[uri] = {};
 			}
-			if (!this.storage[index][uri]) {
-				this.storage[index][uri] = {};
+			if (!this.storage[uri][key]) {
+				this.storage[uri][key] = {};
 			}
-			// if (value && type === "json") {
-			// 	value = JSON.stringify(value);
-			// }
-			this.storage[index][uri][key] = value;
+			this.storage[uri][key][index] = value;
 
-			KarmaFieldMedia.storage = this.storage;
-		},
-		set: function(index, uri, key, value) {
-			if (!this.storage) {
-				this.storage = {};
-			}
-			if (!this.storage[index]) {
-				this.storage[index] = {};
-			}
-			if (!this.storage[index][uri]) {
-				this.storage[index][uri] = {};
-			}
-			this.storage[index][uri][key] = value;
-
-			KarmaFieldMedia.storage = this.storage;
+			KarmaFieldMedia.currentStorage = this.storage;
 		},
 		load: function(storage, middleware) {
 			this.storage = storage.getItem(middleware);

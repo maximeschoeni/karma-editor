@@ -17,12 +17,37 @@ KarmaFieldMedia.fields.group = function(field) {
 	// 				}
 	// 			}),
 				return build({
-					class: "karma-field-group-content",
-					init: function(content, update) {
-						update();
-					},
+					class: "karma-field-children",
+					// init: function(content, update) {
+					// 	update();
+					// },
 					children: function() {
-						return field.getChildren().map(function(child) {
+						var children = (field.resource.children || []).map(function(resource) {
+							return field.createChild(resource);
+						});
+						field.onUpdate = function() {
+							children.forEach(function(child) {
+								child.update();
+								// if (child.onUpdate) {
+								// 	if (child.key) {
+								// 		child.fetch().then(child.onUpdate);
+								// 	} else if (value && child.child_key) {
+								// 		child.onUpdate(value[child.child_key]);
+								// 	} else {
+								// 		child.onUpdate(value);
+								// 	}
+								// }
+							});
+						}
+						field.onRemove = function(value) {
+							children.forEach(function(child) {
+								child.remove();
+								// if (child.onRemove) {
+								// 	child.onRemove();
+								// }
+							});
+						}
+						return children.map(function(child) {
 							return child.build();
 						});
 					}

@@ -4,14 +4,13 @@ KarmaFieldMedia.fields.dropdown = function(field) {
 		init: function(element, update) {
 			element.id = field.id;
 			element.addEventListener("change", function() {
-				field.set(element.value).then(function() {
-					field.history.save();
-					field.save();
-				});
+				field.history.save();
+				field.set(element.value);
 			});
-			field.fetch().then(function(value) {
-				update();
-			});
+
+			field.onUpdate = update;
+			field.fetch().then(update);
+
 			field.onFocus = function() {
 				element.focus();
 			}

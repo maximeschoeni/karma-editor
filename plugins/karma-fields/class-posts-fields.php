@@ -162,7 +162,7 @@ Class Karma_Posts_Fields {
 
 				$middleware->update_post_search_key($post->ID, $key);
 
-				$middleware->update_cache($post->ID, $key, $posts_cache);
+				// $middleware->update_cache($post->ID, $key, $posts_cache);
 
 			}
 

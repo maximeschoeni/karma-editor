@@ -234,7 +234,7 @@
 .karma-fields table.grid td .karma-field {
   display: flex;
 }
-.karma-fields table.grid td .karma-field .karma-field-text-input {
+.karma-fields table.grid td .karma-field .karma-field-content {
   display: flex;
   flex-grow: 1;
 }
@@ -242,8 +242,9 @@
   margin: 0;
   padding: 1px 10px;
   border: 0;
-  max-width: 100%;
-  flex-grow: 1;
+  width: 100%;
+  box-sizing: border-box;
+
   outline: none;
 
   line-height: inherit;
@@ -252,25 +253,30 @@
   /* background-color: transparent; */
   background-color: #f1f1f1;
   color: #525a61;
+
+  border: 0 solid #7d8993; /* #007bba; */
 }
 .karma-fields table.grid td input:focus {
   box-shadow: none;
 }
-.karma-fields table.grid td .karma-field {
-  border: 1px solid transparent;
+
+.karma-fields table.grid td.selected-left input {
+  padding-left: 9px;
+  border-left-width: 1px;
 }
-.karma-fields table.grid td.selected-left .karma-field {
-  border-left-color: #7d8993; /* #007bba; */
+.karma-fields table.grid td.selected-right input {
+  padding-right: 9px;
+  border-right-width: 1px;
 }
-.karma-fields table.grid td.selected-right .karma-field {
-  border-right-color: #7d8993; /* #007bba; */
+.karma-fields table.grid td.selected-top input {
+  padding-top: 0;
+  border-top-width: 1px;
 }
-.karma-fields table.grid td.selected-top .karma-field {
-  border-top-color: #7d8993; /* #007bba; */
+.karma-fields table.grid td.selected-bottom input {
+  padding-bottom: 0;
+  border-bottom-width: 1px;
 }
-.karma-fields table.grid td.selected-bottom .karma-field {
-  border-bottom-color: #7d8993; /* #007bba; */
-}
+
 .karma-fields table.grid td.selected input {
   background-color: white; /* #efebea; */
 }
@@ -294,21 +300,22 @@
   display: flex;
   position: sticky;
   top: 32px;
-  background-color: white;
+  /* background-color: white; */
   z-index: 2;
-  border-bottom: 1px solid #7e8993;
+  /* border-bottom: 1px solid #7e8993; */
   margin-bottom: -1px;
 }
 .field-controls-group {
   display: inline-block;
+  background-color: white;
   border: 1px solid #7e8993;
-  border-bottom-width: 0;
+  /* border-bottom-width: 0; */
   border-right-width: 0;
-  border-top-left-radius: 3px;
+  /* border-top-left-radius: 3px; */
 }
 .field-controls-group:last-child {
   border-right-width: 1px;
-  border-top-right-radius: 3px;
+  /* border-top-right-radius: 3px; */
 }
 .field-controls button {
   padding: 0;
@@ -321,7 +328,11 @@
   cursor: pointer;
 }
 .field-controls button:focus {
-  outline: none;
+  /* outline: none; */
+  outline-style: dotted;
+  outline-color: #7d8993;
+  outline-width: 2px;
+  outline-offset: -1px;
 }
 .field-controls button:hover {
   outline: 2px solid #7d8993;
@@ -430,6 +441,34 @@
 
 
 
+/* Text-input Field
+--------------------------------------*/
+
+.karma-field input.text,
+.karma-field textarea {
+  box-shadow: none;
+  border-radius: 0;
+}
+.karma-field input.text:focus,
+.karma-field textarea:focus {
+  outline-color: #7d8993;
+  outline-offset: -2px;
+}
+
+
+
+/* Textarea Field
+--------------------------------------*/
+
+.karma-field textarea {
+  padding: 10px;
+  width: 100%;
+}
+
+
+
+
+
 /* File Field
 --------------------------------------*/
 
@@ -441,6 +480,8 @@
 }
 .karma-field .file-input-thumbs {
   margin-top: 1px;
+  display: flex;
+  flex-wrap: wrap;
 }
 .karma-field-file,
 .karma-field-files {
@@ -460,15 +501,32 @@
 
 
 
+/* TinyMCE Field
+--------------------------------------*/
+
+.karma-field.tinymce .editor-content {
+  padding: 1px 10px;
+  box-sizing: border-box;
+  border: 1px solid #7d8993;
+
+  min-height: 150px;
+}
+.karma-field.tinymce .editor-content.mce-edit-focus {
+  outline: 2px solid #7d8993;
+  outline-offset: -2px;
+}
+
+
+
 
 /* Group
 --------------------------------------*/
 
 .karma-field.group.display-block {
 }
-.karma-field.group.display-block .karma-field-group-content {
+.karma-field.group.display-block .karma-field-children {
 }
-.karma-field.group.display-block .karma-field-group-content>.karma-field {
+.karma-field.group.display-block .karma-field-children>.karma-field {
   margin: 10px 0;
 }
 
@@ -493,25 +551,24 @@
 /* Group Display Table
 --------------------------------------*/
 
-.karma-field.group.display-table .karma-field-group-content {
+.karma-field.display-table .karma-field-children {
   display: table;
 }
-.karma-field.group.display-table .karma-field-group-content>.karma-field {
+.karma-field.display-table .karma-field-children>.karma-field {
   display: table-row;
 }
-.karma-field.group.display-table .karma-field-group-content>.karma-field>label,
-.karma-field.group.display-table .karma-field-group-content>.karma-field>div {
+.karma-field.display-table .karma-field-children>.karma-field>label,
+.karma-field.display-table .karma-field-children>.karma-field>.karma-field-content {
   display: table-cell;
-  /* vertical-align: baseline; */
   padding: 10px;
 }
-.karma-field.group.display-table .karma-field-group-content>.karma-field>label {
+.karma-field.display-table .karma-field-children>.karma-field>label {
   padding-left: 0;
   margin: 0;
   font-weight: bolder;
   min-width: 150px;
 }
-.karma-field.group.display-table .karma-field-group-content>.karma-field>div {
+.karma-field.display-table .karma-field-children>.karma-field>.karma-field-content {
   padding-right: 0;
   width: 100%;
 }

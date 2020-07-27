@@ -21,12 +21,10 @@ KarmaFieldMedia.fields.files = function(field) {
         filename: attachment.filename
       }
     });
-    field.set(value).then(function() {
-      field.history.save();
-      field.save();
-      galleryManager.renderThumbs && galleryManager.renderThumbs();
-      galleryManager.renderControls && galleryManager.renderControls();
-    });
+    field.history.save();
+    field.set(value);
+    galleryManager.renderThumbs && galleryManager.renderThumbs();
+    galleryManager.renderControls && galleryManager.renderControls();
   };
 
   // return build({
@@ -58,9 +56,9 @@ KarmaFieldMedia.fields.files = function(field) {
                     class: "field-controls-group",
                     children: function() {
                       return [
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
-                          fetch: KarmaFields.icons_url+"/insert.svg",
+                          url: KarmaFields.icons_url+"/insert.svg",
                           init: function(element, update) {
                             element.disabled = (field.get() || []).length;
                             element.addEventListener("click", function(event) {
@@ -70,9 +68,9 @@ KarmaFieldMedia.fields.files = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
-                          fetch: KarmaFields.icons_url+"/edit.svg",
+                          url: KarmaFields.icons_url+"/edit.svg",
                           init: function(element, update) {
                             element.disabled = !(field.get() || []).length;
                             element.addEventListener("click", function(event) {
@@ -84,9 +82,9 @@ KarmaFieldMedia.fields.files = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
-                          fetch: KarmaFields.icons_url+"/trash.svg",
+                          url: KarmaFields.icons_url+"/trash.svg",
                           init: function(element, update) {
                             element.disabled = !(field.get() || []).length;
                             element.addEventListener("click", function(event) {
@@ -108,15 +106,30 @@ KarmaFieldMedia.fields.files = function(field) {
               build({
             		class: "file-input-thumbs",
                 init: function(element, update) {
-                  field.fetch([]).then(function(value) {
+                  // field.fetch([]).then(function(value) {
+                  //   update();
+                  //   galleryManager.renderControls && galleryManager.renderControls();
+                  // });
+                  field.onUpdate = function(value) {
                     update();
                     galleryManager.renderControls && galleryManager.renderControls();
+                  }
+                  element.addEventListener("click", function(event) {
+                    event.preventDefault();
+                    galleryUploader.imageIds = field.get().map(function(attachment) {
+                      return attachment.id;
+                    });
+                    galleryUploader.open();
                   });
                   galleryManager.renderThumbs = update;
+                  field.fetch().then(field.onUpdate);
             		},
                 children: function() {
-                  return field.get().map(function(attachment) {
-                    console.log(attachment);
+                  var value = field.get();
+                  if (!value || value.length === undefined) {
+                    value = field.resource.default || [];
+                  }
+                  return value.map(function(attachment) {
                     return build({
                       tag: "img",
                       init: function(img) {

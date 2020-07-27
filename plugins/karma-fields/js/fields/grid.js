@@ -1,11 +1,12 @@
 KarmaFieldMedia.fields.grid = function(field) {
   var select = KarmaFieldMedia.selectors.grid();
-  console.log(field.resource.default);
+
+
   var gridManager = {
     default: field.resource.default || {rows: [{cells: [{text: ""}]}]},
-    isEmptyValue: function(value) {
-      return !value || !value.rows || !value.rows.length || !value.rows[0].cells || !value.rows[0].cells.length;
-    },
+    // isEmptyValue: function(value) {
+    //   return !value || !value.rows || !value.rows.length || !value.rows[0].cells || !value.rows[0].cells.length;
+    // },
     addRow: async function(index) {
       field.history.save();
       var value = field.get();
@@ -63,6 +64,12 @@ KarmaFieldMedia.fields.grid = function(field) {
         gridManager.update();
       });
     }
+  };
+  field.onFetch = function(value) {
+    if (!value || !value.rows || !value.rows.length || !value.rows[0].cells || !value.rows[0].cells.length) {
+      return gridManager.default
+    }
+    return value;
   };
 
   KarmaFieldMedia.events.onCopy = function(event) {
@@ -155,7 +162,7 @@ KarmaFieldMedia.fields.grid = function(field) {
                     class: "field-controls-group",
                     children: function() {
                       return [
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
                           // text: function() {
                           //   return fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
@@ -165,7 +172,7 @@ KarmaFieldMedia.fields.grid = function(field) {
                           // text: () => fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
                           //   return response.text();
                           // }),
-                          fetch: KarmaFields.icons_url+"/table-row-before.svg",
+                          url: KarmaFields.icons_url+"/table-row-before.svg",
                           init: function(element, update) {
                             element.addEventListener("click", function(event) {
                               event.preventDefault();
@@ -187,14 +194,15 @@ KarmaFieldMedia.fields.grid = function(field) {
                             // });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
+                          url: KarmaFields.icons_url+"/table-row-after.svg",
                           init: function(element) {
-                            fetch(KarmaFields.icons_url+"/table-row-after.svg").then(function(response) {
-                              return response.text();
-                            }).then(function(result) {
-                              element.innerHTML = result;
-                            });
+                            // fetch(KarmaFields.icons_url+"/table-row-after.svg").then(function(response) {
+                            //   return response.text();
+                            // }).then(function(result) {
+                            //   element.innerHTML = result;
+                            // });
                             element.addEventListener("click", function(event) {
                               event.preventDefault();
                               var rect = select.getSelectionRect();
@@ -209,15 +217,16 @@ KarmaFieldMedia.fields.grid = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
+                          url: KarmaFields.icons_url+"/table-col-before.svg",
                           init: function(element) {
                             // element.innerText = "add col before";
-                            fetch(KarmaFields.icons_url+"/table-col-before.svg").then(function(response) {
-                              return response.text();
-                            }).then(function(result) {
-                              element.innerHTML = result;
-                            });
+                            // fetch(KarmaFields.icons_url+"/table-col-before.svg").then(function(response) {
+                            //   return response.text();
+                            // }).then(function(result) {
+                            //   element.innerHTML = result;
+                            // });
                             element.addEventListener("click", function(event) {
                               event.preventDefault();
                               var rect = select.getSelectionRect();
@@ -233,14 +242,15 @@ KarmaFieldMedia.fields.grid = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
+                          url: KarmaFields.icons_url+"/table-col-after.svg",
                           init: function(element) {
-                            fetch(KarmaFields.icons_url+"/table-col-after.svg").then(function(response) {
-                              return response.text();
-                            }).then(function(result) {
-                              element.innerHTML = result;
-                            });
+                            // fetch(KarmaFields.icons_url+"/table-col-after.svg").then(function(response) {
+                            //   return response.text();
+                            // }).then(function(result) {
+                            //   element.innerHTML = result;
+                            // });
                             element.addEventListener("click", function(event) {
                               event.preventDefault();
                               var rect = select.getSelectionRect();
@@ -255,14 +265,15 @@ KarmaFieldMedia.fields.grid = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
+                          url: KarmaFields.icons_url+"/table-row-delete.svg",
                           init: function(element) {
-                            fetch(KarmaFields.icons_url+"/table-row-delete.svg").then(function(response) {
-                              return response.text();
-                            }).then(function(result) {
-                              element.innerHTML = result;
-                            });
+                            // fetch(KarmaFields.icons_url+"/table-row-delete.svg").then(function(response) {
+                            //   return response.text();
+                            // }).then(function(result) {
+                            //   element.innerHTML = result;
+                            // });
                             element.addEventListener("click", function(event) {
                               event.preventDefault();
                               var rect = select.getSelectionRect();
@@ -279,15 +290,16 @@ KarmaFieldMedia.fields.grid = function(field) {
                             });
                           }
                         }),
-                        build({
+                        KarmaFieldMedia.includes.icon({
                           tag: "button",
+                          url: KarmaFields.icons_url+"/table-col-delete.svg",
                           init: function(element) {
                             // element.innerText = "remove col";
-                            fetch(KarmaFields.icons_url+"/table-col-delete.svg").then(function(response) {
-                              return response.text();
-                            }).then(function(result) {
-                              element.innerHTML = result;
-                            });
+                            // fetch(KarmaFields.icons_url+"/table-col-delete.svg").then(function(response) {
+                            //   return response.text();
+                            // }).then(function(result) {
+                            //   element.innerHTML = result;
+                            // });
                             element.addEventListener("click", function(event) {
                               event.preventDefault();
                               var rect = select.getSelectionRect();
@@ -316,36 +328,35 @@ KarmaFieldMedia.fields.grid = function(field) {
                   return build({
                     tag: "tbody",
                     init: function(element, update) {
-                      field.fetch(gridManager.default).then(function(value) {
-          							update();
-          						});
+                      field.onUpdate = function(value) {
+                        update();
+                      }
                       gridManager.update = update;
+                      field.fetch().then(function(value) {
+                        update();
+                      });
                     },
                     children: function() {
                       select.init();
-                      var rowsField = KarmaFieldMedia.managers.field({
+                      var rowsField = field.createChild({
                         child_key: "rows"
-                      }, field.post, field.middleware, field.history, field);
-
+                      });
                       return rowsField.get().map(function(row, y) {
                         select.addRow(y, y);
-                        var rowField = KarmaFieldMedia.managers.field({
-                          child_key: y.toString()
-                        }, field.post, field.middleware, field.history, rowsField);
                         return build({
                           tag: "tr",
                           children: function() {
-                            var cellsField = KarmaFieldMedia.managers.field({
+                            var cellsField = rowsField.createChild({
+                              child_key: y.toString()
+                            }).createChild({
                               child_key: "cells",
-                            }, field.post, field.middleware, field.history, rowField);
+                            });
                             return cellsField.get().map(function(col, x) {
-                              var cellField = KarmaFieldMedia.managers.field({
+                              var inputField = cellsField.createChild({
                                 child_key: x.toString()
-                              }, field.post, field.middleware, field.history, cellsField);
-                              var inputField = KarmaFieldMedia.managers.field({
+                              }).createChild({
                                 child_key: "text",
-                                field: "textinput"
-                              }, field.post, field.middleware, field.history, cellField);
+                              });
                               return build({
                                 tag: "td",
                                 init: function(cell, update) {
@@ -353,7 +364,7 @@ KarmaFieldMedia.fields.grid = function(field) {
                                   update();
                                 },
                                 child: function() {
-                                  return inputField.build();
+                                  return KarmaFieldMedia.fields.textinput(inputField);
                                 }
                               });
                             });

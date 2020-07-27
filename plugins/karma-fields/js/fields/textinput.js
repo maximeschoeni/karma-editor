@@ -1,4 +1,17 @@
 KarmaFieldMedia.fields.textinput = function(field) {
+	var textManager = {
+		lastKey: "",
+		lastTime: 0,
+		timeThreshold: 1000*5,
+		set: function(key) {
+			var now = Date.now();
+			if (key === "Backspace" && this.lastKey !== key || key === "Enter" || now - this.lastTime > this.timeThreshold) {
+				field.history.save();
+			}
+			this.lastKey = key;
+			this.lastTime = now;
+		}
+	};
 	// return build({
 	// 	class: "karma-field-text-input",
 	// 	init: function(element, update) {
@@ -14,30 +27,60 @@ KarmaFieldMedia.fields.textinput = function(field) {
 	// 					label.innerHTML = field.resource.label;
 	// 				}
 	// 			}),
-				return build({
-					class: "karma-field-text-input",
-					children: function() {
-						return [
-							build({
+				// return build({
+				// 	class: "karma-field-text-input",
+				// 	children: function() {
+				// 		return [
+							return build({
 								tag: "input",
-								class: "karma-field-input",
+								class: "text",
 								init: function(input) {
 									input.type = field.resource.type || "text";
 									input.id = field.id;
-									input.addEventListener("input", function() {
-										field.set(input.value).then(function() {
-											if (field.isModified != field.wasModified) {
-												field.history.save();
-											}
-											field.save();
-										});
+
+									input.addEventListener("keydown", function(event) {
+										// event.preventDefault();
+										console.log(event.key, this.value);
+
+										textManager.set(event.key);
+										field.set(input.value);
+
 									});
-									field.fetch().then(function(value) {
+									input.addEventListener("input", function(event) {
+										// console.log(event);
+										// textManager.set(event.key);
+										// field.set(input.value);
+										// field.set(input.value).then(function() {
+										// 	if (field.isModified != field.wasModified) {
+										// 		field.history.save();
+										// 	}
+										// 	field.save();
+										// });
+
+									});
+									field.onUpdate = function(value) { // -> historic change
+										input.value = value || "";
+										// input.classList.toggle("modified", value === field.getOriginal());
+									}
+									field.onInherit = function(value) {
+										input.placeholder = value || "";
+									}
+									field.onModified = function(isModified) {
+										input.classList.toggle("modified", isModified);
+									}
+									// field.update();
+
+									field.fetch().then(function(value) { // -> maybe undefined
 										input.value = value || "";
 									});
-									field.fetchPlaceholder().then(function(value) {
-										input.placeholder = value || "";
-									});
+
+
+									// field.fetch().then(function(value) {
+									// 	input.value = value || "";
+									// });
+									// field.fetchPlaceholder().then(function(value) {
+									// 	input.placeholder = value || "";
+									// });
 
 									field.onFocus = function() {
 										input.focus();
@@ -45,11 +88,14 @@ KarmaFieldMedia.fields.textinput = function(field) {
 									field.onBlur = function() {
 										input.blur();
 									}
+									if (field.resource.width) {
+										input.style.width = field.resource.width;
+									}
 								}
-							})
-						];
-					}
-				});
+							});
+				// 		];
+				// 	}
+				// });
 // 			];
 // 		}
 // 	});

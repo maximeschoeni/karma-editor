@@ -55,15 +55,17 @@ Class Karma_Editor {
 
     // remove_menu_page( 'edit.php?post_type=page' );
 
-    add_menu_page(
-      __('Custom Pages', 'karma'),
-      'Custom Pages',
-      'manage_options',
-      'karma-post_type-page',
-      array($this, 'print_page'),
-      'dashicons-admin-page',
-      20
-    );
+    // add_menu_page(
+    //   __('Custom Pages', 'karma'),
+    //   'Custom Pages',
+    //   'manage_options',
+    //   'karma-post_type-page',
+    //   array($this, 'print_page'),
+    //   'dashicons-admin-page',
+    //   20
+    // );
+
+
   }
 
   /**

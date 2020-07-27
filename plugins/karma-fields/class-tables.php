@@ -128,6 +128,8 @@ Class Karma_Tables {
 			wp_enqueue_script('karma-field-file', $plugin_url . '/js/fields/file.js', array('media-field', 'build'), $this->version, false);
 			wp_enqueue_script('karma-field-files', $plugin_url . '/js/fields/files.js', array('media-field', 'build'), $this->version, false);
 			wp_enqueue_script('karma-field-dropdown', $plugin_url . '/js/fields/dropdown.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-field-textarea', $plugin_url . '/js/fields/textarea.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-field-tinymce', $plugin_url . '/js/fields/tinymce.js', array('media-field', 'build'), $this->version, false);
 
 			//filters
 			wp_enqueue_script('karma-filter-postdate', $plugin_url . '/js/filters/postdate.js', array('media-field', 'build'), $this->version, false);
@@ -411,7 +413,6 @@ Class Karma_Tables {
 	}
 
 
-
 	/**
 	 *	@rest 'wp-json/karma-fields/v1/update/{middleware}'
 	 */
@@ -423,10 +424,13 @@ Class Karma_Tables {
 
 		$middleware = $this->get_middleware($middleware_name);
 
+		// $delta = array();
+
 		foreach ($fields as $uri => $item) {
 
 			if (isset($item['action']) && $item['action'] === 'add') {
 
+				// $delta[$uri] =
 				$this->add_item($middleware, $item, $request);
 
 			} else if (isset($item['action']) && $item['action'] === 'remove') {
@@ -438,15 +442,23 @@ Class Karma_Tables {
 			// } else if (isset($item['action']) && $item['action'] === 'update') {
 			} else {
 
+				// $delta[$uri] =
 				$this->update_item($middleware, $item, $uri, $request);
 
 			}
 
 		}
 
+
+
 		$args = $this->parse_args($request, $middleware);
 
 		return $middleware->query($args);
+
+		// return array(
+		// 	'query' => $middleware->query($args),
+		// 	'delta' => $delta
+		// );
 
 	}
 
@@ -643,11 +655,16 @@ Class Karma_Tables {
 
 		$middleware = $this->get_middleware($middleware_name);
 
+		$output = array();
+
 		if (method_exists($middleware, 'add')) {
 
 			$args = $this->parse_args($request, $middleware);
 
-			$uri = $middleware->add($fields, $args);
+			// $uri =
+			$middleware->add($fields, $args);
+
+			// $args = array();
 
 			foreach ($fields as $key => $value) {
 
@@ -657,7 +674,7 @@ Class Karma_Tables {
 
 					if (method_exists($driver, 'update')) {
 
-						$driver->update($uri, $value, $params);
+						$driver->update($uri, $value, $args);
 
 					}
 
@@ -668,6 +685,18 @@ Class Karma_Tables {
 				}
 
 			}
+
+			// if ($args) {
+			//
+			// 	if (method_exists($middleware, 'update')) {
+			//
+			// 		$middleware->update($uri, $args); // $uri is modified if changed
+			//
+			// 	}
+			//
+			// }
+
+			// return $uri; // -> return new uri
 
 		} else {
 
@@ -713,6 +742,8 @@ Class Karma_Tables {
 			}
 
 		}
+
+		// return $uri; // return uri for if it changed
 
 	}
 
