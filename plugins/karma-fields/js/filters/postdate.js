@@ -67,7 +67,16 @@ KarmaFieldMedia.filters.postdate = function(filterManager) {
 
 				build({
 					tag: "select",
-					children: function(options) {
+					init: function(element, update) {
+						element.addEventListener("change", function() {
+							filterManager.set(this.value);
+						});
+						filterManager.options = [];
+						filterManager.render = update;
+						filterManager.update();
+						update();
+					},
+					children: function() {
 						return [
 							build({
 								tag: "option",
@@ -76,7 +85,7 @@ KarmaFieldMedia.filters.postdate = function(filterManager) {
 									element.innerText = "–";
 								}
 							})
-						].concat(options.map(function(option) {
+						].concat(filterManager.options.map(function(option) {
 							return build({
 								tag: "option",
 								init: function(element) {
@@ -91,18 +100,8 @@ KarmaFieldMedia.filters.postdate = function(filterManager) {
 								}
 							})
 						}))
-					},
-					init: function(element, update) {
-						element.addEventListener("change", function() {
-							// element.parentNode.classList.add("loading");
-							filterManager.set(this.value).then(function() {
-								// element.parentNode.classList.remove("loading");
-							});
-						});
-						filterManager.render = update;
-						filterManager.update();
-						update([]);
 					}
+
 				})
 			];
 		}

@@ -66,7 +66,7 @@
 //
 // 	return element;
 // }
-//
+
 
 
 // async function build(args) {
@@ -125,9 +125,9 @@ function build(args) {
 	var element = document.createElement(args.tag || "div");
 	var child;
 	var children;
-	async function update() {
+	async function update(param) {
 		if (args.text) {
-			Promise.resolve(args.text(arguments)).then(function(text) {
+			Promise.resolve(args.text(param)).then(function(text) {
 				element.innerHTML = text || "";
 			});
 		}
@@ -135,7 +135,7 @@ function build(args) {
 			await child && child.then(function(child) {
 				child && element.removeChild(child);
 			});
-			child = Promise.resolve(args.child(arguments)).then(function(child) {
+			child = Promise.resolve(args.child(param)).then(function(child) {
 				return child && element.appendChild(child);
 			});
 		}
@@ -145,7 +145,7 @@ function build(args) {
 					element.removeChild(child);
 				});
 			});
-			children = Promise.all(args.children(arguments) || []).then(function(children) {
+			children = Promise.all(args.children(param) || []).then(function(children) {
 				return children.filter(function(child) {
 					return child && element.appendChild(child);
 				});

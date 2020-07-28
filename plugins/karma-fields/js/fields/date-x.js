@@ -6,7 +6,8 @@ KarmaFieldMedia.fields.date = function(field) {
   var format = field.resource.format || "dd/mm/yyyy";
   var dateManager = {};
   dateManager.calendar = Calendar.create();
-  var isOpen = false;
+  var isOpen = false
+
   // return build({
   //  class: "karma-field date-input",
   //  children: function() {
@@ -29,13 +30,13 @@ KarmaFieldMedia.fields.date = function(field) {
                   if (!isOpen) {
                     isOpen = true;
                     update();
+                    dateManager.calendar.update();
                     if (container.getBoundingClientRect().top+window.pageYOffset < 308) {
                       container.classList.add("open-down");
                     } else {
                       container.classList.remove("open-down");
                     }
                   }
-
                 };
                 dateManager.close = function() {
                   if (isOpen) {
@@ -45,6 +46,7 @@ KarmaFieldMedia.fields.date = function(field) {
                 };
               },
               child: function() {
+
 
                 return isOpen && build({
                   class: "karma-popup",
@@ -56,20 +58,24 @@ KarmaFieldMedia.fields.date = function(field) {
                     update();
                   },
                   child: function() {
+                    // console.trace();
+
+                    var rows = [];
                     return build({
                       class: "karma-calendar",
                       init: function(element, update) {
                         dateManager.calendar.onUpdate = function(days) {
-                          var rows = [];
+                          rows = [];
                           while(days.length) {
                             rows.push(days.splice(0, 7));
                           }
-                          update(rows);
+                          update();
                         }
-                        dateManager.calendar.update();
+                        update();
                       },
-                      child: function(rows) {
-                        return build({
+                      child: function() {
+
+                        var element = build({
                           class: "karma-calendar-content",
                           children: function() {
                             return [
@@ -183,6 +189,7 @@ KarmaFieldMedia.fields.date = function(field) {
                             ];
                           }
                         });
+                        return element;
                       }
                     });
                   }

@@ -34,8 +34,8 @@ Class Karma_Fields_Driver_Postdate extends Karma_Fields_Driver_Postfield {
     $before_where = '';
 
     $results = $wpdb->get_results(
-      "SELECT CONCAT(YEAR(p.$key), '-', MONTH(p.$key)) AS $key, COUNT(p.$key) AS total FROM $wpdb->posts AS p
-      $before_join $before_where GROUP BY YEAR(p.$key), MONTH(p.$key) ORDER BY p.$key DESC"
+      "SELECT CONCAT(YEAR(p.{$this->key}), '-', MONTH(p.{$this->key})) AS {$this->key}, COUNT(p.{$this->key}) AS total FROM $wpdb->posts AS p
+      $before_join $before_where GROUP BY YEAR(p.{$this->key}), MONTH(p.{$this->key}) ORDER BY p.{$this->key} DESC"
     );
 
     // $after_where = isset($sql_parts['after']['where']) ? $sql_parts['after']['where'] : '';
@@ -56,7 +56,7 @@ Class Karma_Fields_Driver_Postdate extends Karma_Fields_Driver_Postfield {
 
     foreach ($results as $result) {
 
-      $t = strtotime($result->$key);
+      $t = strtotime($result->{$this->key});
 
       $options[] = array(
         'value' => date('Y-m', $t),

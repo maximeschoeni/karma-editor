@@ -351,11 +351,12 @@ Class Karma_Tables {
 	 */
 	public function rest_filter($request) {
 
-		$middleware = $request->get_param('middleware');
+		$middleware_name = $request->get_param('middleware');
 		$key = $request->get_param('key');
 		// $params = $request->get_params();
 
-		$driver = $this->get_middleware($middleware)->get_driver($key);
+		$middleware = $this->get_middleware($middleware_name);
+		$driver = $middleware->get_driver($key);
 
 		if ($driver) {
 

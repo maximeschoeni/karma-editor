@@ -1,5 +1,7 @@
 // https://github.com/tinymce/tinymce-dist/blob/master/tinymce.js
 
+// /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
+
 
 KarmaFieldMedia.fields.tinymce = function(field) {
 	var manager = {};

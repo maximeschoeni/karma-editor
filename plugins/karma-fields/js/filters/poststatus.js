@@ -3,12 +3,37 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 	return build({
 		tag: "ul",
 		class: "filter-item filter-post-status",
-		children: function(options) {
+		init: function(element, update) {
+			filterManager.render = update;
+			filterManager.options = [{
+				value: "",
+				title: "All",
+				total: "0"
+			}];
+			filterManager.update();
+
+			// filterManager.requestOptions().then(function(results) {
+			// 	update(results);
+			// 	// .map(function(result) {
+			// 	// 	return {
+			// 	// 		value: result.year+"-"+result.month,
+			// 	// 		title: result.month_name+"-"+result.year
+			// 	// 	};
+			// 	// });
+			// });
+
+
+
+			update();
+		},
+		children: function() {
+
+
 			// return [{
 			// 	title: filter.title || "All",
 			// 	value: ""
 			// }].concat(options)
-			return options.map(function(option) {
+			return filterManager.options.map(function(option) {
 				return build({
 					tag: "li",
 					children: function() {
@@ -68,25 +93,7 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 			// 		}
 			// 	})
 			// ]);
-		},
-		init: function(element, update) {
-			filterManager.render = update;
-			filterManager.update();
-
-			// filterManager.requestOptions().then(function(results) {
-			// 	update(results);
-			// 	// .map(function(result) {
-			// 	// 	return {
-			// 	// 		value: result.year+"-"+result.month,
-			// 	// 		title: result.month_name+"-"+result.year
-			// 	// 	};
-			// 	// });
-			// });
-			update([{
-				value: "",
-				title: "All",
-				total: "0"
-			}]);
 		}
+
 	})
 }

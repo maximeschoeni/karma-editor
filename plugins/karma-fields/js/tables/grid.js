@@ -69,34 +69,32 @@ KarmaFieldMedia.tables.grid = function(manager) {
                           tag: "tr",
                           children: function() {
                             return manager.resource.columns.map(function(column, colIndex) {
+
+                              var fieldManager = KarmaFieldMedia.managers.field(column, post, manager.resource.middleware, manager.history, null);
+
+                              // fieldManager.onModify = function(isModified) {
+                              // 	if (isModified) {
+                              // 		cell.classList.add("modified");
+                              // 	} else {
+                              // 		cell.classList.remove("modified");
+                              // 	}
+                              // };
+                              fieldManager.onSave = manager.renderFooter;
+                              // fieldManager.init();
+                              // fieldManager.update(field.modifiedValue);
+                              manager.fields.push(fieldManager);
+
+
                               return build({
                                 tag: "td",
                                 init: function(cell, update) {
-                                  if (column.field) {
-                                    var fieldManager = KarmaFieldMedia.managers.field(column.field, post, manager.resource.middleware, manager.history, null);
-
-                                    fieldManager.onModify = function(isModified) {
-                        							if (isModified) {
-                        								cell.classList.add("modified");
-                        							} else {
-                        								cell.classList.remove("modified");
-                        							}
-                        						};
-                                    fieldManager.onSave = manager.renderFooter;
-
-
-
-                                    // fieldManager.init();
-                                    // fieldManager.update(field.modifiedValue);
-                                    manager.fields.push(fieldManager);
-                                    manager.select.addField(cell, fieldManager, colIndex, rowIndex);
-                                    update(fieldManager);
-                                  }
+                                  manager.select.addField(cell, fieldManager, colIndex, rowIndex);
+                                  update();
                                 },
-                                children: function(fieldManager) {
-                                  return [
-                                    fieldManager.build()
-                                  ];
+                                child: function() {
+                                  return KarmaFieldMedia.fields[column.field](fieldManager);
+                                    // fieldManager.build()
+
                                 }
                               });
                             });

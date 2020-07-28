@@ -40,7 +40,6 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 								return KarmaFieldMedia.fields[resource.field || resource.name || "group"](manager);
 							}
 						})
-
 					];
 				}
 			})
@@ -431,6 +430,7 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 		// },
 
 		fetch: function() {
+
 			if (!this.promise) {
 				if (resource.key) {
 					var historyIndex = history.index;
@@ -451,11 +451,12 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 						this.promise = Promise.resolve(currentValue);
 					} else if (this.post[resource.key] !== undefined) {
 						this.originalValue = this.post[resource.key];
-						if (currentValue !== undefined) {
-							this.value = currentValue;
-							this.bubble(resource.key, currentValue);
-							this.modified = false;
+						if (currentValue === undefined) {
+							currentValue = this.post[resource.key];
 						}
+						this.value = currentValue;
+						this.bubble(resource.key, currentValue);
+						this.modified = false;
 						if (this.onFetch) {
 							currentValue = manager.onFetch(currentValue);
 						}
@@ -588,6 +589,8 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 			});
 		}
 	};
+
 	manager.id = manager.getId(); //middleware + "/" + (post.uri || post.pseudo_uri).split("/").join("-") + "-" + (resource.key || resource.child_key || "group");
+
 	return manager;
 }

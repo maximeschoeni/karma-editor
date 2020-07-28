@@ -187,6 +187,7 @@ KarmaFieldMedia.managers.filter = function(resource) {
 			return this.requestOptions(noCache).then(function(results) {
 				if (manager.render) {
 
+					manager.options = results;
 					// fix filter selector getting wrong if current value no longer exist in presets
 					// if (manager.value && !results.find(function(result) {
 					// 	return result.value == manager.value;
@@ -196,7 +197,7 @@ KarmaFieldMedia.managers.filter = function(resource) {
 					// 		title: manager.value
 					// 	});
 					// }
-					manager.render(results);
+					manager.render();
 
 				}
 			});

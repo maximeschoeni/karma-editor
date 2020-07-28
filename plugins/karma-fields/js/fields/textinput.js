@@ -2,14 +2,14 @@ KarmaFieldMedia.fields.textinput = function(field) {
 	var textManager = {
 		lastKey: "",
 		lastTime: 0,
-		timeThreshold: 1000*5,
+		timeThreshold: 1000*10,
 		set: function(key) {
 			var now = Date.now();
-			if (key === "Backspace" && this.lastKey !== key || key === "Enter" || now - this.lastTime > this.timeThreshold) {
+			if (key === "Backspace" && this.lastKey !== key || key === "Enter" || key === " " && this.lastKey !== key && now - this.lastTime > this.timeThreshold) {
 				field.history.save();
+				this.lastTime = now;
 			}
 			this.lastKey = key;
-			this.lastTime = now;
 		}
 	};
 	// return build({
@@ -40,7 +40,7 @@ KarmaFieldMedia.fields.textinput = function(field) {
 
 									input.addEventListener("keydown", function(event) {
 										// event.preventDefault();
-										console.log(event.key, this.value);
+										// console.log(event.key, this.value);
 
 										textManager.set(event.key);
 										field.set(input.value);
