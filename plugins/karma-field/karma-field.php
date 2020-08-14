@@ -9,8 +9,8 @@ Version: 1.0
 
 
 
-define('KARMA_FIELDS_URL', WP_PLUGIN_URL . '/' . basename(dirname(__FILE__)));
-define('KARMA_FIELDS_PATH', dirname(__FILE__));
+define('KARMA_FIELD_URL', WP_PLUGIN_URL . '/' . basename(dirname(__FILE__)));
+define('KARMA_FIELD_PATH', dirname(__FILE__));
 
 
 if (is_admin()) {

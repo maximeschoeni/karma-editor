@@ -25,15 +25,15 @@ Class Karma_Editor {
 
 
     add_action('admin_menu', array($this, 'register_page'));
-    add_action('admin_enqueue_scripts', array($this, 'scripts_styles'));
+    // add_action('admin_enqueue_scripts', array($this, 'scripts_styles'));
 
-    add_action('wp_ajax_karma_query_posts', array($this, 'ajax_query_posts'));
-    add_action('wp_ajax_karma_query_terms', array($this, 'ajax_query_terms'));
-    add_action('wp_ajax_karma_query_distinct_years', array($this, 'ajax_query_distinct_years'));
-    add_action('wp_ajax_karma_query_distinct_status', array($this, 'ajax_query_distinct_status'));
-
-
-    add_action('wp_ajax_karma_save_post', array($this, 'ajax_save_post'));
+    // add_action('wp_ajax_karma_query_posts', array($this, 'ajax_query_posts'));
+    // add_action('wp_ajax_karma_query_terms', array($this, 'ajax_query_terms'));
+    // add_action('wp_ajax_karma_query_distinct_years', array($this, 'ajax_query_distinct_years'));
+    // add_action('wp_ajax_karma_query_distinct_status', array($this, 'ajax_query_distinct_status'));
+    //
+    //
+    // add_action('wp_ajax_karma_save_post', array($this, 'ajax_save_post'));
 
 
 

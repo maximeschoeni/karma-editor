@@ -7,20 +7,20 @@
 
 
 
-// KarmaFieldMedia.buildSection = function(section, post) {
+// KarmaFields.buildSection = function(section, post) {
 //
 //
 // 	return build({
 // 		class: "karma-field-section",
-// 		child: KarmaFieldMedia.customfields[section.field || "group"](section, post)
+// 		child: KarmaFields.customfields[section.field || "group"](section, post)
 // 	})
 // }
 
 
 
-// KarmaFieldMedia.buildSection = function(section, post) {
+// KarmaFields.buildSection = function(section, post) {
 //
-// 	var manager = KarmaFieldMedia.managers.field(middleware, section, post);
+// 	var manager = KarmaFields.managers.field(middleware, section, post);
 //
 // 	return build({
 // 		class: "karma-field-section",
@@ -29,8 +29,8 @@
 // }
 //
 //
-// KarmaFieldMedia.buildTable = function(table, posts) {
-// 	var manager = KarmaFieldMedia.managers.table(table, posts);
+// KarmaFields.buildTable = function(table, posts) {
+// 	var manager = KarmaFields.managers.table(table, posts);
 // 	return build({
 // 		class: "karma-field-table",
 // 		child: manager.build()
@@ -39,26 +39,26 @@
 
 
 
-// KarmaFieldMedia.parseField = function(field, parent) {
-// 	var manager = KarmaFieldMedia.createFieldManager(field);
+// KarmaFields.parseField = function(field, parent) {
+// 	var manager = KarmaFields.createFieldManager(field);
 // 	if (field.children) {
 // 		field.children.forEach(function(child) {
-// 			KarmaFieldMedia.parseField(child, manager);
+// 			KarmaFields.parseField(child, manager);
 // 		});
 // 	}
 // 	return manager;
 // }
 
 
-// KarmaFieldMedia.buildItems = function(items, post) {
+// KarmaFields.buildItems = function(items, post) {
 // 	return build({
 // 		class: "karma-field-group",
 // 		children: items.map(function(item) {
-// 			return KarmaFieldMedia.buildField(item, postURI);
+// 			return KarmaFields.buildField(item, postURI);
 // 		})
 // 	})
 // }
-// KarmaFieldMedia.buildField = function(item, post, parentValue) {
+// KarmaFields.buildField = function(item, post, parentValue) {
 // 	var promise;
 // 	if (item.meta_key) {
 // 		if (item.private) {
@@ -68,7 +68,7 @@
 // 		}
 //
 //
-// 			KarmaFieldMedia.get(cache_key, post.uri).then(function(result) {
+// 			KarmaFields.get(cache_key, post.uri).then(function(result) {
 // 				result.text().then(function(text) {
 // 					textField.value = text;
 // 					update();
@@ -88,9 +88,9 @@
 // 	});
 //
 // 	if (item.children) {
-// 		return KarmaFieldMedia.buildFields(item.children, postURI);
-// 	} else if (KarmaFieldMedia.fields[item.field]) {
-// 		return KarmaFieldMedia.customfields[item.field](item, postURI);
+// 		return KarmaFields.buildFields(item.children, postURI);
+// 	} else if (KarmaFields.fields[item.field]) {
+// 		return KarmaFields.customfields[item.field](item, postURI);
 // 	}
 // }
 
@@ -98,18 +98,18 @@
 
 
 
-// KarmaFieldMedia.buildField = function(field, post, parent) {
-// 	var manager = field.key && KarmaFieldMedia.createFieldManager(item, parent) || parent;
+// KarmaFields.buildField = function(field, post, parent) {
+// 	var manager = field.key && KarmaFields.createFieldManager(item, parent) || parent;
 // 	var field = child.field || "group";
-// 	var builder = KarmaFieldMedia.customfields[field];
+// 	var builder = KarmaFields.customfields[field];
 // 	return builder && builder(manager);
 // }
 
 
 
 
-// KarmaFieldMedia.customfields.group = function(item, post, parent) {
-// 	var manager = item.key && KarmaFieldMedia.createFieldManager(item, parent) || parent;
+// KarmaFields.customfields.group = function(item, post, parent) {
+// 	var manager = item.key && KarmaFields.createFieldManager(item, parent) || parent;
 // 	return build({
 // 		class: "karma-field-group",
 // 		init: function(group, update) {
@@ -134,8 +134,8 @@
 // 					},
 // 					children: function() {
 // 						return item.children && item.children.map(function(child) {
-// 							if (KarmaFieldMedia.customfields[child.field || "group"]) {
-// 								return KarmaFieldMedia.customfields[child.field || "group"](child, post, manager);
+// 							if (KarmaFields.customfields[child.field || "group"]) {
+// 								return KarmaFields.customfields[child.field || "group"](child, post, manager);
 // 							}
 // 						});
 // 					}
@@ -146,7 +146,7 @@
 // }
 
 
-// KarmaFieldMedia.customfields.group = function(field) {
+// KarmaFields.customfields.group = function(field) {
 // 	return build({
 // 		class: "karma-field-group",
 // 		init: function(group, update) {
@@ -181,16 +181,16 @@
 // }
 
 
-// KarmaFieldMedia.buildField = function(item, post, parent) {
-// 	var manager = item.key && KarmaFieldMedia.createFieldManager(item, parent) || parent;
+// KarmaFields.buildField = function(item, post, parent) {
+// 	var manager = item.key && KarmaFields.createFieldManager(item, parent) || parent;
 // 	var fieldname = child.field || "group";
-// 	if (KarmaFieldMedia.customfields[fieldname]) {
-// 		return KarmaFieldMedia.customfields[fieldname](manager);
+// 	if (KarmaFields.customfields[fieldname]) {
+// 		return KarmaFields.customfields[fieldname](manager);
 // 	}
 // }
 //
-// KarmaFieldMedia.buildGroup = function(item, post, parent) {
-// 	var manager = item.key && KarmaFieldMedia.createFieldManager(item, parent) || parent;
+// KarmaFields.buildGroup = function(item, post, parent) {
+// 	var manager = item.key && KarmaFields.createFieldManager(item, parent) || parent;
 // 	return build({
 // 		class: "karma-field-group",
 // 		init: function(group, update) {
@@ -215,17 +215,17 @@
 // 					},
 // 					children: function() {
 // 						return item.children && item.children.map(function(child) {
-// 							// return KarmaFieldMedia.buildField(child, post, manager);
-// 							// var builder = KarmaFieldMedia.customfields[child.field || "group"];
-// 							// var manager = KarmaFieldMedia.createFieldManager(child, post, parent);
+// 							// return KarmaFields.buildField(child, post, manager);
+// 							// var builder = KarmaFields.customfields[child.field || "group"];
+// 							// var manager = KarmaFields.createFieldManager(child, post, parent);
 // 							// return builder && builder(manager);
 //
-// 							var manager = KarmaFieldMedia.createFieldManager(child, post, parent);
+// 							var manager = KarmaFields.createFieldManager(child, post, parent);
 //
-// 							if (KarmaFieldMedia.v2_fields[child.field]) {
-// 								return builder && KarmaFieldMedia.customfields[child.field](manager);
+// 							if (KarmaFields.v2_fields[child.field]) {
+// 								return builder && KarmaFields.customfields[child.field](manager);
 // 							} else {
-// 								return KarmaFieldMedia.buildGroup(child, post, manager);
+// 								return KarmaFields.buildGroup(child, post, manager);
 // 							}
 //
 // 							// return builder && builder(manager);
@@ -239,8 +239,8 @@
 
 
 
-// KarmaFieldMedia.customfields.text = function(item, post, parent) {
-// 	var manager = KarmaFieldMedia.createFieldManager(item, parent);
+// KarmaFields.customfields.text = function(item, post, parent) {
+// 	var manager = KarmaFields.createFieldManager(item, parent);
 // 	return build({
 // 		class: "karma-field-text-input",
 // 		children: function() {
@@ -283,7 +283,7 @@
 
 
 
-KarmaFieldMedia.customfields.select = function(field) {
+KarmaFields.customfields.select = function(field) {
 	return build({
 		class: "karma-field-select-input",
 		children: function() {
@@ -324,10 +324,10 @@ KarmaFieldMedia.customfields.select = function(field) {
 	});
 };
 
-KarmaFieldMedia.customfields.taxonomy = function(field) {
+KarmaFields.customfields.taxonomy = function(field) {
 	// var selector = {};
 	var url = KarmaFields.queryTermsURL+"/"+field.resource.key;
-	// (KarmaFieldMedia.cache.query(url) || fetch(url, {
+	// (KarmaFields.cache.query(url) || fetch(url, {
 	// 	cache: "default"
 	// })).then(function(response) {
 	// 	return response.json();
@@ -341,10 +341,10 @@ KarmaFieldMedia.customfields.taxonomy = function(field) {
 	// 	return results;
 	// });
 
-	var options = (KarmaFieldMedia.cache.query(url) || fetch(url, {
+	var options = (KarmaFields.cache.query(url) || fetch(url, {
 		cache: "default"
 	})).then(function(response) {
-		KarmaFieldMedia.cache.put(url, response);
+		KarmaFields.cache.put(url, response);
 		return response.json();
 	});
 
@@ -406,9 +406,9 @@ KarmaFieldMedia.customfields.taxonomy = function(field) {
 
 
 
-KarmaFieldMedia.fields1 = {};
+KarmaFields.fields1 = {};
 
-KarmaFieldMedia.fields1.multimedia = function(value, options, onSave) {
+KarmaFields.fields1.multimedia = function(value, options, onSave) {
 	var columns = options.columns;
 	var items = value || [];
 	var sortableManager = createSortableManager();
@@ -496,7 +496,7 @@ KarmaFieldMedia.fields1.multimedia = function(value, options, onSave) {
 													return build({
 														tag: "td",
 														class: "media-box-cell.column-"+(column.key || "default"),
-														child: column.field && KarmaFieldMedia.fields[column.field] && column.field && KarmaFieldMedia.fields[column.field](item[column.key], column, function(value) {
+														child: column.field && KarmaFields.fields[column.field] && column.field && KarmaFields.fields[column.field](item[column.key], column, function(value) {
 															item[column.key] = value;
 															onSave && onSave(items);
 														}, groupManager),
@@ -677,7 +677,7 @@ KarmaFieldMedia.fields1.multimedia = function(value, options, onSave) {
 };
 
 
-KarmaFieldMedia.buildSelector = function(values, current, onChange) {
+KarmaFields.buildSelector = function(values, current, onChange) {
 	return build({
 		tag: "select",
 		children: values.map(function(value) {
@@ -695,20 +695,20 @@ KarmaFieldMedia.buildSelector = function(values, current, onChange) {
 		}
 	});
 };
-KarmaFieldMedia.fields1.select = function(value, options, save) {
+KarmaFields.fields1.select = function(value, options, save) {
 	var values = options.values;
-	return KarmaFieldMedia.buildSelector(values, value, function() { // [{key: "", name:"-"}].concat(
+	return KarmaFields.buildSelector(values, value, function() { // [{key: "", name:"-"}].concat(
 		save(this.value);
 	})
 };
-KarmaFieldMedia.fields1.modes = function(value, options, save, group) {
-	return KarmaFieldMedia.buildSelector(options.values, value, function() {
+KarmaFields.fields1.modes = function(value, options, save, group) {
+	return KarmaFields.buildSelector(options.values, value, function() {
 		save(this.value);
 		group.update();
 	})
 };
 
-KarmaFieldMedia.fields1.text = function(value, options, save) {
+KarmaFields.fields1.text = function(value, options, save) {
 	return build({
 		tag: "input",
 		class: "text",
@@ -724,7 +724,7 @@ KarmaFieldMedia.fields1.text = function(value, options, save) {
 		}
 	});
 };
-KarmaFieldMedia.fields1.textarea = function(value, options, save) {
+KarmaFields.fields1.textarea = function(value, options, save) {
 	return build({
 		tag: "textarea",
 		class: "text",
@@ -740,7 +740,7 @@ KarmaFieldMedia.fields1.textarea = function(value, options, save) {
 	});
 }
 
-KarmaFieldMedia.fields1.checkbox = function(label, current, onChange) {
+KarmaFields.fields1.checkbox = function(label, current, onChange) {
 	return build({
 		tag: "label",
 		children: [
@@ -762,7 +762,7 @@ KarmaFieldMedia.fields1.checkbox = function(label, current, onChange) {
 	});
 };
 
-KarmaFieldMedia.fields1.checkboxes = function(values, current, onChange) {
+KarmaFields.fields1.checkboxes = function(values, current, onChange) {
 	return build({
 		tag: "ul",
 		class: "karma-field-checkboxes",
@@ -772,7 +772,7 @@ KarmaFieldMedia.fields1.checkboxes = function(values, current, onChange) {
 		children: values.map(function(value) {
 			return build({
 				tag: "li",
-				child: KarmaFieldMedia.fields.checkbox(value.name, current.indexOf(value.key) > -1, function(checked) {
+				child: KarmaFields.fields.checkbox(value.name, current.indexOf(value.key) > -1, function(checked) {
 					var index = current.indexOf(value.key);
 					if (checked && index === -1) {
 						current.push(value.key);
@@ -786,11 +786,11 @@ KarmaFieldMedia.fields1.checkboxes = function(values, current, onChange) {
 	});
 };
 
-KarmaFieldMedia.fields1.taxonomy = function(options, current, onChange) {
+KarmaFields.fields1.taxonomy = function(options, current, onChange) {
 	return build({
 		classes: "karma-field-taxonomy-field",
 		init: function(element, update) {
-			KarmaFieldMedia.terms.getPromise(options.taxonomy).then(function(terms) {
+			KarmaFields.terms.getPromise(options.taxonomy).then(function(terms) {
 				update(terms);
 			});
 		},
@@ -804,13 +804,13 @@ KarmaFieldMedia.fields1.taxonomy = function(options, current, onChange) {
 			});
 			if (options.type === "dropdown") {
 				return {
-					child: KarmaFieldMedia.buildSelector(values, current, function() {
+					child: KarmaFields.buildSelector(values, current, function() {
 						onChange([parseInt(this.value)]);
 					})
 				};
 			} else {
 				return {
-					child: KarmaFieldMedia.fields.checkboxes(values, current, onChange)
+					child: KarmaFields.fields.checkboxes(values, current, onChange)
 				};
 			}
 		}
@@ -843,8 +843,8 @@ KarmaFieldMedia.fields1.taxonomy = function(options, current, onChange) {
 // };
 
 
-KarmaFieldMedia.fields1.image = function(value, options, save) {
-	var imageManager = KarmaFieldMedia.createImageUploader();
+KarmaFields.fields1.image = function(value, options, save) {
+	var imageManager = KarmaFields.createImageUploader();
 	imageManager.imageId = value || null;
 	imageManager.mimeType = options.mimeType || null;
 	return build({
@@ -907,7 +907,7 @@ KarmaFieldMedia.fields1.image = function(value, options, save) {
 			};
 
 			if (imageManager.imageId) {
-				KarmaFieldMedia.getImageSrc(imageManager.imageId).then(function(results) {
+				KarmaFields.getImageSrc(imageManager.imageId).then(function(results) {
 					update({
 						url: results.url,
 						filename: results.filename || "?"
@@ -997,8 +997,8 @@ KarmaFieldMedia.fields1.image = function(value, options, save) {
 
 
 
-KarmaFieldMedia.fields1.gallery = function(value, options, save) {
-	var galleryManager = KarmaFieldMedia.createGalleryUploader();
+KarmaFields.fields1.gallery = function(value, options, save) {
+	var galleryManager = KarmaFields.createGalleryUploader();
 	galleryManager.mimeTypes = options.mimeTypes || ["image"];
 	galleryManager.imageIds = value;
 
@@ -1026,7 +1026,7 @@ KarmaFieldMedia.fields1.gallery = function(value, options, save) {
 									if (typeof attachment === "object") {
 										update(attachment.attributes.sizes && attachment.attributes.sizes.thumbnail.url || attachment.attributes.icon);
 									} else {
-										KarmaFieldMedia.getImageSrc(attachment).then(function(results) {
+										KarmaFields.getImageSrc(attachment).then(function(results) {
 											update(results.url);
 										});
 									}
@@ -1255,16 +1255,16 @@ KarmaFieldMedia.fields1.gallery = function(value, options, save) {
 // }
 
 
-// KarmaFieldMedia.fields.select_post = function(value, options, save) {
+// KarmaFields.fields.select_post = function(value, options, save) {
 // 	return build({
 // 		class: "post-selector",
 // 		onUpdate: function(posts) {
 // 			return {
-// 				child: KarmaFieldMedia.fields.select(posts, options, save)
+// 				child: KarmaFields.fields.select(posts, options, save)
 // 			}
 // 		},
 // 		init: function(container) {
-// 			KarmaFieldMedia.karma_field_query_posts({
+// 			KarmaFields.karma_field_query_posts({
 // 				post_type: "trainer"
 // 			}).then(function(results) {
 // 				console.log(results);

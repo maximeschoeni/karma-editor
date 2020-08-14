@@ -1,18 +1,20 @@
-if (!window.KarmaFieldMedia) {
-	KarmaFieldMedia = {};
+if (!window.KarmaFields) {
+	KarmaFields = {};
 }
-KarmaFieldMedia.customfields = {};
+KarmaFields.customfields = {};
 
-KarmaFieldMedia.fields = {};
-KarmaFieldMedia.filters = {};
-KarmaFieldMedia.tables = {};
-KarmaFieldMedia.managers = {};
-KarmaFieldMedia.selectors = {};
-KarmaFieldMedia.utils = {};
-KarmaFieldMedia.includes = {};
-KarmaFieldMedia.events = {};
+KarmaFields.fields = {};
+KarmaFields.filters = {};
+KarmaFields.tables = {};
+KarmaFields.managers = {};
+KarmaFields.selectors = {};
+KarmaFields.utils = {};
+KarmaFields.includes = {};
+KarmaFields.events = {};
+KarmaFields.assets = {};
+KarmaFields.fetchCache = {};
 
-KarmaFieldMedia.storage = { //Window.sessionStorage || {
+KarmaFields.storage = { //Window.sessionStorage || {
 	values: {},
 	getItem: function(key) {
 		return this.values[key];
@@ -26,77 +28,77 @@ KarmaFieldMedia.storage = { //Window.sessionStorage || {
 };
 
 window.addEventListener("keydown", function(event) {
-	if (event.metaKey && event.key === "c" && KarmaFieldMedia.events.onCopy) {
-		KarmaFieldMedia.events.onCopy(event);
+	if (event.metaKey && event.key === "c" && KarmaFields.events.onCopy) {
+		KarmaFields.events.onCopy(event);
 	}
-	if (event.metaKey && event.key === "v" && KarmaFieldMedia.events.onPast) {
-		KarmaFieldMedia.events.onPast(event);
+	if (event.metaKey && event.key === "v" && KarmaFields.events.onPast) {
+		KarmaFields.events.onPast(event);
 	}
-	if (event.metaKey && event.key === "a" && KarmaFieldMedia.events.onSelectAll) {
-		KarmaFieldMedia.events.onSelectAll(event);
+	if (event.metaKey && event.key === "a" && KarmaFields.events.onSelectAll) {
+		KarmaFields.events.onSelectAll(event);
 	}
-	if (event.metaKey && event.key === "s" && KarmaFieldMedia.events.onSave) {
-		KarmaFieldMedia.events.onSave(event);
+	if (event.metaKey && event.key === "s" && KarmaFields.events.onSave) {
+		KarmaFields.events.onSave(event);
 	}
-	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFieldMedia.events.onUndo) {
-		KarmaFieldMedia.events.onUndo(event);
+	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFields.events.onUndo) {
+		KarmaFields.events.onUndo(event);
 	}
-	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFieldMedia.events.onRedo) {
-		KarmaFieldMedia.events.onRedo(event);
+	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFields.events.onRedo) {
+		KarmaFields.events.onRedo(event);
 	}
-	if (event.key === "Backspace" && KarmaFieldMedia.events.onDelete) {
-		KarmaFieldMedia.events.onDelete(event);
+	if (event.key === "Backspace" && KarmaFields.events.onDelete) {
+		KarmaFields.events.onDelete(event);
 	}
-	if (event.key === "+" && KarmaFieldMedia.events.onAdd) {
-		KarmaFieldMedia.events.onAdd(event);
+	if (event.key === "+" && KarmaFields.events.onAdd) {
+		KarmaFields.events.onAdd(event);
 	}
 
-	if (event.key === "ArrowUp" && KarmaFieldMedia.events.onArrowUp) {
-		KarmaFieldMedia.events.onArrowUp(event);
+	if (event.key === "ArrowUp" && KarmaFields.events.onArrowUp) {
+		KarmaFields.events.onArrowUp(event);
 	}
-	if (event.key === "ArrowDown" && KarmaFieldMedia.events.onArrowDown) {
-		KarmaFieldMedia.events.onArrowDown(event);
+	if (event.key === "ArrowDown" && KarmaFields.events.onArrowDown) {
+		KarmaFields.events.onArrowDown(event);
 	}
-	if (event.key === "ArrowLeft" && KarmaFieldMedia.events.onArrowLeft) {
-		KarmaFieldMedia.events.onArrowLeft(event);
+	if (event.key === "ArrowLeft" && KarmaFields.events.onArrowLeft) {
+		KarmaFields.events.onArrowLeft(event);
 	}
-	if (event.key === "ArrowRight" && KarmaFieldMedia.events.onArrowRight) {
-		KarmaFieldMedia.events.onArrowRight(event);
+	if (event.key === "ArrowRight" && KarmaFields.events.onArrowRight) {
+		KarmaFields.events.onArrowRight(event);
 	}
 
 	// console.log(event.key);
 });
 
 document.addEventListener("mouseup", function() {
-  if (KarmaFieldMedia.events.onClick) {
-    KarmaFieldMedia.events.onClick();
+  if (KarmaFields.events.onClick) {
+    KarmaFields.events.onClick();
   }
 });
 
 
 
 
+//
+// KarmaFields.attachmentPromises = {};
+// KarmaFields.getImageSrc = function(id, callback) {
+// 	if (!KarmaFields.attachmentPromises[id]) {
+// 		KarmaFields.attachmentPromises[id] = new Promise(function(resolve, reject) {
+// 			Ajax.get(KarmaFields.ajax_url, {
+// 				action: "karma_multimedia_get_image_src",
+// 				id: id
+// 			}, function(results) {
+// 				resolve(results);
+// 			});
+// 		});
+// 	}
+// 	if (callback) {
+// 		KarmaFields.attachmentPromises[id].then(callback);
+// 	}
+// 	return KarmaFields.attachmentPromises[id];
+// }
 
-KarmaFieldMedia.attachmentPromises = {};
-KarmaFieldMedia.getImageSrc = function(id, callback) {
-	if (!KarmaFieldMedia.attachmentPromises[id]) {
-		KarmaFieldMedia.attachmentPromises[id] = new Promise(function(resolve, reject) {
-			Ajax.get(KarmaFieldMedia.ajax_url, {
-				action: "karma_multimedia_get_image_src",
-				id: id
-			}, function(results) {
-				resolve(results);
-			});
-		});
-	}
-	if (callback) {
-		KarmaFieldMedia.attachmentPromises[id].then(callback);
-	}
-	return KarmaFieldMedia.attachmentPromises[id];
-}
 
-
-// KarmaFieldMedia.save = function(post, data) {
+// KarmaFields.save = function(post, data) {
 // 	return fetch(KarmaFields.rest+"/update/post/"+post.id, {
 // 		method: "post",
 // 		headers: {"Content-Type": "application/json"},
@@ -106,37 +108,37 @@ KarmaFieldMedia.getImageSrc = function(id, callback) {
 // 		return result.json();
 // 	});
 // };
-// KarmaFieldMedia.get = function(key, postURI) {
+// KarmaFields.get = function(key, postURI) {
 // 	return fetch(KarmaFields.cache+"/"+postURI+"/"+key);
 // };
 
 
 
 
+//
+// KarmaFields.terms = {
+// 	promises: {},
+// 	getPromise: function(taxonomy) {
+// 		if (!this.promises[taxonomy]) {
+// 			this.promises[taxonomy] = new Promise(function(resolve, reject) {
+// 				Ajax.get(KarmaFields.ajax_url, {
+// 					action: "karma_field_get_terms",
+// 					taxonomy: taxonomy
+// 				}, function(results) {
+// 					if (results.terms) {
+// 						resolve(results.terms);
+// 					} else {
+// 						reject(results.error);
+// 					}
+// 				});
+// 			});
+// 		}
+// 		return this.promises[taxonomy];
+// 	}
+// };
 
-KarmaFieldMedia.terms = {
-	promises: {},
-	getPromise: function(taxonomy) {
-		if (!this.promises[taxonomy]) {
-			this.promises[taxonomy] = new Promise(function(resolve, reject) {
-				Ajax.get(KarmaFieldMedia.ajax_url, {
-					action: "karma_field_get_terms",
-					taxonomy: taxonomy
-				}, function(results) {
-					if (results.terms) {
-						resolve(results.terms);
-					} else {
-						reject(results.error);
-					}
-				});
-			});
-		}
-		return this.promises[taxonomy];
-	}
-};
 
-
-KarmaFieldMedia.createImageUploader = function() {
+KarmaFields.createImageUploader = function() {
 	var manager = {
 		addFrame: null,
 		imageId: null,
@@ -177,7 +179,7 @@ KarmaFieldMedia.createImageUploader = function() {
 	}
 	return manager;
 }
-KarmaFieldMedia.createGalleryUploader = function() {
+KarmaFields.createGalleryUploader = function() {
 	var manager = {
 		frame: null,
 		imageIds: null,

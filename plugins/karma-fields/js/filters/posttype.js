@@ -1,8 +1,8 @@
-KarmaFieldMedia.filters.posttype = function(filterManager) {
-	return build({
+KarmaFields.filters.posttype = function(filterManager) {
+	return KarmaFields.build({
 		class: "filter-item filter-posttype",
 		child: function() {
-			return build({
+			return KarmaFields.build({
 				tag: "h1",
 				text: function() {
 					return filterManager.resource.title;

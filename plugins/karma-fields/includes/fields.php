@@ -8,12 +8,12 @@
 		var resources =  <?php echo json_encode($resources); ?>;
 		var middleware = "<?php echo $middleware ?>";
 
-		var history = KarmaFieldMedia.managers.history();
+		var history = KarmaFields.managers.history();
 		var fieldManager;
 		// var field;
 
 
-		fieldManager = KarmaFieldMedia.managers.field(resources, post, middleware, history);
+		fieldManager = KarmaFields.managers.field(resources, post, middleware, history);
 		fieldManager.onUpdateState = function(state) {
 			// console.trace();
 			// console.log(state);
@@ -35,7 +35,7 @@
 		// 	// if (field) {
 		// 	// 	container.removeChild(field);
 		// 	// }
-		// 	// fieldManager = KarmaFieldMedia.managers.field(resources, post, middleware, history);
+		// 	// fieldManager = KarmaFields.managers.field(resources, post, middleware, history);
 		// 	// fieldManager.onUpdateState = function(state) {
 		// 	// 	// console.trace();
 		// 	// 	// console.log(state);
@@ -49,11 +49,11 @@
 		// }
 
 		container.addEventListener("focusin", function() {
-			KarmaFieldMedia.events.onUndo = function(event) {
+			KarmaFields.events.onUndo = function(event) {
 				history.undo();
 				event.preventDefault();
 			}
-			KarmaFieldMedia.events.onRedo = function(event) {
+			KarmaFields.events.onRedo = function(event) {
 				history.redo();
 				event.preventDefault();
 			}

@@ -1,8 +1,8 @@
-KarmaFieldMedia.tables.gridCell = function(manager, post, column) {
-  return build({
+KarmaFields.tables.gridCell = function(manager, post, column) {
+  return KarmaFields.build({
     tag: "td",
     child: function() {
-      return KarmaFieldMedia.manager.field({
+      return KarmaFields.manager.field({
         middleware: manager.resource.middleware,
         key: column.key,
         field: column.field,

@@ -2,8 +2,8 @@
  * version mai2020
  */
 
-// KarmaFieldMedia.customfields.date = function(sqlDate, option, onSave) {
-KarmaFieldMedia.customfields.date = function(manager) {
+// KarmaFields.customfields.date = function(sqlDate, option, onSave) {
+KarmaFields.customfields.date = function(manager) {
   var format = manager.resource.format || "dd/mm/yyyy";
   var popup = {};
   var calendar = Calendar.create();

@@ -7,7 +7,11 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
   /**
 	 * query
 	 */
-  public function query($args) {
+  public function query($args, $request) {
+
+    $args['order'] = $request->get_param('order');
+    $args['posts_per_page'] = $request->get_param('ppp');
+    $args['paged'] = $request->get_param('page');
 
     $query = new WP_Query($args);
 
@@ -243,6 +247,8 @@ Class Karma_Fields_Middleware_posts extends Karma_Fields_Middleware {
       if ($cache) {
 
         $uri = apply_filters('karma_fields_posts_id', $post_id);
+
+
 
         $value = $driver->get($uri, $key);
 

@@ -1,5 +1,5 @@
-KarmaFieldMedia.fields.file = function(field) {
-  var imageUploader = KarmaFieldMedia.createImageUploader();
+KarmaFields.fields.file = function(field) {
+  var imageUploader = KarmaFields.createImageUploader();
 	imageUploader.mimeType = field.resource.mimeType || null;
   var imageManager = {};
   imageUploader.onSelect = function(attachments) {
@@ -41,7 +41,7 @@ KarmaFieldMedia.fields.file = function(field) {
     imageManager.renderControls && imageManager.renderControls();
   };
 
-  // return build({
+  // return KarmaFields.build({
 	// 	class: "karma-field file-input",
 	// 	init: function(element, update) {
 	// 		field.render = update;
@@ -49,28 +49,28 @@ KarmaFieldMedia.fields.file = function(field) {
 	// 	},
 	// 	children: function() {
 	// 		return [
-	// 			field.resource.label && build({
+	// 			field.resource.label && KarmaFields.build({
 	// 				tag: "label",
 	// 				init: function(label) {
 	// 					label.htmlFor = field.id;
 	// 					label.innerHTML = field.resource.label;
 	// 				}
 	// 			}),
-        return build({
+        return KarmaFields.build({
           class: "karma-field-file",
           children: function() {
             return [
-              build({
+              KarmaFields.build({
                 class: "field-controls",
                 init: function(element, update) {
                   imageManager.renderControls = update;
                 },
                 child: function() {
-                  return build({
+                  return KarmaFields.build({
                     class: "field-controls-group",
                     children: function() {
                       return [
-                        KarmaFieldMedia.includes.icon({
+                        KarmaFields.includes.icon({
                           tag: "button",
                           url: KarmaFields.icons_url+"/insert.svg",
                           init: function(element, update) {
@@ -82,7 +82,7 @@ KarmaFieldMedia.fields.file = function(field) {
                             });
                           }
                         }),
-                        KarmaFieldMedia.includes.icon({
+                        KarmaFields.includes.icon({
                           tag: "button",
                           url: KarmaFields.icons_url+"/edit.svg",
                           init: function(element, update) {
@@ -94,7 +94,7 @@ KarmaFieldMedia.fields.file = function(field) {
                             });
                           }
                         }),
-                        KarmaFieldMedia.includes.icon({
+                        KarmaFields.includes.icon({
                           tag: "button",
                           url: KarmaFields.icons_url+"/trash.svg",
                           init: function(element, update) {
@@ -115,7 +115,7 @@ KarmaFieldMedia.fields.file = function(field) {
                   });
                 }
               }),
-              build({
+              KarmaFields.build({
             		class: "file-input-thumbs",
                 init: function(element, update) {
                   // field.fetch().then(function(value) {
@@ -123,7 +123,7 @@ KarmaFieldMedia.fields.file = function(field) {
                   //   imageManager.renderControls && imageManager.renderControls();
                   // });
                   field.onUpdate = function(value) {
-                    
+
                     update();
                     imageManager.renderControls && imageManager.renderControls();
                   }
@@ -136,7 +136,7 @@ KarmaFieldMedia.fields.file = function(field) {
                 child: function() {
                   var value = field.get();
                   if (value && value.id) {
-                    return build({
+                    return KarmaFields.build({
                       tag: "img",
                       init: function(element) {
                         element.src = value.thumb;
@@ -148,7 +148,7 @@ KarmaFieldMedia.fields.file = function(field) {
                       }
                     })
                   }
-                  //   return build({
+                  //   return KarmaFields.build({
                   //     class: "image-box",
                   //     init: function(element, update) {
                   //       element.addEventListener("click", function() {
@@ -169,13 +169,13 @@ KarmaFieldMedia.fields.file = function(field) {
                   //     },
                   //     children: function() {
                   //       return [
-                  //         build({
+                  //         KarmaFields.build({
                   //           tag: "img",
                   //           init: function(img) {
                   //             img.src = value.thumb;
                   //           }
                   //         }),
-                  //         build({
+                  //         KarmaFields.build({
                   //           class: "image-name",
                   //           text: function() {
                   //             return value.filename || "?";
@@ -185,7 +185,7 @@ KarmaFieldMedia.fields.file = function(field) {
                   //     }
                   //   });
                   // } else {
-                  //   // return build({
+                  //   // return KarmaFields.build({
                   //   //   tag: "button",
                   //   //   class: "button",
                   //   //   init: function(element) {

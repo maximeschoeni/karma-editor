@@ -1,4 +1,4 @@
-KarmaFieldMedia.managers.pool = function() {
+KarmaFields.managers.pool = function() {
 	var pool = {
 		// getAt: function(index, uri, key, type) {
 		// 	if (this.storage && this.storage[index] && this.storage[index][uri]) {
@@ -18,7 +18,11 @@ KarmaFieldMedia.managers.pool = function() {
 
 
 			if (this.storage && this.storage[uri] && this.storage[uri][key]) {
-				return this.storage[uri][key][index];
+				var value = this.storage[uri][key][index];
+				if (typeof value === "object") {
+					value = JSON.parse(JSON.stringify(value));
+				}
+				return value;
 			}
 			// if (index !== undefined) {
 			// 	if (this.storage && this.storage[uri] && this.storage[uri][key]) {
@@ -80,7 +84,7 @@ KarmaFieldMedia.managers.pool = function() {
 			if (this.storage) {
 				for (var uri in this.storage) {
 					for (var key in this.storage[uri]) {
-						while (this.storage[uri][key][index] !== undefined) {
+						while (this.storage[uri][key] && this.storage[uri][key][index] !== undefined) {
 							this.storage[uri][key][index] = undefined;
 							// this.deleteIndex(uri, key, index);
 							index++;
@@ -110,7 +114,7 @@ KarmaFieldMedia.managers.pool = function() {
 		// 	// }
 		// 	this.storage[index][uri][key] = value;
 		//
-		// 	KarmaFieldMedia.storage = this.storage;
+		// 	KarmaFields.storage = this.storage;
 		// },
 		set: function(uri, key, index, value) {
 			if (!this.storage) {
@@ -122,10 +126,51 @@ KarmaFieldMedia.managers.pool = function() {
 			if (!this.storage[uri][key]) {
 				this.storage[uri][key] = {};
 			}
+			if (typeof value === "object") {
+				value = JSON.parse(JSON.stringify(value));
+			}
 			this.storage[uri][key][index] = value;
 
-			KarmaFieldMedia.currentStorage = this.storage;
+			// KarmaFields.currentStorage = this.storage;
 		},
+
+
+
+
+		// set_2: function(path, index, value) {
+		// 	if (!this.storage) {
+		// 		this.storage = {};
+		// 	}
+		// 	if (!this.storage[path]) {
+		// 		this.storage[path] = {};
+		// 	}
+		// 	this.storage[path][index] = value;
+		// },
+		// getAt_2: function(path, index) {
+		// 	if (this.storage && this.storage[path]) {
+		// 		return this.storage[path][index];
+		// 	}
+		// },
+		// get_2: function(path, index) {
+		// 	var value = this.getAt(path, index);
+		// 	while (value === undefined && index > 0) {
+		// 		index--;
+		// 		value = this.getAt(path, index);
+		// 	}
+		// 	return value;
+		// },
+		// deleteUp_2: function(index) {
+		// 	if (this.storage) {
+		// 		for (var path in this.storage) {
+		// 			while (this.storage[path] && this.storage[path][index] !== undefined) {
+		// 				this.storage[path][index] = undefined;
+		// 				index++;
+		// 			}
+		// 		}
+		// 	}
+		// },
+
+
 		load: function(storage, middleware) {
 			this.storage = storage.getItem(middleware);
 		},
@@ -144,7 +189,7 @@ KarmaFieldMedia.managers.pool = function() {
 
 //
 //
-// KarmaFieldMedia.pool = {
+// KarmaFields.pool = {
 // 	storage: { //Window.sessionStorage || {
 // 		values: {},
 // 		getItem: function(key) {
@@ -202,7 +247,7 @@ KarmaFieldMedia.managers.pool = function() {
 // 			},
 // 			setAt: function(value, index, uri, key, type) {
 // 				if (!this.storage) {
-// 					this.storage = KarmaFieldMedia.pool.storage.getItem(middleware) || {};
+// 					this.storage = KarmaFields.pool.storage.getItem(middleware) || {};
 // 				}
 // 				if (!this.storage[index]) {
 // 					this.storage[index] = {};
@@ -216,7 +261,7 @@ KarmaFieldMedia.managers.pool = function() {
 // 				this.storage[index][uri][key] = value;
 // 			},
 // 			save: function() {
-// 				KarmaFieldMedia.pool.storage.setItem(middleware, this.storage);
+// 				KarmaFields.pool.storage.setItem(middleware, this.storage);
 // 			}
 // 		};
 // 		return manager;

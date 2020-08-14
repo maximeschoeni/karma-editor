@@ -1,5 +1,5 @@
-KarmaFieldMedia.fields.dropdown = function(field) {
-	return build({
+KarmaFields.fields.dropdown = function(field) {
+	return KarmaFields.build({
 		tag: "select",
 		init: function(element, update) {
 			element.id = field.id;
@@ -21,7 +21,7 @@ KarmaFieldMedia.fields.dropdown = function(field) {
 		children: function() {
 			var value = field.get();
 			return field.resource.options.map(function(option) {
-				return build({
+				return KarmaFields.build({
 					tag: "option",
 					init: function(element) {
 						element.innerText = option.name;
@@ -32,11 +32,11 @@ KarmaFieldMedia.fields.dropdown = function(field) {
 			})
 		}
 	});
-	// return build({
+	// return KarmaFields.build({
 	// 	class: "karma-field-dropdown",
 	// 	children: function() {
 	// 		return [
-	// 			build({
+	// 			KarmaFields.build({
 	// 				tag: "select",
 	// 				init: function(element, update) {
 	// 					element.id = field.id;
@@ -59,7 +59,7 @@ KarmaFieldMedia.fields.dropdown = function(field) {
 	// 				children: function() {
 	// 					var value = field.get();
 	// 					return field.resource.options.map(function(option) {
-	// 						return build({
+	// 						return KarmaFields.build({
 	// 							tag: "option",
 	// 							init: function(element) {
 	// 								element.innerText = option.name

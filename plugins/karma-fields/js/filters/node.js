@@ -1,11 +1,11 @@
-KarmaFieldMedia.filters.node = function(filterManager) {
-	return build({
+KarmaFields.filters.node = function(filterManager) {
+	return KarmaFields.build({
 		class: "filter-node filter-node-"+filterManager.resource.name,
 		children: function() {
 			return [
 				filterManager.build()
 			].concat(filterManager.getChildren().map(function(child) {
-				return KarmaFieldMedia.filters.node(child);
+				return KarmaFields.filters.node(child);
 			}));
 		},
 		init: function(element, update) {
@@ -14,7 +14,7 @@ KarmaFieldMedia.filters.node = function(filterManager) {
 		}
 	});
 }
-// KarmaFieldMedia.filters.node = function(filterManager) {
+// KarmaFields.filters.node = function(filterManager) {
 // 	return build({
 // 		class: "filter-node "+filterManager.resource.name,
 // 		children: function() {
@@ -35,7 +35,7 @@ KarmaFieldMedia.filters.node = function(filterManager) {
 // 					class: "filter-node-children",
 // 					children: function() {
 // 						return filterManager.getChildren().map(function(child) {
-// 							return KarmaFieldMedia.filters.node(child);
+// 							return KarmaFields.filters.node(child);
 // 						});
 // 					}
 // 				})

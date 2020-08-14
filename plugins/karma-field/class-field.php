@@ -81,27 +81,27 @@ Class Karma_Field {
 	 */
 	public function enqueue_styles() {
 
-		wp_enqueue_style('date-field-styles', KARMA_FIELDS_URL . '/css/date-field.css');
-		wp_enqueue_style('media-field-styles', KARMA_FIELDS_URL . '/css/media-field.css');
-		wp_enqueue_style('multimedia-styles', KARMA_FIELDS_URL . '/css/multimedia.css');
+		wp_enqueue_style('date-field-styles', KARMA_FIELD_URL . '/css/date-field.css');
+		wp_enqueue_style('media-field-styles', KARMA_FIELD_URL . '/css/media-field.css');
+		wp_enqueue_style('multimedia-styles', KARMA_FIELD_URL . '/css/multimedia.css');
 
-		wp_register_script('build', KARMA_FIELDS_URL . '/js/build-v2.js', array(), $this->version, false);
-		wp_register_script('calendar', KARMA_FIELDS_URL . '/js/calendar.js', array(), $this->version, false);
-		wp_register_script('ajax', KARMA_FIELDS_URL . '/js/ajax-v2.js', array(), $this->version, false);
-		wp_register_script('sortable', KARMA_FIELDS_URL . '/js/sortable.js', array(), $this->version, false);
+		wp_register_script('build', KARMA_FIELD_URL . '/js/build-v2.js', array(), $this->version, false);
+		wp_register_script('calendar', KARMA_FIELD_URL . '/js/calendar.js', array(), $this->version, false);
+		wp_register_script('ajax', KARMA_FIELD_URL . '/js/ajax-v2.js', array(), $this->version, false);
+		wp_register_script('sortable', KARMA_FIELD_URL . '/js/sortable.js', array(), $this->version, false);
 
-		wp_enqueue_script('media-field', KARMA_FIELDS_URL . '/js/media.js', array('ajax', 'build'), $this->version, false);
+		wp_enqueue_script('media-field', KARMA_FIELD_URL . '/js/media.js', array('ajax', 'build'), $this->version, false);
 		wp_localize_script('media-field', 'KarmaFieldMedia', array(
 			'ajax_url' => admin_url('admin-ajax.php')
 		));
 
 		// v1
-		wp_enqueue_script('date-field', KARMA_FIELDS_URL . '/js/date-field-v2.js', array('media-field', 'build', 'calendar'), $this->version, false);
+		wp_enqueue_script('date-field', KARMA_FIELD_URL . '/js/date-field-v2.js', array('media-field', 'build', 'calendar'), $this->version, false);
 
 		// v2
-		// wp_enqueue_script('date-field', KARMA_FIELDS_URL . '/js/fields/date.js', array('media-field', 'build', 'calendar'), $this->version, false);
+		// wp_enqueue_script('date-field', KARMA_FIELD_URL . '/js/fields/date.js', array('media-field', 'build', 'calendar'), $this->version, false);
 
-		wp_enqueue_script('multimedia-field', KARMA_FIELDS_URL . '/js/multimedia.js', array('build', 'sortable', 'media-field'), $this->version, false);
+		wp_enqueue_script('multimedia-field', KARMA_FIELD_URL . '/js/multimedia.js', array('build', 'sortable', 'media-field'), $this->version, false);
 
 	}
 	//

@@ -212,7 +212,7 @@
 
 
 // DateField.buildDateField = function(sqlDate, input, onSave) {
-KarmaFieldMedia.fields.date = function(sqlDate, option, onSave) {
+KarmaFields.fields.date = function(sqlDate, option, onSave) {
   var format = option.format || "dd/mm/yyyy";
   var open;
   var close;

@@ -1,77 +1,85 @@
-KarmaFieldMedia.tables.pagination = function(manager) {
-  return build({
+KarmaFields.tables.pagination = function(manager) {
+  return KarmaFields.build({
     class: "footer-group table-pagination",
     // init: function(element, update) {
     //   // manager.renderPagination = update;
     //   // update();
     // },
     children: function() {
-      var maxPage = Math.ceil(manager.num/manager.ppp);
+      var ppp = manager.options.ppp || Infinity;
+      var maxPage = Math.ceil(manager.num/ppp);
       return [
-        // build({
+        // KarmaFields.build({
         //   class: "num-item footer-item",
         //   text: function() {
         //     return manager.num+" items"
         //   }
         // }),
-        manager.ppp > -1 && build({
+        KarmaFields.build({
+          tag: "p",
+          class: "footer-item",
+          text: function() {
+            return manager.num+" items";
+          }
+        }),
+        manager.num > ppp && KarmaFields.build({
           tag: "button",
           class: "button footer-item",
           init: function(element) {
             element.innerText = "«";
-            if (manager.page === 1) {
+            if (manager.options.page === 1) {
               element.disabled = true;
             }
             element.addEventListener("click", function() {
-              manager.page = 1;
+              manager.options.page = 1;
               manager.request();
             });
           }
         }),
-        manager.ppp > -1 && build({
+        manager.num > ppp && KarmaFields.build({
           tag: "button",
           class: "button footer-item",
           init: function(element) {
             element.innerText = "‹";
-            if (manager.page === 1) {
+            if (manager.options.page === 1) {
               element.disabled = true;
             }
             element.addEventListener("click", function() {
-              manager.page = manager.page-1;
+              manager.options.page = (manager.options.page || 1)-1;
               manager.request();
             });
           }
         }),
-        manager.ppp > -1 && build({
+        manager.num > ppp && KarmaFields.build({
           class: "current-page footer-item",
           text: function() {
-            return manager.page+"/ "+maxPage;
+            return (manager.options.page || 1)+" / "+maxPage;
           }
         }),
-        manager.ppp > -1 && build({
+        manager.num > ppp && KarmaFields.build({
           tag: "button",
           class: "button footer-item",
           init: function(element) {
             element.innerText = "›";
-            if (manager.page >= maxPage) {
+            if (manager.options.page >= maxPage) {
               element.disabled = true;
             }
             element.addEventListener("click", function() {
-              manager.page = manager.page+1;
+              manager.options.page = (manager.options.page || 1)+1;
               manager.request();
             });
           }
         }),
-        manager.ppp > -1 && build({
+        manager.num > ppp && KarmaFields.build({
           tag: "button",
           class: "button footer-item",
           init: function(element) {
             element.innerText = "»";
-            if (manager.page >= maxPage - 1) {
+            if (manager.options.page >= maxPage - 1) {
               element.disabled = true;
             }
             element.addEventListener("click", function() {
-              manager.page = maxPage;
+              manager.options.page = maxPage;
               manager.request();
             });
           }

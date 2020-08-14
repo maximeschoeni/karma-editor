@@ -1,5 +1,5 @@
-KarmaFieldMedia.fields.textarea = function(field) {
-	return build({
+KarmaFields.fields.textarea = function(field) {
+	return KarmaFields.build({
 		tag: "textarea",
 		init: function(input) {
 			input.id = field.id;

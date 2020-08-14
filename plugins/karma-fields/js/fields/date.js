@@ -2,27 +2,27 @@
  * version mai2020
  */
 
-KarmaFieldMedia.fields.date = function(field) {
+KarmaFields.fields.date = function(field) {
   var format = field.resource.format || "dd/mm/yyyy";
   var dateManager = {};
   dateManager.calendar = Calendar.create();
   var isOpen = false;
-  // return build({
+  // return KarmaFields.build({
   //  class: "karma-field date-input",
   //  children: function() {
   //   return [
-  //     field.resource.label && build({
+  //     field.resource.label && KarmaFields.build({
   //       tag: "label",
   //       init: function(label) {
   //         label.htmlFor = field.id
   //         label.innerHTML = field.resource.label;
   //       }
   //     }),
-      return build({
+      return KarmaFields.build({
         class: "karma-field-date",
         children: function() {
           return [
-            build({
+            KarmaFields.build({
               class: "date-popup-container",
               init: function(container, update) {
                 dateManager.open = function() {
@@ -46,7 +46,7 @@ KarmaFieldMedia.fields.date = function(field) {
               },
               child: function() {
 
-                return isOpen && build({
+                return isOpen && KarmaFields.build({
                   class: "karma-popup",
                   init: function(element, update) {
                     // prevent closing
@@ -56,7 +56,7 @@ KarmaFieldMedia.fields.date = function(field) {
                     update();
                   },
                   child: function() {
-                    return build({
+                    return KarmaFields.build({
                       class: "karma-calendar",
                       init: function(element, update) {
                         dateManager.calendar.onUpdate = function(days) {
@@ -69,18 +69,18 @@ KarmaFieldMedia.fields.date = function(field) {
                         dateManager.calendar.update();
                       },
                       child: function(rows) {
-                        return build({
+                        return KarmaFields.build({
                           class: "karma-calendar-content",
                           children: function() {
                             return [
-                              build({
+                              KarmaFields.build({
                                 class: "karma-calendar-header",
                                 child: function() {
-                                  return build({
+                                  return KarmaFields.build({
                                     class: "karma-calendar-nav",
                                     children: function() {
                                       return [
-                                        build({
+                                        KarmaFields.build({
                                           class: "karma-prev-month karma-calendar-arrow",
                                           text: function() {
                                             return "&lsaquo;";
@@ -92,13 +92,13 @@ KarmaFieldMedia.fields.date = function(field) {
                                             update();
                                           }
                                         }),
-                                        build({
+                                        KarmaFields.build({
                                           class: "karma-current-month",
                                           text: function() {
                                             return Calendar.format(dateManager.calendar.date, "%fullmonth% yyyy");
                                           }
                                         }),
-                                        build({
+                                        KarmaFields.build({
                                           class: "karma-next-month karma-calendar-arrow",
                                           text: function() {
                                             return " &rsaquo;";
@@ -115,16 +115,16 @@ KarmaFieldMedia.fields.date = function(field) {
                                   })
                                 }
                               }),
-                              build({
+                              KarmaFields.build({
                                 class: "karma-calendar-body",
                                 children: function() {
                                   return [
-                                    build({
+                                    KarmaFields.build({
                                       tag: "ul",
                                       class: "calendar-days-title",
                                       children: function() {
                                         return rows[0].map(function(day) {
-                                          return build({
+                                          return KarmaFields.build({
                                             tag: "li",
                                             text: function() {
                                               return Calendar.format(day.date, "%d2%");
@@ -134,15 +134,15 @@ KarmaFieldMedia.fields.date = function(field) {
                                       }
                                     })
                                   ].concat(rows.map(function(row) {
-                                    return build({
+                                    return KarmaFields.build({
                                       tag: "ul",
                                       class: "calendar-days-content",
                                       children: function() {
                                         return row.map(function(day) {
-                                          return build({
+                                          return KarmaFields.build({
                                             tag: "li",
                                             child: function() {
-                                              return build({
+                                              return KarmaFields.build({
                                                 tag: "span",
                                                 text: function() {
                                                   return Calendar.format(day.date, "#d");
@@ -189,9 +189,9 @@ KarmaFieldMedia.fields.date = function(field) {
                 });
               }
             }),
-            build({
+            KarmaFields.build({
               tag: "input",
-              class: "karma-field-input",
+              class: "text karma-field-input",
               init: function(input) {
                 // field.input = input;
                 input.type = "text";
@@ -242,56 +242,61 @@ KarmaFieldMedia.fields.date = function(field) {
     							input.blur();
     						}
 
+                if (field.resource.readonly) {
+          				input.readOnly = true;
+          			} else {
 
-                input.addEventListener("keyup", function() {
-                  var date = Calendar.parse(this.value, format);
-                  if (date) {
-                    dateManager.calendar.date = date;
-                    dateManager.sqlDate = Calendar.format(date);
-                    dateManager.calendar.update();
-                    dateManager.update();
-                  } else {
-                    dateManager.sqlDate = '';
-                  }
-                  if (field.isModified(dateManager.sqlDate)) {
-                    field.history.save();
-                  }
-                  field.set(dateManager.sqlDate);
-                });
 
-                var keyChange = function(dir) {
-                  var index = input.selectionStart || 0;
-                  var date = Calendar.parse(dateManager.sqlDate);
-                  if (format[index] === "y" || format[index-1] === "y") date.setFullYear(date.getFullYear() + dir);
-                  else if (format[index] === "m" || format[index-1] === "m") date.setMonth(date.getMonth() + dir);
-                  else if (format[index] === "d" || format[index-1] === "d") date.setDate(date.getDate() + dir);
-                  input.value = Calendar.format(date, format);
-                  dateManager.sqlDate = Calendar.format(date);
-                  dateManager.calendar.date = date;
-                  dateManager.calendar.update();
-                  input.setSelectionRange(index, index);
-                  dateManager.update();
-                };
-                input.addEventListener("keydown", function(event) {
-                  if (dateManager.sqlDate) {
-                    if (event.key === "ArrowDown") {
-                      keyChange(1);
-                      event.preventDefault();
-                    } else if (event.key === "ArrowUp") {
-                      keyChange(-1);
-                      event.preventDefault();
+                  input.addEventListener("keyup", function() {
+                    var date = Calendar.parse(this.value, format);
+                    if (date) {
+                      dateManager.calendar.date = date;
+                      dateManager.sqlDate = Calendar.format(date);
+                      dateManager.calendar.update();
+                      dateManager.update();
+                    } else {
+                      dateManager.sqlDate = '';
                     }
-                  }
-                });
-                input.addEventListener("mousedown", function() {
-                  dateManager.open();
-                });
-                input.addEventListener("focus", function() {
-                  dateManager.open();
-                });
-                input.addEventListener("focusout", function() {
-                  dateManager.close();
-                });
+                    if (field.isModified(dateManager.sqlDate)) {
+                      field.history.save();
+                    }
+                    field.set(dateManager.sqlDate);
+                  });
+
+                  var keyChange = function(dir) {
+                    var index = input.selectionStart || 0;
+                    var date = Calendar.parse(dateManager.sqlDate);
+                    if (format[index] === "y" || format[index-1] === "y") date.setFullYear(date.getFullYear() + dir);
+                    else if (format[index] === "m" || format[index-1] === "m") date.setMonth(date.getMonth() + dir);
+                    else if (format[index] === "d" || format[index-1] === "d") date.setDate(date.getDate() + dir);
+                    input.value = Calendar.format(date, format);
+                    dateManager.sqlDate = Calendar.format(date);
+                    dateManager.calendar.date = date;
+                    dateManager.calendar.update();
+                    input.setSelectionRange(index, index);
+                    dateManager.update();
+                  };
+                  input.addEventListener("keydown", function(event) {
+                    if (dateManager.sqlDate) {
+                      if (event.key === "ArrowDown") {
+                        keyChange(1);
+                        event.preventDefault();
+                      } else if (event.key === "ArrowUp") {
+                        keyChange(-1);
+                        event.preventDefault();
+                      }
+                    }
+                  });
+                  input.addEventListener("mousedown", function() {
+                    dateManager.open();
+                  });
+                  input.addEventListener("focus", function() {
+                    dateManager.open();
+                  });
+                  input.addEventListener("focusout", function() {
+                    dateManager.close();
+                  });
+                }
                 // input.addEventListener("blur", function() {
     						// 	field.blur();
     						// });

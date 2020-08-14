@@ -1,5 +1,5 @@
-KarmaFieldMedia.fields.group = function(field) {
-	// return build({
+KarmaFields.fields.group = function(field) {
+	// return KarmaFields.build({
 	// 	class: "karma-field-group",
 	// 	init: function(group, update) {
 	// 		if (field.resource.class) {
@@ -9,14 +9,14 @@ KarmaFieldMedia.fields.group = function(field) {
 	// 	},
 	// 	children: function() {
 	// 		return [
-	// 			field.resource.label && build({
+	// 			field.resource.label && KarmaFields.build({
 	// 				tag: "label",
 	// 				init: function(label) {
 	// 					// label.htmlFor = field.id;
 	// 					label.innerHTML = field.resource.label;
 	// 				}
 	// 			}),
-				return build({
+				return KarmaFields.build({
 					class: "karma-field-children",
 					// init: function(content, update) {
 					// 	update();

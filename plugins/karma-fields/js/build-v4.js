@@ -121,11 +121,16 @@
 //
 
 
-function build(args) {
+
+KarmaFields.build = function(args) {
+// function build(args) {
 	var element = document.createElement(args.tag || "div");
 	var child;
 	var children;
 	async function update(param) {
+		if (args.update) {
+			args.update(element);
+		}
 		if (args.text) {
 			Promise.resolve(args.text(param)).then(function(text) {
 				element.innerHTML = text || "";
@@ -170,9 +175,106 @@ function build(args) {
 
 
 
-
-
-
+//
+// KarmaFields.build_H = function(args) {
+// // function build(args) {
+// 	var element = document.createElement(args.tag || "div");
+// 	var child;
+// 	var children = [];
+// 	var childrenSignatures = [];
+//
+// 	var update = function(newhash) {
+// 		if (hash && newhash && hash === newhash) {
+// 			children.forEach(function(child) {
+// 				child();
+// 			});
+// 		} else {
+// 			if (args.update) {
+// 				args.update(element, children);
+// 			}
+// 			if (args.text) {
+// 				Promise.resolve(args.text()).then(function(text) {
+// 					element.innerHTML = text || "";
+// 				});
+// 			}
+// 			if (args.child) {
+// 				await child && child.then(function(child) {
+// 					child && element.removeChild(child);
+// 				});
+// 				child = Promise.resolve(args.child()).then(function(child) {
+// 					return child && element.appendChild(child);
+// 				});
+// 			}
+// 			if (args.children) {
+// 				await children && children.then(function(children) {
+// 					children.forEach(function(child) {
+// 						element.removeChild(child);
+// 					});
+// 				});
+// 				children = Promise.all(args.children(newhash) || []).then(function(children) {
+// 					return children.filter(function(child) {
+// 						return child && element.appendChild(child);
+// 					});
+// 				});
+// 			}
+// 		}
+// 		return element;
+// 	}
+// 	if (args.class) {
+// 		element.className = args.class;
+// 	}
+// 	if (args.init) {
+// 		args.init(element, update);
+// 	} else {
+// 		update(args.hash);
+// 	}
+// 	return update;
+// }
+//
+//
+// var posts = [];
+// var render;
+//
+//
+//
+//
+//
+// var ul = build({
+// 	tag: "ul",
+// 	class: "test",
+// 	signature: "posts",
+// 	child: function(post) {
+// 		return build({
+// 			tag: "li",
+// 			signature: post.uri,
+// 			init: function(element, render) {
+// 				fetch(post.uri).then(function(result) {
+// 					render([
+// 						result.a,
+// 						result.b,
+// 						result.c
+// 					]);
+// 				});
+// 			},
+// 			child: function(value) {
+// 				return [
+// 					build({
+// 						tag: "input",
+// 						signature: post.a,
+// 						update: function(element) {
+// 							element.value = post.a;
+// 						}
+// 					})
+// 				]
+// 			}
+// 		});
+// 	}
+// })(posts);
+//
+// document.body.appendChild(ul);
+//
+//
+// render("y");
 
 
 

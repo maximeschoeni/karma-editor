@@ -1,31 +1,35 @@
 
-KarmaFieldMedia.managers.field = function(resource, post, middleware, history, parent) {
+KarmaFields.managers.field = function(resource, post, middleware, history, parent) {
 	var manager = {
 		resource: resource,
 		post: post,
 		parent: parent,
 		history: history,
+		children: [],
 
 		// build: function() {
-		// 	if (KarmaFieldMedia.fields[resource.field || resource.name || "group"]) {
-		// 		this.element = KarmaFieldMedia.fields[resource.field || resource.name || "group"](this);
+		// 	if (KarmaFields.fields[resource.field || resource.name || "group"]) {
+		// 		this.element = KarmaFields.fields[resource.field || resource.name || "group"](this);
 		// 		// this.init();
 		// 		return this.element;
 		// 	}
 		// },
 		// buildRaw: function() {
-		// 	return KarmaFieldMedia.fields[resource.field || resource.name || "group"](manager);
+		// 	return KarmaFields.fields[resource.field || resource.name || "group"](manager);
 		// },
 		build: function() {
-			return build({
+			return KarmaFields.build({
 				class: "karma-field " + (resource.field || resource.name || "group") + " display-"+(resource.display || "block"),
 				init: function(element, update) {
+					if (resource.class) {
+						element.classList.add(resource.class);
+					}
 					manager.render = update;
 					update();
 				},
 				children: function() {
 					return [
-						resource.label && build({
+						resource.label && KarmaFields.build({
 							tag: "label",
 							init: function(label) {
 								if (manager.id) {
@@ -34,47 +38,81 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 								label.innerText = resource.label;
 							}
 						}),
-						build({
+						KarmaFields.build({
 							class: "karma-field-content",
 							child: function() {
-								return KarmaFieldMedia.fields[resource.field || resource.name || "group"](manager);
+								return KarmaFields.fields[resource.field || resource.name || "group"](manager);
 							}
 						})
 					];
 				}
 			})
 		},
-
-
 		createChild: function(resource) {
-			return KarmaFieldMedia.managers.field(resource, post, middleware, history, this);
+			var child = KarmaFields.managers.field(resource, post, middleware, history, this);
+			this.children.push(child);
+			return child;
 		},
 		getChildren: function() {
 			return (resource.children || []).map(function(resource) {
-				return KarmaFieldMedia.managers.field(resource, post, middleware, history, manager);
+				return KarmaFields.managers.field(resource, post, middleware, history, manager);
 			});
 		},
 		getId: function() {
 			if (resource.key) {
-				return middleware + "-" + (post.uri || post.pseudo_uri).split("/").join("-") + "-" + resource.key;
+				return (middleware || "general") + "-" + (post.uri || post.pseudo_uri || "").split("/").join("-") + "-" + resource.key;
 			} else if (parent) {
 				return parent.getId() + "-" + (resource.child_key || "group");
 			}
 		},
+		// getKey: function() {
+		// 	if (resource.key) {
+		// 		return resource.key;
+		// 	} else if (parent) {
+		// 		return parent.getKey();
+		// 	}
+		// },
 		// for external use
-		bubble: function(key, value) {
+		bubble: function(key, value, field) {
+			//
+			// if (this.onBubble) {
+			// 	this.onBubble(key, value);
+			//
+			// } else if (parent) {
+			// 	parent.value[resource.child_key] = value;
+			// 	parent.bubble(key, value);
+			// }
+
+			if (this.onBubble) {
+				this.onBubble(key, value, field || this); // used in table options (update manager option and detect changes for submit button)
+			}
+
 			if (parent) {
-				parent.bubble(key, value);
+				parent.bubble(key, value, field || this);
 			} else {
 				if (!this.state) {
 					this.state = {};
 				}
 				this.state[key] = value;
 				if (this.onUpdateState) {
-					this.onUpdateState(this.state);
+					this.onUpdateState(this.state); // used for fields in classic layout
+				}
+
+			}
+		},
+		submit: function() {
+			if (parent) {
+				parent.submit();
+			} else {
+				if (this.onSubmit) {
+					this.onSubmit();
 				}
 			}
 		},
+
+
+
+
 		// get: function(defaultValue) {
 		// 	if (resource.key) {
 		// 		if (this.value === undefined) {
@@ -90,7 +128,23 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 		// 		}
 		// 	}
 		// },
-		get: function(defaultValue) {
+
+		// getValue: function() {
+		// 	if (this.children) {
+		// 		this.children.forEach(function(child) {
+		// 			if () {}
+		// 		});
+		// 		return this.children.reduce(function(object, item), {
+		// 			object[child.child_key] = child.getValue();
+		// 		}, this.value || {});
+		// 	} else {
+		// 		return this.value;
+		// 	}
+		// },
+
+
+
+		get: function() {
 			if (resource.key) {
 				return this.value;
 			} else if (this.parent) {
@@ -165,6 +219,12 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 		// 		this.parent.set(parentValue);
 		// 	}
 		// },
+
+
+
+
+
+
 		isModified: function(value) {
 			if (typeof value === "object") {
 				return JSON.stringify(value) !== JSON.stringify(this.getOriginal());
@@ -193,7 +253,7 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 		// },
 		set: function(value) {
 			if (this.isDifferent(value)) {
-				this.changeValue(value, this.isModified(value));
+				this.changeValue(value); //, this.isModified(value));
 			}
 		},
 		// set: function(value) {
@@ -218,29 +278,55 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 
 
 
-		changeValue: function(value, modified) {
+		changeValue: function(value) {
+
+			var modified = this.isModified(value);
+
+
+
 			if (resource.key) {
-				this.value = value;
-				this.bubble(resource.key, value); // todo: prevent bubbling if not needed
-				if (history) {
-					history.pool.set(this.post.uri || this.post.pseudo_uri, resource.key, history.index, this.value);
+
+				if (modified) {
+					this.value = value;
+				} else {
+					this.value = undefined;
 				}
+
 				if (modified !== this.modified && this.onSave) { // if this.isModified is undefined -> no care!
 					this.onSave(); // -> render footer
 				}
+
 				this.modified = modified;
+
+				if (this.onChangeValue) {
+					this.onChangeValue(resource.key, this.value); // -> tableManager.addChanges()
+				}
+
+				this.bubble(resource.key, value); // todo: prevent bubbling if not needed
+
+				if (history) {
+					history.pool.set(this.post.uri || this.post.pseudo_uri, resource.key, history.index, this.value);
+				}
+
 			} else if (this.parent) {
 				var parentValue = this.parent.get() || {};
 				if (resource.child_key) {
-					parentValue[resource.child_key] = value;
+					parentValue[resource.child_key] = value || undefined;
+				} else {
+					parentValue = value;
 				}
-				this.parent.changeValue(parentValue, modified);
+				this.parent.changeValue(parentValue);
 			}
+// console.log(this.tableManager.options);
 			if (this.onModify) {
 				this.onModify(modified);
 			}
 		},
-
+		changeOthers: function(value) {
+			if (this.onChangeOthers) {
+				this.onChangeOthers(value);
+			}
+		},
 
 		// save: function() {
 		// 	// if (this.get() !== this.getPrevious()) { // ! not working with objects...
@@ -295,13 +381,27 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 		// },
 		getOriginal: function() {
 			if (resource.key) {
+				// if (this.isObject) {
+				// 	return JSON.parse(this.originalValue);
+				// } else {
+				//
+				// }
 				return this.originalValue;
 			} else if (parent) {
 				var original = parent.getOriginal();
 				if (original && resource.child_key) {
-					return original[resource.child_key];
+					return original[resource.child_key] || "";
 				} else {
 					return original;
+				}
+			}
+		},
+		setOriginalValue: function(value) {
+			if (resource.key) {
+				if (typeof value === "object") {
+					this.originalValue = JSON.parse(JSON.stringify(value));
+				} else {
+					this.originalValue = value || "";
 				}
 			}
 		},
@@ -324,8 +424,18 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 				var value = history.pool.get(uri, resource.key, history.index);
 
 				if (this.isDifferent(value)) {
-					var modified = this.isModified();
-					this.value = value;
+					var modified = this.isModified(value);
+					if (modified) {
+						this.value = value;
+					} else {
+						this.value = undefined;
+					}
+
+
+					if (this.onChangeValue) {
+						this.onChangeValue(resource.key, this.value); // -> tableManager.addChanges()
+					}
+
 					this.bubble(resource.key, value);
 					if (modified !== this.modified && this.onSave) { // if this.isModified is undefined -> no care!
 						this.onSave(); // -> render footer
@@ -431,37 +541,58 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 
 		fetch: function() {
 
+
 			if (!this.promise) {
 				if (resource.key) {
-					var historyIndex = history.index;
-					var initialIndex = history.initialIndex;
+					var historyIndex;
+					var initialIndex;
+					var currentValue;
+					var initialValue;
 					var uri = this.post.uri || this.post.pseudo_uri;
-					var currentValue = history.pool.get(uri, resource.key, history.index);
-					var initialValue = history.pool.get(uri, resource.key, history.initialIndex);
+					if (history) {
+						historyIndex = history.index;
+						initialIndex = history.initialIndex;
+						currentValue = history.pool.get(uri, resource.key, history.index);
+						initialValue = history.pool.get(uri, resource.key, history.initialIndex);
+					}
+
 					if (initialValue !== undefined) {
-						this.originalValue = initialValue;
-						if (currentValue !== undefined) {
-							this.value = currentValue;
-							this.bubble(resource.key, currentValue);
-							this.modified = false;
-						}
+						this.setOriginalValue(initialValue);
+					}
+
+					if (currentValue !== undefined) {
+						// this.originalValue = initialValue;
+
+						this.value = currentValue;
+						this.bubble(resource.key, currentValue);
+						this.modified = false;
+
 						if (manager.onFetch) {
 							currentValue = manager.onFetch(currentValue);
 						}
 						this.promise = Promise.resolve(currentValue);
 					} else if (this.post[resource.key] !== undefined) {
-						this.originalValue = this.post[resource.key];
+
+						// this.originalValue = this.post[resource.key];
+						// this.originalValueJson = JSON.stringify(this.post[resource.key]);
+						this.setOriginalValue(this.post[resource.key]);
+
+
 						if (currentValue === undefined) {
 							currentValue = this.post[resource.key];
 						}
+
 						this.value = currentValue;
 						this.bubble(resource.key, currentValue);
 						this.modified = false;
 						if (this.onFetch) {
 							currentValue = manager.onFetch(currentValue);
 						}
+						if (history) {
+							history.pool.set(uri, resource.key, initialIndex, currentValue);
+						}
 						this.promise = Promise.resolve(currentValue);
-					} else if (this.post.uri) {
+					} else if (this.post.uri && middleware) {
 						var path;
 						if (KarmaFields.cacheURL && resource.cache) {
 							path = KarmaFields.cacheURL+"/"+middleware+"/"+this.post.uri+"/"+resource.cache;
@@ -469,7 +600,9 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 							path = KarmaFields.getURL+"/"+middleware+"/"+this.post.uri+"/"+resource.key;
 						}
 						this.promise = this.query(path).then(function(value) {
-							manager.originalValue = value;
+							// manager.originalValue = value;
+							manager.setOriginalValue(value);
+
 							if (currentValue === undefined) {
 								currentValue = manager.getDefault && manager.getDefault(value) || value || resource.default;
 							}
@@ -490,8 +623,9 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 							return value;
 						});
 					} else { // -> item was added
-						this.originalValue = null;
-						this.promise = Promise.resolve(resource.default);
+						// this.originalValue = null;
+						this.setOriginalValue(resource.default_value);
+						this.promise = Promise.resolve(resource.default_value);
 					}
 				} else if (parent) {
 					return parent.fetch().then(function(parentValue) {
@@ -506,6 +640,42 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 			}
 			return this.promise;
 		},
+
+		// getValue: function() {
+		// 	if (!this.promise) {
+		// 		if (resource.key) {
+		// 			this.promise = history.fetch(post, resource.key, resource.cache, resource.default_value);
+		// 		} else if (parent) {
+		// 			this.promise = parent.fetch().then(function(parentValue) {
+		// 				if (parentValue && resource.child_key) {
+		// 					return parentValue[resource.child_key];
+		// 				}
+		// 				return parentValue;
+		// 			});
+		// 		} else {
+		// 			this.promise = Promise.resolve();
+		// 		}
+		// 		this.promise.then(function(value) {
+		// 			if (manager.onUpdate) {
+		// 				manager.onUpdate(value);
+		// 			}
+		// 		});
+		// 	}
+		// 	return this.promise;
+		// },
+		// getOriginalValue: function() {
+		// 	if (resource.key) {
+		// 		this.originalValue = history.fetch(post, resource.key, resource.cache, resource.default_value);
+		// 		return this.originalValue;
+		// 	} else if (parent) {
+		// 		var original = parent.getOriginal();
+		// 		if (original && resource.child_key) {
+		// 			return original[resource.child_key] || "";
+		// 		} else {
+		// 			return original;
+		// 		}
+		// 	}
+		// },
 
 		// fetch: function() {
 		// 	if (resource.key) {
@@ -587,7 +757,29 @@ KarmaFieldMedia.managers.field = function(resource, post, middleware, history, p
 					return response.text();
 				}
 			});
-		}
+		},
+		fetchOptions: function(filters) {
+			if (resource.key) {
+				var file = KarmaFields.fetchURL+"/"+middleware+"/"+resource.key;
+				var params = [];
+				for (var key in filters) {
+					params.push(key+"="+filters[key]);
+				}
+				if (params.length) {
+					file += "?"+params.join("&");
+				}
+				if (!KarmaFields.fetchCache[file]) {
+					KarmaFields.fetchCache[file] = fetch(file, {
+						cache: "default" // force-cache
+					}).then(function(response) {
+						return response.json();
+					});
+				}
+				return KarmaFields.fetchCache[file];
+			} else {
+				return Promise.resolve();
+			}
+    }
 	};
 
 	manager.id = manager.getId(); //middleware + "/" + (post.uri || post.pseudo_uri).split("/").join("-") + "-" + (resource.key || resource.child_key || "group");

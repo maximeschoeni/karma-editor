@@ -1,6 +1,6 @@
-KarmaFieldMedia.fields.files = function(field) {
+KarmaFields.fields.files = function(field) {
   var galleryManager = {};
-  var galleryUploader = KarmaFieldMedia.createGalleryUploader();
+  var galleryUploader = KarmaFields.createGalleryUploader();
   if (field.resource.mimeTypes !== undefined) {
     galleryUploader.mimeTypes = field.resource.mimeTypes;
   }
@@ -27,7 +27,7 @@ KarmaFieldMedia.fields.files = function(field) {
     galleryManager.renderControls && galleryManager.renderControls();
   };
 
-  // return build({
+  // return KarmaFields.build({
 	// 	class: "karma-field files-input",
 	// 	init: function(element, update) {
 	// 		field.render = update;
@@ -35,28 +35,28 @@ KarmaFieldMedia.fields.files = function(field) {
 	// 	},
 	// 	children: function() {
 	// 		return [
-	// 			field.resource.label && build({
+	// 			field.resource.label && KarmaFields.build({
 	// 				tag: "label",
 	// 				init: function(label) {
 	// 					label.htmlFor = field.id;
 	// 					label.innerHTML = field.resource.label;
 	// 				}
 	// 			}),
-        return build({
+        return KarmaFields.build({
           class: "karma-field-files",
           children: function() {
             return [
-              build({
+              KarmaFields.build({
                 class: "field-controls",
                 init: function(element, update) {
                   galleryManager.renderControls = update;
                 },
                 child: function() {
-                  return build({
+                  return KarmaFields.build({
                     class: "field-controls-group",
                     children: function() {
                       return [
-                        KarmaFieldMedia.includes.icon({
+                        KarmaFields.includes.icon({
                           tag: "button",
                           url: KarmaFields.icons_url+"/insert.svg",
                           init: function(element, update) {
@@ -68,7 +68,7 @@ KarmaFieldMedia.fields.files = function(field) {
                             });
                           }
                         }),
-                        KarmaFieldMedia.includes.icon({
+                        KarmaFields.includes.icon({
                           tag: "button",
                           url: KarmaFields.icons_url+"/edit.svg",
                           init: function(element, update) {
@@ -82,7 +82,7 @@ KarmaFieldMedia.fields.files = function(field) {
                             });
                           }
                         }),
-                        KarmaFieldMedia.includes.icon({
+                        KarmaFields.includes.icon({
                           tag: "button",
                           url: KarmaFields.icons_url+"/trash.svg",
                           init: function(element, update) {
@@ -103,7 +103,7 @@ KarmaFieldMedia.fields.files = function(field) {
                   });
                 }
               }),
-              build({
+              KarmaFields.build({
             		class: "file-input-thumbs",
                 init: function(element, update) {
                   // field.fetch([]).then(function(value) {
@@ -130,7 +130,7 @@ KarmaFieldMedia.fields.files = function(field) {
                     value = field.resource.default || [];
                   }
                   return value.map(function(attachment) {
-                    return build({
+                    return KarmaFields.build({
                       tag: "img",
                       init: function(img) {
                         img.src = attachment.thumb;

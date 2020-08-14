@@ -32,9 +32,13 @@ Class Karma_Tables {
 
 
 
-		require_once dirname(__FILE__) . '/multilanguage.php';
+		// require_once dirname(__FILE__) . '/multilanguage.php';
 
 		// require_once dirname(__FILE__) . '/class-posts.php';
+
+		require_once dirname(__FILE__) . '/middlewares/query.php';
+		require_once dirname(__FILE__) . '/drivers/driver.php';
+
 
 		require_once dirname(__FILE__) . '/class-posts-fields.php';
 
@@ -107,60 +111,74 @@ Class Karma_Tables {
 			wp_enqueue_style('multimedia-styles', $plugin_url . '/css/multimedia.css');
 			wp_enqueue_style('karma-styles-grid', $plugin_url . '/css/grid.css');
 
-			wp_register_script('build', $plugin_url . '/js/build-v4.js', array(), $this->version, false);
-			wp_register_script('calendar', $plugin_url . '/js/calendar.js', array(), $this->version, false);
-			wp_register_script('ajax', $plugin_url . '/js/ajax-v2.js', array(), $this->version, false);
-			wp_register_script('sortable', $plugin_url . '/js/sortable.js', array(), $this->version, false);
 
-			wp_enqueue_script('media-field', $plugin_url . '/js/media.js', array('ajax', 'build'), $this->version, false);
-			wp_localize_script('media-field', 'KarmaFieldMedia', array(
-				'ajax_url' => admin_url('admin-ajax.php')
-			));
+			wp_register_script('karma-calendar', $plugin_url . '/js/calendar.js', array(), $this->version, true);
+			// wp_register_script('ajax', $plugin_url . '/js/ajax-v2.js', array(), $this->version, true);
+			// wp_register_script('sortable', $plugin_url . '/js/sortable.js', array(), $this->version, true);
+			wp_register_script('karma-build', $plugin_url . '/js/build-v4.js', array(), $this->version, true);
+
+			wp_enqueue_script('karma-fields-media', $plugin_url . '/js/media.js', array('ajax', 'karma-build'), $this->version, true);
+			// wp_localize_script('media-field', 'KarmaFieldMedia', array(
+			// 	'ajax_url' => admin_url('admin-ajax.php')
+			// ));
+
+
 
 			// v1
-			// wp_enqueue_script('date-field', KARMA_FIELDS_URL . '/js/date-field-v2.js', array('media-field', 'build', 'calendar'), $this->version, false);
+			// wp_enqueue_script('date-field', KARMA_FIELDS_URL . '/js/date-field-v2.js', array('media-field', 'build', 'calendar'), $this->version, true);
 
 			// v2 fields
-			wp_enqueue_script('karma-field-group', $plugin_url . '/js/fields/group.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-field-date', $plugin_url . '/js/fields/date.js', array('media-field', 'build', 'calendar'), $this->version, false);
-			wp_enqueue_script('karma-field-textinput', $plugin_url . '/js/fields/textinput.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-field-grid', $plugin_url . '/js/fields/grid.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-field-file', $plugin_url . '/js/fields/file.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-field-files', $plugin_url . '/js/fields/files.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-field-dropdown', $plugin_url . '/js/fields/dropdown.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-field-textarea', $plugin_url . '/js/fields/textarea.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-field-tinymce', $plugin_url . '/js/fields/tinymce.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-field-group', $plugin_url . '/js/fields/group.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-date', $plugin_url . '/js/fields/date.js', array('karma-fields-media', 'karma-build', 'karma-calendar'), $this->version, true);
+			wp_enqueue_script('karma-field-textinput', $plugin_url . '/js/fields/textinput.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-grid', $plugin_url . '/js/fields/grid.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-file', $plugin_url . '/js/fields/file.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-files', $plugin_url . '/js/fields/files.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-dropdown', $plugin_url . '/js/fields/dropdown.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-checkbox', $plugin_url . '/js/fields/checkbox.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-checkboxes', $plugin_url . '/js/fields/checkboxes.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-textarea', $plugin_url . '/js/fields/textarea.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
+			wp_enqueue_script('karma-field-checkboxtest', $plugin_url . '/js/fields/checkbox-test.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-index', $plugin_url . '/js/fields/index.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-option-buttons', $plugin_url . '/js/fields/option-buttons.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-submit', $plugin_url . '/js/fields/submit.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-field-filterlink', $plugin_url . '/js/fields/filterlink.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 			//filters
-			wp_enqueue_script('karma-filter-postdate', $plugin_url . '/js/filters/postdate.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-filter-poststatus', $plugin_url . '/js/filters/poststatus.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-filter-search', $plugin_url . '/js/filters/search.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-filter-posttype', $plugin_url . '/js/filters/posttype.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-filter-node', $plugin_url . '/js/filters/node.js', array('media-field', 'build'), $this->version, false);
+
+			// deprecated: use dropdown
+			wp_enqueue_script('karma-filter-postdate', $plugin_url . '/js/filters/postdate.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+
+			wp_enqueue_script('karma-filter-poststatus', $plugin_url . '/js/filters/poststatus.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-filter-search', $plugin_url . '/js/filters/search.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-filter-posttype', $plugin_url . '/js/filters/posttype.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-filter-node', $plugin_url . '/js/filters/node.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-filter-dropdown', $plugin_url . '/js/filters/dropdown.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
 			// tables
-			wp_enqueue_script('karma-table-grid', $plugin_url . '/js/tables/grid.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-table-grid-body-cell', $plugin_url . '/js/tables/grid-body-cell.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-table-table-header-cell', $plugin_url . '/js/tables/table-header-cell.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-table-table-header', $plugin_url . '/js/tables/table-header.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-table-pagination', $plugin_url . '/js/tables/pagination.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('karma-table-footer', $plugin_url . '/js/tables/footer.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-table-grid', $plugin_url . '/js/tables/grid.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-table-grid-body-cell', $plugin_url . '/js/tables/grid-body-cell.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-table-table-header-cell', $plugin_url . '/js/tables/table-header-cell.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-table-table-header', $plugin_url . '/js/tables/table-header.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-table-pagination', $plugin_url . '/js/tables/pagination.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-table-footer', $plugin_url . '/js/tables/footer.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
 			// utils
-			wp_enqueue_script('karma-select-grid', $plugin_url . '/js/grid-select.js', array('media-field'), $this->version, false);
-			wp_enqueue_script('karma-utils-rect', $plugin_url . '/js/utils/rect.js', array('media-field'), $this->version, false);
+			wp_enqueue_script('karma-select-grid', $plugin_url . '/js/grid-select.js', array('karma-fields-media'), $this->version, true);
+			wp_enqueue_script('karma-utils-rect', $plugin_url . '/js/utils/rect.js', array('karma-fields-media'), $this->version, true);
 
 			// includes
-			wp_enqueue_script('karma-includes-icon', $plugin_url . '/js/includes/icon.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('karma-includes-icon', $plugin_url . '/js/includes/icon.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
 			// managers
-			wp_enqueue_script('karma-manager-pool', $plugin_url . '/js/managers/pool.js', array('media-field'), $this->version, false);
-			wp_enqueue_script('karma-manager-history', $plugin_url . '/js/managers/history.js', array('media-field', 'karma-manager-pool'), $this->version, false);
+			wp_enqueue_script('karma-manager-pool', $plugin_url . '/js/managers/pool.js', array('karma-fields-media'), $this->version, true);
+			wp_enqueue_script('karma-manager-history', $plugin_url . '/js/managers/history.js', array('karma-fields-media', 'karma-manager-pool'), $this->version, true);
 
-			wp_enqueue_script('table-manager', $plugin_url . '/js/managers/table-manager.js', array('media-field', 'build', 'karma-manager-history'), $this->version, false);
-			wp_enqueue_script('field-manager', $plugin_url . '/js/managers/field-manager.js', array('media-field', 'build', 'karma-manager-history'), $this->version, false);
-			wp_enqueue_script('filter-manager', $plugin_url . '/js/managers/filter-manager.js', array('media-field', 'build'), $this->version, false);
-			wp_enqueue_script('row-manager', $plugin_url . '/js/managers/row-manager.js', array('media-field', 'build'), $this->version, false);
+			wp_enqueue_script('table-manager', $plugin_url . '/js/managers/table-manager.js', array('karma-fields-media', 'karma-build', 'karma-manager-history'), $this->version, true);
+			wp_enqueue_script('field-manager', $plugin_url . '/js/managers/field-manager.js', array('karma-fields-media', 'karma-build', 'karma-manager-history'), $this->version, true);
+			wp_enqueue_script('filter-manager', $plugin_url . '/js/managers/filter-manager.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			// wp_enqueue_script('row-manager', $plugin_url . '/js/managers/row-manager.js', array('media-field', 'build'), $this->version, true);
 
 
 
@@ -171,7 +189,7 @@ Class Karma_Tables {
 		}
 
 		/**
-		 * @hook admin_footer
+		 * @hook admin_header
 		 */
 		public function print_footer() {
 			// global $karma_cache;
@@ -184,7 +202,7 @@ Class Karma_Tables {
 				'cacheURL' => apply_filters('karma_cache_url', false),
 				'queryURL' => rest_url().'karma-fields/v1/query',
 				'saveURL' => rest_url().'karma-fields/v1/update',
-				'filterURL' => rest_url().'karma-fields/v1/filters',
+				'fetchURL' => rest_url().'karma-fields/v1/fetch',
 				'addURL' => rest_url().'karma-fields/v1/add',
 				'removeURL' => rest_url().'karma-fields/v1/remove'
 				// 'queryTermsURL' => rest_url().'karma-fields/v1/taxonomy',
@@ -239,11 +257,14 @@ Class Karma_Tables {
 	    )
 		));
 
-		register_rest_route('karma-fields/v1', '/update/(?P<middleware>[a-z0-9_-]+)/?', array(
+		register_rest_route('karma-fields/v1', '/update/(?P<middleware>[a-z0-9_-]+)/(?P<key>[a-z0-9_.-]+)/?', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_update'),
 			'args' => array(
 				'middleware' => array(
+					'required' => true
+				),
+				'key' => array(
 					'required' => true
 				),
 				'fields' => array(
@@ -255,9 +276,9 @@ Class Karma_Tables {
 	    )
 		));
 
-		register_rest_route('karma-fields/v1', '/filters/(?P<middleware>[a-z0-9_-]+)/(?P<key>[a-z0-9_.-]+)/?', array(
+		register_rest_route('karma-fields/v1', '/fetch/(?P<middleware>[a-z0-9_-]+)/(?P<key>[a-z0-9_.-]+)/?', array(
 			'methods' => 'GET',
-			'callback' => array($this, 'rest_filter'),
+			'callback' => array($this, 'rest_fetch'),
 			'args' => array(
 				'middleware' => array(
 					'required' => true
@@ -328,7 +349,7 @@ Class Karma_Tables {
 
 				$args = $this->parse_args($request, $middleware);
 
-				return $middleware->query($args);
+				return $middleware->query($args, $request);
 
 				// return apply_filters("karma_fields_{$middleware_name}_results", $results, $args);
 
@@ -349,7 +370,7 @@ Class Karma_Tables {
 	/**
 	 *	@rest 'wp-json/karma-fields/v1/filter/[object]/[filter]'
 	 */
-	public function rest_filter($request) {
+	public function rest_fetch($request) {
 
 		$middleware_name = $request->get_param('middleware');
 		$key = $request->get_param('key');
@@ -358,19 +379,10 @@ Class Karma_Tables {
 		$middleware = $this->get_middleware($middleware_name);
 		$driver = $middleware->get_driver($key);
 
+
 		if ($driver) {
 
-			if (method_exists($driver, 'fetch')) {
-
-				$args = $this->parse_args($request, $middleware);
-
-				return $driver->fetch($args);
-
-			} else {
-
-				return "karma fields rest filter error: fetch method does not exist";
-
-			}
+			return $driver->fetch($request);
 
 		} else {
 
@@ -397,7 +409,7 @@ Class Karma_Tables {
 
 			if (method_exists($driver, 'get')) {
 
-				return $driver->get($uri, $key);
+				return $driver->get($uri);
 
 			} else {
 
@@ -421,40 +433,43 @@ Class Karma_Tables {
 
 		$middleware_name = $request->get_param('middleware');
 		$fields = $request->get_param('fields');
-		// $params = $request->get_params();
+		$key = $request->get_param('key');
 
 		$middleware = $this->get_middleware($middleware_name);
 
-		// $delta = array();
+
+
+		$driver = $middleware->get_driver($key);
 
 		foreach ($fields as $uri => $item) {
 
 			if (isset($item['action']) && $item['action'] === 'add') {
 
-				// $delta[$uri] =
-				$this->add_item($middleware, $item, $request);
+				// $this->add_item($middleware, $key, $item, $request);
+
+				$driver->add($item, $uri, $request);
 
 			} else if (isset($item['action']) && $item['action'] === 'remove') {
 
-				// $id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
+				// $this->remove_item($middleware, $key, $uri, $request);
+				$driver->remove($uri, $request);
 
-				$this->remove_item($middleware, $uri, $request);
-
-			// } else if (isset($item['action']) && $item['action'] === 'update') {
 			} else {
 
-				// $delta[$uri] =
-				$this->update_item($middleware, $item, $uri, $request);
+				// $this->update_item($middleware, $key, $item, $uri, $request);
+
+				$driver->update($item, $uri, $request);
 
 			}
 
 		}
 
+		return $driver->fetch($request);
 
 
-		$args = $this->parse_args($request, $middleware);
-
-		return $middleware->query($args);
+		// $args = $this->parse_args($request, $middleware);
+		//
+		// return $middleware->query($args);
 
 		// return array(
 		// 	'query' => $middleware->query($args),
@@ -583,11 +598,7 @@ Class Karma_Tables {
 	 */
 	public function parse_args($request, $middleware) {
 
-		$args = array(
-			'order' => $request->get_param('order'),
-			'posts_per_page' => $request->get_param('ppp'),
-			'paged' => $request->get_param('page')
-		);
+		$args = array();
 
 		foreach ($middleware->keys as $key => $resource) {
 
@@ -606,6 +617,17 @@ Class Karma_Tables {
 					$args[$key] = $value;
 
 				}
+
+				if ($driver && method_exists($driver, 'filter')) {
+
+					$driver->parse($value, $args, $request);
+
+				}
+				// else {
+				//
+				// 	$args[$key] = $value;
+				//
+				// }
 
 			}
 
@@ -635,13 +657,33 @@ Class Karma_Tables {
 
 			if ($driver && method_exists($driver, 'sort')) {
 
-				$driver->sort($order, $args);
+				$order = $request->get_param('order');
 
-			} else {
+				if ($order) {
 
-				$args['orderby'] = $key;
+					$order = strtoupper($order);
+
+				}
+
+				if ($order !== 'ASC' && $order !== 'DESC') {
+
+					$order = null;
+
+				}
+
+				$driver->sort($order, $args, $request);
 
 			}
+			// else {
+			//
+			// 	$args['orderby'] = $key;
+			//
+			// }
+
+		}
+
+		if ($request->has_param('ppp')) {
+
 
 		}
 
@@ -769,8 +811,9 @@ Class Karma_Tables {
 		require_once $this->middlewares[$name]['path'];
 
 		$middleware = new $this->middlewares[$name]['class'];
-		$middleware->keys = $this->keys[$name];
-		$middleware->drivers = $this->drivers[$name];
+
+		$middleware->keys = isset($this->keys[$name]) ? $this->keys[$name] : array();
+		$middleware->drivers = isset($this->drivers[$name]) ? $this->drivers[$name] : array();
 
 		return $middleware;
 

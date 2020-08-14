@@ -1,6 +1,6 @@
-KarmaFieldMedia.filters.poststatus = function(filterManager) {
-	// var filterManager = KarmaFieldMedia.managers.filter(manager, filter);
-	return build({
+KarmaFields.filters.poststatus = function(filterManager) {
+	// var filterManager = KarmaFields.managers.filter(manager, filter);
+	return KarmaFields.build({
 		tag: "ul",
 		class: "filter-item filter-post-status",
 		init: function(element, update) {
@@ -34,11 +34,11 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 			// 	value: ""
 			// }].concat(options)
 			return filterManager.options.map(function(option) {
-				return build({
+				return KarmaFields.build({
 					tag: "li",
 					children: function() {
 						return [
-							build({
+							KarmaFields.build({
 								tag: "a",
 								init: function(element, update) {
 									if (filterManager.value == option.value) {
@@ -57,14 +57,14 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 								},
 								children: function() {
 									return [
-										build({
+										KarmaFields.build({
 											tag: "span",
 											class: "filter-label",
 											text: function() {
 												return option.title;
 											}
 										}),
-										option.total && build({
+										option.total && KarmaFields.build({
 											tag: "span",
 											class: "filter-count",
 											text: function() {
@@ -83,11 +83,11 @@ KarmaFieldMedia.filters.poststatus = function(filterManager) {
 				});
 			});
 			// .concat([
-			// 	build({
+			// 	KarmaFields.build({
 			// 		tag: "li",
 			// 		class: "placeholder"+(filterManager.loading ? " loading" : ""),
 			// 		child: function() {
-			// 			return build({
+			// 			return KarmaFields.build({
 			// 				class: "table-spinner"
 			// 			});
 			// 		}

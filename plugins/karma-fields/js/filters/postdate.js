@@ -1,10 +1,10 @@
-// KarmaFieldMedia.filters.postdate = function(filterManager) {
-// 	return build({
+// KarmaFields.filters.postdate = function(filterManager) {
+// 	return KarmaFields.build({
 // 		tag: "select",
 // 		class: "karma-filter",
 // 		children: function(options) {
 // 			return [
-// 				build({
+// 				KarmaFields.build({
 // 					tag: "option",
 // 					init: function(element) {
 // 						element.value = "";
@@ -12,7 +12,7 @@
 // 					}
 // 				})
 // 			].concat(options.map(function(option) {
-// 				return build({
+// 				return KarmaFields.build({
 // 					tag: "option",
 // 					init: function(element) {
 // 						element.value = option.value;
@@ -47,25 +47,25 @@
 // }
 
 
-KarmaFieldMedia.filters.postdate = function(filterManager) {
+KarmaFields.filters.postdate = function(filterManager) {
 
-	return build({
+	return KarmaFields.build({
 		class: "filter-item filter-select",
 		children: function() {
 			return [
-				build({
+				KarmaFields.build({
 					tag: "h4",
 					text: function() {
 						return filterManager.resource.title || filterManager.resource.name;
 					}
 					// child: function() {
-					// 	return build({
+					// 	return KarmaFields.build({
 					// 		class: "table-spinner"
 					// 	});
 					// }
 				}),
 
-				build({
+				KarmaFields.build({
 					tag: "select",
 					init: function(element, update) {
 						element.addEventListener("change", function() {
@@ -78,7 +78,7 @@ KarmaFieldMedia.filters.postdate = function(filterManager) {
 					},
 					children: function() {
 						return [
-							build({
+							KarmaFields.build({
 								tag: "option",
 								init: function(element) {
 									element.value = "";
@@ -86,7 +86,7 @@ KarmaFieldMedia.filters.postdate = function(filterManager) {
 								}
 							})
 						].concat(filterManager.options.map(function(option) {
-							return build({
+							return KarmaFields.build({
 								tag: "option",
 								init: function(element) {
 									element.value = option.value;

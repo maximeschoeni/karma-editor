@@ -3,20 +3,20 @@
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
 
 
-KarmaFieldMedia.fields.tinymce = function(field) {
+KarmaFields.fields.tinymce = function(field) {
 	var manager = {};
-	return build({
+	return KarmaFields.build({
 		class: "editor",
 		children: function() {
 			return [
-				build({
+				KarmaFields.build({
 					class: "field-controls",
 					child: function() {
-						return build({
+						return KarmaFields.build({
 							class: "field-controls-group",
 							children: function() {
 								return [
-									KarmaFieldMedia.includes.icon({
+									KarmaFields.includes.icon({
 										tag: "button",
 										url: KarmaFields.icons_url+"/table-row-before.svg",
 										init: function(element, update) {
@@ -34,7 +34,7 @@ KarmaFieldMedia.fields.tinymce = function(field) {
 											});
 										}
 									}),
-									KarmaFieldMedia.includes.icon({
+									KarmaFields.includes.icon({
 										tag: "button",
 										url: KarmaFields.icons_url+"/car.svg",
 										init: function(element, update) {
@@ -58,7 +58,7 @@ KarmaFieldMedia.fields.tinymce = function(field) {
 											});
 										}
 									}),
-									KarmaFieldMedia.includes.icon({
+									KarmaFields.includes.icon({
 										tag: "button",
 										url: KarmaFields.icons_url+"/car.svg",
 										init: function(element, update) {
@@ -85,7 +85,7 @@ KarmaFieldMedia.fields.tinymce = function(field) {
 						});
 					}
 				}),
-				build({
+				KarmaFields.build({
 					class: "editor-content",
 					init: function(element) {
 						element.id = field.id;

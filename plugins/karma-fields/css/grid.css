@@ -1,5 +1,23 @@
 
 
+/* WP Layout
+--------------------------------------*/
+
+#wpbody-content {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 32px);
+
+  padding-bottom: 0;
+  z-index: 1;
+  position: relative;
+}
+.karma-fields-table {
+  flex-grow: 1;
+  display: flex;
+}
+
+
 
 /* Fields
 --------------------------------------*/
@@ -34,22 +52,29 @@
   display: flex;
   margin: 0 -5px;
 } */
-.karma-field-table .filter-node {
+/* .karma-field-table .filter-node {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
 }
 .karma-field-table .filter-item {
   margin: 0 5px;
-}
+} */
 
 
 
-/* Grid Filter Post-type
+/* Grid Filter
 --------------------------------------*/
 
-.karma-field-table .filter-node-posttype .filter-item {
-  flex-grow: 1;
+.karma-filter-children {
+  display: flex;
+  margin: 0 -5px;
+}
+.karma-filter {
+  margin: 0 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 
@@ -128,15 +153,16 @@
 /* Grid Filter Dropdown
 --------------------------------------*/
 
-.karma-field-table .filter-select h4 {
+.karma-filter h4 {
   font-size: 0.875em;
   margin-bottom: 0;
   position: relative
 }
-.karma-field-table .filter-select select {
+.karma-filter .filter-dropdown select {
   min-width: 175px;
   border-radius: 0;
   background-color: transparent;
+  margin: 0;
   /* background-color: #edf2f5; */
 }
 
@@ -145,14 +171,17 @@
 /* Grid Search
 --------------------------------------*/
 
-.karma-field-table .filter-search {
-  /* flex-grow: 1; */
+.karma-filter .filter-search {
+  /* float:right; */
+  /* width: 100%; */
+  /* max-width: 300px; */
 }
-.karma-field-table .filter-search input {
+.karma-filter .filter-search input {
   border-radius: 0;
   background-color: transparent;
   /* background-color: #edf2f5; */
   font-size: inherit;
+  width: 100%;
 }
 .karma-field-table .filter-search input:focus {
   background-color: white;
@@ -165,9 +194,18 @@
 
 .karma-fields .table-body {
   padding-top: 2em;
+  flex-grow: 1;
 }
 .karma-fields table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-style: solid;
+  border-color: #7e8993;
+  border-width: 0;
+  border-left-width: 1px;
+  border-top-width: 1px;
+
+
   table-layout: fixed;
   width: 100%;
 }
@@ -176,14 +214,40 @@
 }
 .karma-fields table th,
 .karma-fields table td {
-  border: 1px solid #7e8993;
+  border-style: solid;
+  border-color: #7e8993;
+  border-width: 0;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
   text-align: left;
-  padding: 0;
-  line-height: 3em;
+  padding: 1px;
+  /* line-height: 3em; */
 }
 .karma-fields table th.main,
 .karma-fields table td.main {
   width: 100%;
+}
+
+
+.karma-fields table td.selected {
+  background-color: white; /* #efebea; */
+}
+
+.karma-fields table td.selected-left {
+  padding-left: 0;
+  border-left-width: 1px;
+}
+.karma-fields table td.selected-right {
+  padding-right: 0;
+  border-right-width: 2px;
+}
+.karma-fields table td.selected-top {
+  padding-top: 0;
+  border-top-width: 1px;
+}
+.karma-fields table td.selected-bottom {
+  padding-bottom: 0;
+  border-bottom-width: 2px;
 }
 
 
@@ -192,13 +256,16 @@
 /* Table Header
 --------------------------------------*/
 
+.karma-fields table th {
+  user-select: none;
+}
 .karma-fields table th .header-cell {
   display: flex;
   justify-content: space-between;
 }
 .karma-fields table th .header-cell a {
   display: flex;
-  padding: 0 10px;
+  padding: 8px 10px;
   color: #384c56;
 }
 .karma-fields table th a.header-cell-order {
@@ -231,6 +298,10 @@
 /* Grid
 --------------------------------------*/
 
+.karma-fields table.grid td {
+  position: relative;
+  box-sizing: border-box;
+}
 .karma-fields table.grid td .karma-field {
   display: flex;
 }
@@ -238,9 +309,9 @@
   display: flex;
   flex-grow: 1;
 }
-.karma-fields table.grid td input {
+.karma-fields table.grid td input.text {
   margin: 0;
-  padding: 1px 10px;
+  padding: 8px 10px;
   border: 0;
   width: 100%;
   box-sizing: border-box;
@@ -250,47 +321,131 @@
   line-height: inherit;
   border-radius: 0;
 
-  /* background-color: transparent; */
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
   color: #525a61;
 
   border: 0 solid #7d8993; /* #007bba; */
 }
-.karma-fields table.grid td input:focus {
+.karma-fields table.grid td input.text:focus {
   box-shadow: none;
 }
 
-.karma-fields table.grid td.selected-left input {
-  padding-left: 9px;
-  border-left-width: 1px;
-}
-.karma-fields table.grid td.selected-right input {
-  padding-right: 9px;
-  border-right-width: 1px;
-}
-.karma-fields table.grid td.selected-top input {
-  padding-top: 0;
-  border-top-width: 1px;
-}
-.karma-fields table.grid td.selected-bottom input {
-  padding-bottom: 0;
-  border-bottom-width: 1px;
+
+.karma-fields table td input,
+.karma-fields table td button {
+  background-color: transparent; /* #efebea; */
 }
 
-.karma-fields table.grid td.selected input {
-  background-color: white; /* #efebea; */
-}
-/* .karma-fields table.grid td ::selection {
-  background-color: #d0dce2;
-} */
 
-.karma-fields table.grid td.modified input {
+/* .karma-fields table.grid td.modified input.text {
   background-image: url(../dashicons/pets.svg);
   background-position: center right;
   background-repeat: no-repeat;
   background-blend-mode: overlay;
+} */
+
+
+/* .karma-fields table.grid td.modified {
+
+  background-color: gray;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.5) 35px, rgba(255,255,255,.5) 70px);
+} */
+
+/* .karma-fields table.grid td.modified::after {
+  content: "";
+  position: absolute;
+  top:0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background-image: url(../dashicons/marker.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+
+  opacity: 0.25;
+} */
+
+
+.karma-fields table.grid td.modified input {
+  color: black;
 }
 
+
+/* Grid Index
+--------------------------------------*/
+
+.karma-fields table.grid .index {
+  padding: 0 10px;
+  user-select: none;
+}
+
+
+
+
+/* Grid Cell Button
+--------------------------------------*/
+
+.karma-fields table.grid td button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 1px;
+  box-sizing: border-box;
+  border: 0;
+  height: 100%;
+  width: 100%;
+
+
+  border: 0 solid #7d8993; /* #007bba; */
+}
+.karma-fields table.grid td button:focus {
+  box-shadow: none;
+  outline: none;
+}
+.karma-fields table.grid td button svg {
+  display: block;
+  height: 30px;
+  width: 30px;
+}
+
+
+/* .karma-fields table.grid td {
+  position: relative;
+} */
+
+/* .karma-fields table.grid td .on-off-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+} */
+/* .karma-fields table.grid td.selected .on-off-container button {
+  background-color: white;
+}
+.karma-fields table.grid td.selected-left .on-off-container button {
+  padding-left: 0;
+  border-left-width: 1px;
+}
+.karma-fields table.grid td.selected-right .on-off-container button {
+  padding-right: 0;
+  border-right-width: 1px;
+}
+.karma-fields table.grid td.selected-top .on-off-container button {
+  padding-top: 0;
+  border-top-width: 1px;
+}
+.karma-fields table.grid td.selected-bottom .on-off-container button {
+  padding-bottom: 0;
+  border-bottom-width: 1px;
+} */
+.on-off svg path {
+  fill: #525a61;
+}
+td.modified .on-off svg path {
+  fill: black;
+}
 
 
 /* Field controls
@@ -298,6 +453,7 @@
 
 .field-controls {
   display: flex;
+  align-items: center;
   position: sticky;
   top: 32px;
   /* background-color: white; */
@@ -362,17 +518,38 @@
 .karma-fields .table-footer {
   position: sticky;
   bottom: 0;
-  background-color: #f1f1f1;
-  /* border: 1px solid black; */
+  background-color: #24282d;
+  color: #f3f5f6;
+  /* min-height: 50px;
+  display: flex;
+  justify-content: space-between; */
+  margin: 20px -20px 0;
+  /* padding: 0 15px; */
+  user-select: none;
+}
+/* .karma-fields .table-footer {
+  position: fixed;
+  left: 160px;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background-color: #24282d;
   margin-top: 2em;
-
   min-height: 50px;
   display: flex;
   justify-content: space-between;
-
-  margin: 0 -5px;
+  padding: 0 15px;
+  box-sizing: border-box;
   user-select: none;
+  color: #f3f5f6;
+} */
+.karma-fields .table-footer .footer-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 15px;
+  min-height: 50px;
 }
+
 
 
 
@@ -391,17 +568,216 @@
 
 
 
+/* Table Footer Button
+--------------------------------------*/
+
+.karma-fields .button {
+  color: #f3f5f6;
+  border-color: #f3f5f6;
+  background-color: #25282d;
+  box-shadow: none;
+  text-shadow: none;
+  border-width: 1px;
+  border-radius: 3px;
+  font-weight: bold;
+  position: relative;
+}
+.karma-fields .table-footer button.karma-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5em;
+  height: 2.5em;
+  padding: 1px;
+
+  box-shadow: inset 1px 3px 8px #f1f1f126;
+  /* box-sizing: content-box; */
+}
+
+
+.karma-fields .table-footer button.karma-icon svg {
+  width: 21px;
+  height: 21px;
+}
+.karma-fields .table-footer button.karma-icon svg path {
+  fill: #f3f5f6;
+}
+.karma-fields .table-footer button.karma-icon:hover svg path {
+  fill: #25282d;
+}
+.karma-fields .table-footer button.karma-icon:focus svg path {
+  fill: #25282d;
+}
+.karma-fields .table-footer button.karma-icon.primary:enabled svg path {
+  fill: #25282d;
+}
+.karma-fields .table-footer button.active svg path {
+  fill: #25282d;
+}
+.karma-fields .table-footer button.karma-icon.primary:enabled:hover svg path {
+  fill: #f3f5f6;
+}
+.karma-fields .table-footer button.karma-icon.active:hover svg path {
+  fill: #f3f5f6;
+}
+
+.karma-fields .table-footer button[title]:enabled:not(.active):hover::before {
+  content: attr(title);
+  position: absolute;
+  bottom: 40px;
+  background-color: #25282d;
+  color: #f3f5f6;
+  padding: 2px 10px;
+  border: 1px solid #f3f5f6;
+  border-radius: 3px;
+  font-weight: bold;
+  opacity: 1;
+}
+
+
+
+
+.karma-fields .table-footer .button:hover,
+.karma-fields .table-footer .button:focus,
+.karma-fields .table-footer .button.active {
+  color: #25282d;
+  border-color: #f3f5f6;
+  box-shadow: inset 1px 3px 8px #25282d26;
+  outline: none;
+}
+.karma-fields .table-footer .button.active:hover {
+  color: #f3f5f6;
+  background: #25282d;
+  box-shadow: inset 1px 3px 8px #f3f5f626;
+}
+/* .karma-fields .table-footer .button:focus {
+  color: #25282d;
+  border-color: #f3f5f6;
+  background-color: #f3f5f6;
+  outline: none;
+  box-shadow: none;
+} */
+.karma-fields .table-footer .button[disabled] {
+  color: #5f6469 !important;
+  border-color: #5f6469 !important;
+  background-color: #25282d!important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.karma-fields .table-footer button[disabled] svg path {
+  fill: #5f6469;
+}
+.karma-fields .table-footer button[disabled]:hover svg path {
+  fill: #5f6469;
+}
+
+.karma-fields .table-footer button.primary {
+  /* background-color: #0173aa;
+  border-color: #f3f5f6;
+  color: #f3f5f6; */
+  color: #25282d;
+  background-color: #f3f5f6;
+
+}
+.karma-fields .table-footer button.primary:hover {
+  /* background-color: #0173aa;
+  border-color: #f3f5f6;
+  color: #f3f5f6; */
+  color: #f3f5f6;
+  background-color: #25282d;
+
+}
+
 /* Table Footer Delete Button
 --------------------------------------*/
 
 .karma-fields .table-footer .table-control button.delete {
-  color: #a00;
-  border-color: #a00;
-}
-.karma-fields .table-footer .table-control button.delete:hover {
   color: #dc3232;
   border-color: #dc3232;
+  background-color: #f3f5f6;
 }
+.karma-fields .table-footer .table-control button.delete:hover {
+  /* color: #dc3232;
+  border-color: #dc3232; */
+
+  color: #f3f5f6;
+  background-color: #25282d;
+  border-color: #f3f5f6;
+}
+
+
+
+/* Table Footer Options
+--------------------------------------*/
+
+.table-options-container {
+  /* position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0px; */
+  color: #f1f1f1;
+  background-color: #25282d;
+  text-align: left;
+  border-bottom: 1px solid #7d8993;
+  /* box-shadow: -5px -5px 16px 0px #00000020; */
+  display: flex;
+  padding: 0 10px;
+}
+/* .table-options-header {
+  justify-content: space-between;
+  border-bottom: 1px solid #7e8993;
+  padding: 0 0 0 10px;
+  background-color: #25282d;
+}
+.table-options-header h4 {
+  margin: 0;
+} */
+.table-options-body {
+  padding: 0 10px;
+  flex-grow: 1;
+}
+.table-options-footer {
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+}
+
+.table-options-container .item-number {
+  display: flex;
+  align-items: baseline;
+}
+.table-options-container .item-number input {
+  margin-left: 10px;
+}
+
+
+
+/* Table Footer Options Option Buttons Field
+--------------------------------------*/
+
+.option-buttons {
+  display: flex;
+  /* margin: 0 -5px; */
+  border: 1px solid #f3f5f6;
+  border-radius: 3px;
+}
+.option-buttons .option-button {
+  padding: 4px 8px;
+  color: #f3f5f6;
+  font-weight: bold;
+  cursor: pointer;
+
+  /* margin: 0 5px; */
+}
+.option-buttons .option-button.active {
+  background-color: #f3f5f6;
+  color: #25282d;
+}
+.option-buttons .option-button:not(:last-child) {
+  border-right: 1px solid #f3f5f6;
+}
+
+
 
 
 
@@ -409,7 +785,7 @@
 /* Table Spinner
 --------------------------------------*/
 
-.karma-fields .table-spinner {
+/* .karma-fields .table-spinner {
   width: 10px;
   height: 10px;
   vertical-align: text-bottom;
@@ -418,7 +794,24 @@
   border-width: 5px;
   border-radius: 50%;
   animation: spinner 750ms linear infinite;
-  /* display: none; */
+} */
+
+.karma-fields .table-spinner {
+  width: 20px;
+  height: 20px;
+  /* vertical-align: text-bottom; */
+  /* border-color: #cb4a1f transparent #cb4a1f #cb4a1f;
+  border-style: solid;
+  border-width: 5px;
+  border-radius: 50%; */
+
+  /* background-image: url(../dashicons/sort.svg);
+  background-repeat: no-repeat; */
+
+  animation: spinner 1200ms linear infinite;
+}
+.karma-fields .table-spinner svg path {
+  fill: #f3f5f6;
 }
 
 @keyframes spinner {
@@ -501,6 +894,16 @@
 
 
 
+/* Checkbox Field
+--------------------------------------*/
+
+.karma-field .checkbox-container label.description {
+  display: inline-block;
+
+}
+
+
+
 /* TinyMCE Field
 --------------------------------------*/
 
@@ -518,15 +921,44 @@
 
 
 
+/* Filterlink Field
+--------------------------------------*/
+
+.karma-fields .filterlink {
+  display: block;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  user-select: none;
+}
+.karma-fields .filterlink:hover {
+  text-decoration: underline;
+}
+
+
+/* Filterlink Field
+--------------------------------------*/
+
+.karma-fields .submit {
+  align-self: center;
+  padding: 0;
+}
+
+
+
+
 
 /* Group
 --------------------------------------*/
 
-.karma-field.group.display-block {
+.karma-field.display-block {
+
 }
-.karma-field.group.display-block .karma-field-children {
+.karma-field.display-block>.karma-field-content>.karma-field-children {
+  display: block;
+  margin: -10px 0;
 }
-.karma-field.group.display-block .karma-field-children>.karma-field {
+.karma-field.display-block>.karma-field-content>.karma-field-children>.karma-field {
   margin: 10px 0;
 }
 
@@ -535,14 +967,15 @@
 /* Group Display Flex
 --------------------------------------*/
 
-.karma-field.group.display-flex {
+.karma-field.display-flex {
 }
-.karma-field.group.display-flex .karma-field-group-content {
+.karma-field.display-flex>.karma-field-content>.karma-field-children {
   display: flex;
+  align-items: baseline;
   flex-wrap: wrap;
-  margin: 0 -5px;
+  margin: -10px -5px;
 }
-.karma-field.group.display-flex .karma-field-group-content>.karma-field {
+.karma-field.display-flex>.karma-field-content>.karma-field-children>.karma-field {
   margin: 10px 5px;
 }
 
