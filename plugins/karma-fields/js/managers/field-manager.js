@@ -110,6 +110,15 @@ KarmaFields.managers.field = function(resource, post, middleware, history, paren
 			}
 		},
 
+		filter: function(filters) {
+			if (parent) {
+				parent.filter(filters);
+			}
+			if (this.onFilter) {
+				this.onFilter(filters);
+			}
+		},
+
 
 
 
@@ -761,12 +770,14 @@ KarmaFields.managers.field = function(resource, post, middleware, history, paren
 		fetchOptions: function(filters) {
 			if (resource.key) {
 				var file = KarmaFields.fetchURL+"/"+middleware+"/"+resource.key;
-				var params = [];
-				for (var key in filters) {
-					params.push(key+"="+filters[key]);
-				}
-				if (params.length) {
-					file += "?"+params.join("&");
+				if (filters) {
+					var params = [];
+					for (var key in filters) {
+						params.push(key+"="+filters[key]);
+					}
+					if (params.length) {
+						file += "?"+params.join("&");
+					}
 				}
 				if (!KarmaFields.fetchCache[file]) {
 					KarmaFields.fetchCache[file] = fetch(file, {

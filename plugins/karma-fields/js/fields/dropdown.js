@@ -1,4 +1,5 @@
 KarmaFields.fields.dropdown = function(field) {
+	var options = field.resource.options;
 	return KarmaFields.build({
 		tag: "select",
 		init: function(element, update) {
@@ -7,7 +8,12 @@ KarmaFields.fields.dropdown = function(field) {
 				field.history.save();
 				field.set(element.value);
 			});
-
+			if (!options) {
+				field.fetchOptions().then(function(results) {
+					options = results.items;
+					update();
+				});
+			}
 			field.onUpdate = update;
 			field.fetch().then(update);
 
@@ -17,10 +23,11 @@ KarmaFields.fields.dropdown = function(field) {
 			field.onBlur = function() {
 				element.blur();
 			}
+
 		},
 		children: function() {
 			var value = field.get();
-			return field.resource.options.map(function(option) {
+			return (options || []).map(function(option) {
 				return KarmaFields.build({
 					tag: "option",
 					init: function(element) {

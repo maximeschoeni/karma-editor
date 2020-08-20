@@ -362,15 +362,17 @@ KarmaFields.managers.table = function(resource) {
 			var items = this.getItems();
 			rows.forEach(function(index) {
 				var item = items[index];
-				if (item.uri) {
-					// manager.pool.setAt("remove", manager.history.index, item.uri, "action");
-					history.set(item.uri, "action", "remove");
-					manager.addChange(item, "action", "remove");
+				if (item) {
+					if (item.uri) {
+						// manager.pool.setAt("remove", manager.history.index, item.uri, "action");
+						history.set(item.uri, "action", "remove");
+						manager.addChange(item, "action", "remove");
 
-				} else if (item.pseudo_uri) {
-					// manager.pool.setAt("cancel", manager.history.index, item.pseudo_uri, "action");
-					history.set(item.pseudo_uri, "action", "cancel");
-					manager.addChange(item, "action", "cancel");
+					} else if (item.pseudo_uri) {
+						// manager.pool.setAt("cancel", manager.history.index, item.pseudo_uri, "action");
+						history.set(item.pseudo_uri, "action", "cancel");
+						manager.addChange(item, "action", "cancel");
+					}
 				}
 			});
 			this.render();

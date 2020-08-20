@@ -117,7 +117,7 @@ Class Karma_Tables {
 			// wp_register_script('sortable', $plugin_url . '/js/sortable.js', array(), $this->version, true);
 			wp_register_script('karma-build', $plugin_url . '/js/build-v4.js', array(), $this->version, true);
 
-			wp_enqueue_script('karma-fields-media', $plugin_url . '/js/media.js', array('ajax', 'karma-build'), $this->version, true);
+			wp_enqueue_script('karma-fields-media', $plugin_url . '/js/media.js', array('karma-build'), $this->version, true);
 			// wp_localize_script('media-field', 'KarmaFieldMedia', array(
 			// 	'ajax_url' => admin_url('admin-ajax.php')
 			// ));
@@ -376,8 +376,10 @@ Class Karma_Tables {
 		$key = $request->get_param('key');
 		// $params = $request->get_params();
 
-		$middleware = $this->get_middleware($middleware_name);
-		$driver = $middleware->get_driver($key);
+		// $middleware = $this->get_middleware($middleware_name);
+		// $driver = $middleware->get_driver($key);
+
+		$driver = $this->get_key_driver($middleware_name, $key);
 
 
 		if ($driver) {
@@ -399,11 +401,13 @@ Class Karma_Tables {
 
 		$path = $request->get_param('path');
 		$parts = explode('/', $path);
-		$middleware = array_shift($parts);
+		$middleware_name = array_shift($parts);
 		$key = array_pop($parts);
 		$uri = implode('/', $parts);
 
-		$driver = $this->get_middleware($middleware)->get_driver($key);
+		// $driver = $this->get_middleware($middleware)->get_driver($key);
+
+		$driver = $this->get_key_driver($middleware_name, $key);
 
 		if ($driver) {
 
@@ -435,11 +439,13 @@ Class Karma_Tables {
 		$fields = $request->get_param('fields');
 		$key = $request->get_param('key');
 
-		$middleware = $this->get_middleware($middleware_name);
+		// $middleware = $this->get_middleware($middleware_name);
+		//
+		//
+		//
+		// $driver = $middleware->get_driver($key);
 
-
-
-		$driver = $middleware->get_driver($key);
+		$driver = $this->get_key_driver($middleware_name, $key);
 
 		foreach ($fields as $uri => $item) {
 
@@ -803,7 +809,7 @@ Class Karma_Tables {
 
 	}
 
-	/**
+	/** DEPRECATED
 	 *	get_middleware
 	 */
 	public function get_middleware($name) {
@@ -819,7 +825,7 @@ Class Karma_Tables {
 
 	}
 
-	/**
+	/** DEPRECATED
 	 *	register_middleware
 	 */
 	public function register_middleware($name, $path, $class) {
@@ -844,6 +850,35 @@ Class Karma_Tables {
 	}
 
 	/**
+	 * Find driver by middleware/key
+	 */
+	public function get_key_driver($middleware_name, $key) {
+
+		if (isset($this->keys[$middleware_name][$key])) {
+
+			$key_resource = $this->keys[$middleware_name][$key];
+
+			if (isset($this->drivers[$middleware_name][$key_resource['driver']])) {
+
+				$driver_resource = $this->drivers[$middleware_name][$key_resource['driver']];
+
+				require_once $driver_resource['path'];
+
+				$driver = new $driver_resource['class'];
+
+				$driver->resource = $key_resource;
+				$driver->key = $key;
+				$driver->middleware_name = $middleware_name;
+
+				return $driver;
+
+			}
+
+		}
+
+	}
+
+	/**
 	 *	register_keys
 	 */
 	public function register_keys($middleware_name, $keys) {
@@ -863,25 +898,42 @@ Class Karma_Tables {
 
 		if (isset($this->keys[$middleware_name][$key])) {
 
-			$resource = $this->keys[$middleware_name][$key];
+			$key_resource = $this->keys[$middleware_name][$key];
 
-			if (!isset($resource['cache']) || $resource['cache'] === true) {
+			if (isset($resource['cache'])) {
 
-	      if (isset($resource['type']) && $resource['type'] === 'json') {
+				if ($resource['cache'] === true) {
 
-	        return $key.'.json';
+					return $key.'.txt';
 
-	      } else {
+				} else {
 
-	        return $key.'.txt';
+					return $resource['cache'];
 
-	      }
+				}
 
-	    } else if ($resource['cache']) {
+			}
 
-	      return $resource['cache'];
 
-	    }
+			// $resource = $this->keys[$middleware_name][$key];
+			//
+			// if (!isset($resource['cache']) || $resource['cache'] === true) {
+			//
+	    //   if (isset($resource['type']) && $resource['type'] === 'json') {
+			//
+	    //     return $key.'.json';
+			//
+	    //   } else {
+			//
+	    //     return $key.'.txt';
+			//
+	    //   }
+			//
+	    // } else if ($resource['cache']) {
+			//
+	    //   return $resource['cache'];
+			//
+	    // }
 
 		}
 

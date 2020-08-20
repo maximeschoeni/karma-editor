@@ -1,58 +1,45 @@
 KarmaFields.fields.filterlink = function(field) {
+	var isSelected;
 	return KarmaFields.build({
-		tag: "a",
 		class: "filterlink",
-		init: function(element) {
-
-			// console.log(field.tableManager.filters);
-
+		init: function(element, render) {
 			field.onUpdate = function(value) { // -> historic change
-				if (value && field.resource.key) {
-					var params = {};
-					params[field.resource.key] = value;
-					field.fetchOptions(params).then(function(results) {
-						element.innerText = results.items[0].name;
-					});
-				}
+				render();
 			}
-			element.addEventListener("click", function() {
-				field.tableManager.filters = {};
-				field.tableManager.filters[field.resource.key] = field.get();
-				field.tableManager.request();
-				field.tableManager.renderHeader();
-
-			});
-
-
 			field.fetch().then(field.onUpdate);
-
-
-
-			// input.type = field.resource.type || "text";
-			//
-			// field.onInherit = function(value) {
-			// 	input.placeholder = value || "";
-			// }
-			// field.onModified = function(isModified) {
-			// 	input.classList.toggle("modified", isModified);
-			// }
-			// field.onUpdate = function(value) { // -> historic change
-			// 	input.value = value || "";
-			// }
-			// field.fetch().then(function(value) { // -> maybe undefined
-			// 	input.value = value || "";
-			// });
-			//
-			// field.onFocus = function() {
-			// 	input.focus();
-			// }
-			// field.onBlur = function() {
-			// 	input.blur();
-			// }
-			//
-			// if (field.resource.width) {
-			// 	input.style.width = field.resource.width;
-			// }
+			field.onSelect = function() {
+				isSelected = true;
+				render();
+			}
+			field.onUnselect = function() {
+				isSelected = false;
+				render();
+			}
+		},
+		child: function() {
+			return KarmaFields.build({
+				tag: "a",
+				init: function(element) {
+					var value = field.get();
+					if (value && field.resource.key) {
+						var params = {};
+						params[field.resource.key] = value;
+						field.fetchOptions(params).then(function(results) {
+							element.innerText = results.items[0].name;
+						});
+					}
+					if (isSelected) {
+						element.classList.add("active");
+						element.addEventListener("click", function() {
+							var filters = {};
+							filters[field.resource.key] = field.get();
+							Object.freeze(filters);
+							field.filter(filters);
+						});
+					}
+				}
+			});
 		}
 	});
+
 }

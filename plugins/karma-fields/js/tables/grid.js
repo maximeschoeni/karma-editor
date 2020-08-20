@@ -59,7 +59,14 @@ KarmaFields.tables.grid = function(manager) {
                             // return manager.options.gridoptions.columns[column.key];
                           }).map(function(column, colIndex) {
                             var headerCell = KarmaFields.tables.headerCell(manager, column);
-                            manager.select.addCol(headerCell, colIndex);
+
+                            if (column.field === "index") {
+                              manager.select.addIndexHeader(headerCell, colIndex);
+                            } else {
+                              manager.select.addCol(headerCell, colIndex);
+                            }
+
+
                             if (column.width) {
                               headerCell.style.width = column.width;
                             }
@@ -114,11 +121,19 @@ KarmaFields.tables.grid = function(manager) {
 
                               fieldManager.rowIndex = (((manager.options.page || 1)-1)*manager.options.ppp || 0)+rowIndex;
 
-                              fieldManager.tableManager = manager; // needed for filterlink field
+                              // fieldManager.tableManager = manager; // needed for filterlink field
+
+
 
 
                               fieldManager.onChangeValue = function(key, value) {
                                 manager.addChange(post, key, value);
+                              }
+
+                              fieldManager.onFilter = function(filters) {
+                                manager.filters = filters;
+                          			manager.request();
+                          			manager.renderHeader();
                               }
 
 
@@ -140,8 +155,16 @@ KarmaFields.tables.grid = function(manager) {
 
                               return KarmaFields.build({
                                 tag: "td",
+                                signature: function() {
+                                  return fieldManager.get();
+                                },
                                 init: function(cell, update) {
-                                  manager.select.addField(cell, fieldManager, colIndex, rowIndex);
+
+                                  if (column.field === "index") {
+                                    manager.select.addRowIndex(cell, fieldManager, colIndex, rowIndex);
+                                  } else {
+                                    manager.select.addField(cell, fieldManager, colIndex, rowIndex);
+                                  }
                                   fieldManager.onModify = function(isModified) {
                                   	cell.classList.toggle("modified", fieldManager.modified || false);
                                   };

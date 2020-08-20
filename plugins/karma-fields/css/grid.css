@@ -268,6 +268,9 @@
   padding: 8px 10px;
   color: #384c56;
 }
+.karma-fields table th .header-cell a.header-cell-title {
+  padding-right: 0;
+}
 .karma-fields table th a.header-cell-order {
   width: 20px;
   align-items: center;
@@ -309,6 +312,12 @@
   display: flex;
   flex-grow: 1;
 }
+
+
+
+/* Grid Text Input
+--------------------------------------*/
+
 .karma-fields table.grid td input.text {
   margin: 0;
   padding: 8px 10px;
@@ -324,7 +333,6 @@
   /* background-color: #f1f1f1; */
   color: #525a61;
 
-  border: 0 solid #7d8993; /* #007bba; */
 }
 .karma-fields table.grid td input.text:focus {
   box-shadow: none;
@@ -332,6 +340,7 @@
 
 
 .karma-fields table td input,
+.karma-fields table td textarea,
 .karma-fields table td button {
   background-color: transparent; /* #efebea; */
 }
@@ -371,16 +380,53 @@
 }
 
 
+
+/* Grid Textarea
+--------------------------------------*/
+
+.karma-fields table.grid td textarea {
+  resize: none;
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  margin: 0;
+  color: #525a61;
+}
+.karma-fields table.grid td textarea:focus {
+  box-shadow: none;
+}
+.karma-fields table.grid td.modified textarea {
+  color: black;
+}
+
+
+
+
 /* Grid Index
 --------------------------------------*/
 
 .karma-fields table.grid .index {
-  padding: 0 10px;
+  padding: 8px 10px;
   user-select: none;
 }
 
 
 
+/* Grid Dropdown
+--------------------------------------*/
+
+.karma-fields table.grid select {
+  margin: 0;
+  border: none;
+  width: 100%;
+  background-color: transparent;
+}
+.karma-fields table.grid select:focus {
+  outline: none;
+  box-shadow: none;
+}
 
 /* Grid Cell Button
 --------------------------------------*/
@@ -925,16 +971,19 @@ td.modified .on-off svg path {
 --------------------------------------*/
 
 .karma-fields .filterlink {
-  display: block;
   padding: 5px 10px;
-  cursor: pointer;
   font-weight: bold;
   user-select: none;
 }
-.karma-fields .filterlink:hover {
+.karma-fields .filterlink a.active {
   text-decoration: underline;
+  cursor: pointer;
+  color: #0073aa;
 }
-
+.karma-fields .filterlink a.active:hover {
+  text-decoration: underline;
+  color: #0073aa;
+}
 
 /* Filterlink Field
 --------------------------------------*/

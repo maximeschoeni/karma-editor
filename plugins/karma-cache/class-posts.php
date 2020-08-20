@@ -404,7 +404,7 @@ class Karma_Cache_Posts {
 
 		if (!$meta_id) {
 
-			update_post_meta($post_id, $meta_key, $path);
+			add_post_meta($post_id, $meta_key, $path);
 
 		}
 
@@ -445,6 +445,8 @@ class Karma_Cache_Posts {
 				$post_id,
 				$meta_key
 			));
+
+
 
 			foreach ($paths as $path) {
 

@@ -40,7 +40,7 @@ KarmaFields.filters.dropdown = function(filterManager) {
 								tag: "option",
 								init: function(element) {
 									element.value = option.key;
-									element.innerText = option.name;
+									element.innerHTML = option.name;
 									// if (option.key === filterManager.value) {
 									if (option.key === filterManager.getValue()) {
 										element.selected = true;

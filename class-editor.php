@@ -24,7 +24,7 @@ Class Karma_Editor {
     require_once KARMA_EDITOR_PATH . '/plugins/karma-fields/class-tables.php';
 
 
-    add_action('admin_menu', array($this, 'register_page'));
+    // add_action('admin_menu', array($this, 'register_page'));
     // add_action('admin_enqueue_scripts', array($this, 'scripts_styles'));
 
     // add_action('wp_ajax_karma_query_posts', array($this, 'ajax_query_posts'));

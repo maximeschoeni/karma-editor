@@ -129,6 +129,7 @@ KarmaFields.managers.filter = function(resource, table, middleware, parent) {
 		// 	}
 		// 	return params;
 		// },
+
 		getAncestorParams: function() {
 			var params;
 			if (parent) {
@@ -276,7 +277,7 @@ KarmaFields.managers.filter = function(resource, table, middleware, parent) {
 		// 		return Promise.resolve();
 		// 	}
 		// },
-		bubble: function() {
+		bubble: function(params) {
 			if (this.onBubble) {
 				return this.onBubble();
 			} else if (parent) {
@@ -287,9 +288,12 @@ KarmaFields.managers.filter = function(resource, table, middleware, parent) {
 		},
 		set: function(value) {
 			if (resource.key) {
-				// this.value = value;
+				table.filters = parent.getAncestorParams();
 				table.filters[resource.key] = value || undefined;
 				return this.bubble().then(function() {
+					// if (table.renderHeader) {
+					// 	table.renderHeader();
+					// }
 					if (manager.onRenderChildren) {
 						manager.onRenderChildren();
 					}

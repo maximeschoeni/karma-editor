@@ -46,6 +46,12 @@ class Karma_Cache_Posts_Multilanguage {
 
 					$sublanguage->set_language($language);
 
+					if (is_admin()) {
+
+						switch_to_locale($language->post_content);
+
+					}
+
 					$query = new WP_Query(array(
 						'p' => $post->ID,
 						'post_type' => $post->post_type,
@@ -69,6 +75,12 @@ class Karma_Cache_Posts_Multilanguage {
 
 			// $sublanguage->set_language($current_language);
 			$sublanguage->set_language($sublanguage->get_main_language());
+
+			if (is_admin()) {
+
+				restore_current_locale();
+
+			}
 
 		}
 

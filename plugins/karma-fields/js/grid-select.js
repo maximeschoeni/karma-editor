@@ -115,6 +115,89 @@ KarmaFields.selectors.grid = function(tableManager) {
 
 		},
 
+		addIndexHeader: function(cell, col) { // = addHeaderCell
+			this.grid[col] = {};
+			this.rect.width = Math.max(col+1, this.rect.width);
+
+			// cell.addEventListener("click", function(event) {
+			// 	var rect = manager.createRect(0, 0, manager.rect.width, manager.rect.height);
+			// 	manager.select(rect);
+			// 	if (manager.onSelect) {
+			// 		manager.onSelect();
+			// 	}
+			// 	event.stopPropagation();
+			// });
+			cell.addEventListener("mousedown", function(event) {
+				var rect = manager.createRect(0, 0, manager.rect.width, manager.rect.height);
+				if (manager.selectionRect && manager.selectionRect.equals(rect)) {
+					manager.select();
+				} else {
+					manager.selection = rect;
+					manager.select(manager.selection);
+				}
+				event.stopPropagation();
+			});
+			cell.addEventListener("mousemove", function() {
+				if (manager.selection) {
+					var rect = manager.createRect(0, 0, manager.rect.width, manager.rect.height);
+					manager.select(rect);
+					if (manager.onSelect) {
+						manager.onSelect();
+					}
+					event.stopPropagation();
+				}
+			});
+			cell.addEventListener("mouseup", function(event) {
+				if (manager.selection) {
+					manager.selection = null;
+					if (manager.onSelect) {
+						manager.onSelect();
+					}
+				}
+				event.stopPropagation();
+			});
+		},
+
+		addRowIndex: function(cell, field, x, y) {
+
+			if (!this.grid[x]) {
+				this.grid[x] = {};
+			}
+			this.grid[x][y] = {
+				cell: cell,
+				field: field
+			};
+
+			this.rect.width = Math.max(x+1, this.rect.width);
+			this.rect.height = Math.max(y+1, this.rect.height);
+
+			cell.addEventListener("mousedown", function(event) {
+				var rect = manager.createRect(0, y, manager.rect.width, 1);
+				if (manager.selectionRect && manager.selectionRect.equals(rect)) {
+					manager.select();
+				} else {
+					manager.selection = rect;
+					manager.select(manager.selection);
+				}
+			});
+			cell.addEventListener("mousemove", function() {
+				if (manager.selection) {
+					var rect = manager.createRect(0, y, manager.rect.width, 1).union(manager.selection);
+					manager.select(rect);
+				}
+			});
+			cell.addEventListener("mouseup", function(event) {
+				if (manager.selection) {
+					manager.selection = null;
+					if (manager.onSelect) {
+						manager.onSelect();
+					}
+				}
+				event.stopPropagation();
+			});
+
+		},
+
 		// deprecated: only for getSelectedItems()
 		addRow: function(item, row) {
 			this.rows[row] = item;
@@ -416,9 +499,9 @@ KarmaFields.selectors.grid = function(tableManager) {
 						this.grid[x][y].cell.classList.remove("selected-top");
 						this.grid[x][y].cell.classList.remove("selected-bottom");
 
-						if (this.grid[x][y].field.onBlur) {
-							this.grid[x][y].field.onBlur();
-						}
+						// if (this.grid[x][y].field.onBlur) {
+						// 	this.grid[x][y].field.onBlur();
+						// }
 
 						// this.grid[x][y].field.onChangeOthers = null;
 
@@ -459,8 +542,6 @@ KarmaFields.selectors.grid = function(tableManager) {
 		select: function(rect) {
 
 			rect = this.rect.intersect(rect || this.createRect());
-
-
 
 			this.updateSelection(rect);
 
@@ -624,35 +705,37 @@ KarmaFields.selectors.grid = function(tableManager) {
 			}
 		},
 		onPast: function(event) {
-			event.preventDefault();
-			navigator.clipboard.readText().then(function(text) {
-				if (text) {
-					var rows = text.split("\n").map(function(row) {
-						return row.split("\t");
-					});
-					var rect = manager.getSelectionRect();
-					if (manager.onCustomPast) {
-						manager.onCustomPast(rows);
-					} else if (!rect.isEmpty()) {
-						var cell = manager.getCell(rect.left, rect.top);
-						if (cell.field) {
-							cell.field.history.save();
-						}
-						for (var j = 0; j < rect.height; j++) {
-							var line = j%rows.length;
-							for (var i = 0; i < rect.width; i++) {
-								var value = rows[line][i%rows[line].length];
-								if (value !== undefined) {
-									manager.updateCell(rect.left+i, rect.top+j, value);
+			var rect = manager.getSelectionRect();
+			if (!rect.isEmpty()) {
+				event.preventDefault();
+				navigator.clipboard.readText().then(function(text) {
+					if (text) {
+						var rows = text.split("\n").map(function(row) {
+							return row.split("\t");
+						});
+						if (manager.onCustomPast) {
+							manager.onCustomPast(rows);
+						} else if (!rect.isEmpty()) {
+							var cell = manager.getCell(rect.left, rect.top);
+							if (cell.field) {
+								cell.field.history.save();
+							}
+							for (var j = 0; j < rect.height; j++) {
+								var line = j%rows.length;
+								for (var i = 0; i < rect.width; i++) {
+									var value = rows[line][i%rows[line].length];
+									if (value !== undefined) {
+										manager.updateCell(rect.left+i, rect.top+j, value);
+									}
 								}
 							}
-						}
-						if (manager.onSelect) {
-							manager.onSelect(); // -> update table footer
+							if (manager.onSelect) {
+								manager.onSelect(); // -> update table footer
+							}
 						}
 					}
-				}
-			});
+				});
+			}
 		},
 
 		onSelectAll: function(event) {
@@ -667,11 +750,6 @@ KarmaFields.selectors.grid = function(tableManager) {
 			}
 		},
 		addField: function(cell, field, x, y) {
-			// this.cells.push({
-			// 	field: field,
-			// 	col: col,
-			// 	row: row
-			// });
 
 			if (!this.grid[x]) {
 				this.grid[x] = {};
@@ -687,123 +765,33 @@ KarmaFields.selectors.grid = function(tableManager) {
 			var rect = this.getSelectionRect();
 			this.updateSelection(rect);
 
-
 			field.onChangeOthers = function(value) {
 				manager.changeOthers(x, y, value);
 			};
 
-
-
 			cell.addEventListener("mousedown", function(event) {
-				// var cell = manager.getCell(col, row)
-
 				if (manager.isSelected(x, y)) {
-
 					manager.selection = manager.selectionRect.clone();
-
-						// console.log(manager.getCell(col, row));
-
-						// manager.current = null;
 				} else {
-					// if (manager.current) {
-					// 	// manager.unselectCells(manager.current.cells);
-					// 	manager.current = null;
-					//
-					// 	manager.updateCells();
-					//
-					// 	// manager.emptySelection();
-					//
-					// }
-
-					// manager.unselectCells();
-
-					// manager.selection = {
-					// 	x: x,
-					// 	y: y
-					// };
-
 					manager.selection = manager.createRect(x, y, 1, 1);
-
 					manager.select(manager.selection);
-
-					// this.rect.x = col;
-					// this.rect.y = row;
-					// this.rect.width = 1;
-					// this.rect.height = 1;
-
-					// manager.current = {
-					// 	col: col,
-					// 	row:row,
-					// 	colEnd: col,
-					// 	rowEnd: row,
-					// 	// cells: [cell],
-					// 	selecting: true
-					// };
-
-					// manager.updateCells();
-					// manager.selectCells();
-
-					// manager.selectCells([cell]);
 				}
 				// event.stopPropagation();
 			});
 			cell.addEventListener("mousemove", function() {
-				// if (manager.current && manager.current.selecting) {
 				if (manager.selection) {
-
-					// var left = Math.min(manager.selection.x, x);
-					// var top = Math.min(manager.selection.y, y);
-					// var width = Math.abs(x - manager.selection.x) + 1;
-					// var height = Math.abs(y - manager.selection.y) + 1;
-					//
-					//
-					// manager.select(left, top, width, height);
-
 					var rect = manager.createRect(x, y, 1, 1).union(manager.selection);
 					manager.select(rect);
-
-
-
-					// manager.unselectCells();
-					//
-					// rect.x = Math.min(rect.x, col);
-					// rect.y = Math.min(rect.y, row);
-					// rect.width = Math.abs(col - rect.x) + 1;
-					// rect.height = Math.abs(row - rect.y) + 1;
-					//
-					// manager.selectCells();
-
-					// var col = Math.min(col1, col2);
-					// var lastCol = Math.max(col1, col2);
-					// var row = Math.min(row1, row2);
-					// var lastRow = Math.max(row1, row2);
-					//
-					// manager.current.colEnd = col;
-					// manager.current.rowEnd = row;
-					// manager.updateCells();
-
-					// manager.current.lastCol = col;
-					// manager.current.lastRow = row;
-					// manager.unselectCells(manager.current.cells);
-					//
-					// manager.current.cells = manager.getCells(manager.current.col, manager.current.row, col, row);
-					// manager.selectCells(manager.current.cells);
 				}
 			});
 			cell.addEventListener("mouseup", function(event) {
 				if (manager.selection) {
-					// manager.current.selecting = false;
 					manager.selection = null;
-
-
 					if (manager.onSelect) {
 						manager.onSelect();
 					}
 				}
 				event.stopPropagation();
-				// if (manager.isSelected(col, row)) {
-				//
-				// }
 			});
 		}
 	};
