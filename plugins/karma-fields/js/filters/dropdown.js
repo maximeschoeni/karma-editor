@@ -1,57 +1,40 @@
 
 KarmaFields.filters.dropdown = function(filterManager) {
 
-	return KarmaFields.build({
+	return {
 		class: "filter-dropdown",
-		children: function() {
-			return [
-				KarmaFields.build({
-					tag: "h4",
-					text: function() {
-						return filterManager.resource.title || filterManager.resource.name;
-					}
-				}),
-				KarmaFields.build({
-					tag: "select",
-					init: function(element, update) {
-
-
-						element.addEventListener("change", function() {
-							filterManager.set(this.value);
-						});
-
-						filterManager.fetch().then(function(options) {
-							filterManager.options = options.items;
-							update();
-						});
-						// filterManager.onUpdate = function(value) {
-						// 	element.value = value;
-						// }
-						update();
-
-					},
-					children: function() {
-						var options = [{
+		children: [
+			{
+				tag: "h4",
+				text: filterManager.resource.title || filterManager.resource.name
+			},
+			{
+				tag: "select",
+				init: function(element, update) {
+					element.addEventListener("change", function() {
+						filterManager.setValue(this.value);
+					});
+				},
+				update: function(element, render, args) {
+					filterManager.fetch().then(function(options) {
+						args.children = [{
 							key: "",
 							name: "-"
-						}].concat(filterManager.options || []);
-						return options.map(function(option) {
-							return KarmaFields.build({
+						}].concat(options.items).map(function(option) {
+							return {
 								tag: "option",
-								init: function(element) {
+								update: function(element) {
 									element.value = option.key;
-									element.innerHTML = option.name;
-									// if (option.key === filterManager.value) {
-									if (option.key === filterManager.getValue()) {
-										element.selected = true;
-									}
+									element.textContent = option.name;
+									element.selected = option.key === filterManager.getValue();
 								}
-							})
+							};
 						})
-					}
-				})
-			];
-		}
+						render();
+					});
+				}
+			}
+		]
 
-	})
+	};
 }

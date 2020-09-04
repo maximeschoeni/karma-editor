@@ -1,7 +1,5 @@
-/**
- * Etceterize
- */
-var Calendar = {
+
+KarmaFields.Calendar = {
 	months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
 	months3: ["jan", "fev", "mar", "avr", "mai", "jun", "jui", "aoû", "sept", "oct", "nov", "dec"],
 	weekdays: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
@@ -32,7 +30,7 @@ var Calendar = {
 
 					days.push({
 						date: day,
-						sqlDate: Calendar.format(day),
+						sqlDate: KarmaFields.Calendar.format(day),
 						isDayBefore: day.getTime() == lastDayPrevMonth.getTime(),
 						isDayAfter: day.getTime() == firstDayNextMonth.getTime(),
 						isOffset: day.getTime() <= lastDayPrevMonth.getTime() || day.getTime() >= firstDayNextMonth.getTime(),
@@ -70,6 +68,7 @@ var Calendar = {
 		return number;
 	},
 	format: function(date, format, inputFormat) { // 0000-00-00 00:00:00
+
 		if (date && inputFormat) {
 			date = this.parse(date, inputFormat);
 		}
@@ -86,12 +85,12 @@ var Calendar = {
 			format = format.replace("#m", (date.getMonth()+1).toString());
 			format = format.replace("#d", date.getDate().toString());
 			format = format.replace("#w", date.getDay().toString());
-			format = format.replace("%fullmonth%", Calendar.months[date.getMonth()]);
-			format = format.replace("%fullweek%", Calendar.weekdays[date.getDay()]);
-			format = format.replace("%mon%", Calendar.months3[date.getMonth()]);
-			format = format.replace("%day%", Calendar.weekdays3[date.getDay()]);
-			format = format.replace("%d2%", Calendar.weekdays2[date.getDay()]);
-			format = format.replace("%d%", Calendar.weekdays1[date.getDay()]);
+			format = format.replace("%fullmonth%", KarmaFields.Calendar.months[date.getMonth()]);
+			format = format.replace("%fullweek%", KarmaFields.Calendar.weekdays[date.getDay()]);
+			format = format.replace("%mon%", KarmaFields.Calendar.months3[date.getMonth()]);
+			format = format.replace("%day%", KarmaFields.Calendar.weekdays3[date.getDay()]);
+			format = format.replace("%d2%", KarmaFields.Calendar.weekdays2[date.getDay()]);
+			format = format.replace("%d%", KarmaFields.Calendar.weekdays1[date.getDay()]);
 			format = format.replace("%y2%", this.zeroize(date.getFullYear(), 2));
 			return format;
 		}
@@ -99,6 +98,7 @@ var Calendar = {
 	},
 	parse: function(dateString, format, outputFormat) {
 		format = format || "yyyy-mm-dd hh:ii:ss";
+
 		var date = new Date(0, 0, 1);
 		var reg = format
 			.replace("yyyy", "([0-9]{4})")
@@ -110,8 +110,8 @@ var Calendar = {
 			.replace("#m", "([0-9]+)")
 			.replace("#d", "([0-9]+)")
 			.replace("%y2%", "([0-9]{2})")
-			.replace("%fullmonth%", "("+Calendar.months3.join("|")+")")
-			.replace("%mon%", "("+Calendar.months3.join("|")+")");
+			.replace("%fullmonth%", "("+KarmaFields.Calendar.months3.join("|")+")")
+			.replace("%mon%", "("+KarmaFields.Calendar.months3.join("|")+")");
 		var results = dateString.match(new RegExp("^"+reg+"$"));
 		var items = format.match(/(yyyy|mm|dd|hh|ii|ss|#m|#d|%y2%|%fullmonth%|%mon%)/g);
 		if (results && items) {
@@ -141,10 +141,10 @@ var Calendar = {
 						date.setSeconds(parseInt(results[i]));
 						break;
 					case "%fullmonth%":
-						date.setMonth(Calendar.months.indexOf(results[i]) || 0);
+						date.setMonth(KarmaFields.Calendar.months.indexOf(results[i]) || 0);
 						break;
 					case "%mon%":
-						date.setMonth(Calendar.months3.indexOf(results[i]) || 0);
+						date.setMonth(KarmaFields.Calendar.months3.indexOf(results[i]) || 0);
 						break;
 				}
 			}

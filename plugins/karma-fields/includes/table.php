@@ -5,9 +5,12 @@
 		var container = document.getElementById("karma-fields-table-<?php echo $id; ?>-container");
 		var resource = <?php echo json_encode($args); ?>;
 
-		container.appendChild(
-			KarmaFields.managers.table(resource).build()
-		);
-	})
+
+		var tableManager = KarmaFields.managers.table(resource);
+
+
+		KarmaFields.build(tableManager.build(), container);
+
+	});
 	// })();
 </script>

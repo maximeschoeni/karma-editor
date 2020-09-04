@@ -115,9 +115,9 @@ KarmaFields.selectors.grid = function(tableManager) {
 
 		},
 
-		addIndexHeader: function(cell, col) { // = addHeaderCell
-			this.grid[col] = {};
-			this.rect.width = Math.max(col+1, this.rect.width);
+		addIndexHeader: function(cell) { // = addHeaderCell
+			this.grid[1] = {};
+			this.rect.width = Math.max(1, this.rect.width);
 
 			// cell.addEventListener("click", function(event) {
 			// 	var rect = manager.createRect(0, 0, manager.rect.width, manager.rect.height);
@@ -158,14 +158,13 @@ KarmaFields.selectors.grid = function(tableManager) {
 			});
 		},
 
-		addRowIndex: function(cell, field, x, y) {
+		addRowIndex: function(cell, x, y) {
 
 			if (!this.grid[x]) {
 				this.grid[x] = {};
 			}
 			this.grid[x][y] = {
-				cell: cell,
-				field: field
+				cell: cell
 			};
 
 			this.rect.width = Math.max(x+1, this.rect.width);
@@ -490,7 +489,7 @@ KarmaFields.selectors.grid = function(tableManager) {
 					var x = oldRect.left+i;
 					var y = oldRect.top+j;
 					if (this.grid[x][y]) {
-						if (!rect.contains(x, y) && this.grid[x][y].field.onUnselect) {
+						if (!rect.contains(x, y) && this.grid[x][y].field && this.grid[x][y].field.onUnselect) {
 							this.grid[x][y].field.onUnselect();
 						}
 						this.grid[x][y].cell.classList.remove("selected");
@@ -513,7 +512,7 @@ KarmaFields.selectors.grid = function(tableManager) {
 					var x = rect.left+i;
 					var y = rect.top+j;
 					if (this.grid[x][y]) {
-						if (!oldRect.contains(x, y) && this.grid[x][y].field.onSelect) {
+						if (!oldRect.contains(x, y) && this.grid[x][y].field && this.grid[x][y].field.onSelect) {
 							this.grid[x][y].field.onSelect();
 						}
 						this.grid[x][y].cell.classList.add("selected");
@@ -547,9 +546,13 @@ KarmaFields.selectors.grid = function(tableManager) {
 
 			if (rect.width === 1 && rect.height === 1) {
 				var cell = this.grid[rect.left][rect.top];
-				if (cell.field.onFocus) {
-					cell.field.onFocus();
+				var input = cell.cell && cell.cell.querySelector("input, textarea");
+				if (input) {
+					input.focus();
 				}
+				// if (cell.field && cell.field.onFocus) {
+				// 	cell.field.onFocus();
+				// }
 			}
 
 
@@ -653,15 +656,13 @@ KarmaFields.selectors.grid = function(tableManager) {
 
 		updateCell: function(x, y, value) {
 			var cell = manager.getCell(x, y);
-			if (cell) {
-				cell.field.set(value);
-				// cell.field.save();
-				// if (cell.field.render) {
-				// 	cell.field.render();
+			if (cell && cell.path && cell.render) {
+				tableManager.history.setValue(cell.path, value);
+				cell.render();
+				// cell.field.set(value);
+				// if (cell.field.onUpdate) {
+				// 	cell.field.onUpdate(value);
 				// }
-				if (cell.field.onUpdate) {
-					cell.field.onUpdate(value);
-				}
 			}
 		},
 		changeOthers: function(x, y, value) {
@@ -694,7 +695,9 @@ KarmaFields.selectors.grid = function(tableManager) {
 				for (var j = 0; j < rect.height; j++) {
 					var cols = [];
 					for (var i = 0; i < rect.width; i++) {
-						cols.push(this.grid[rect.left+i][rect.top+j].field.get());
+						var value = tableManager.history.read(this.grid[rect.left+i][rect.top+j].path);
+						// cols.push(this.grid[rect.left+i][rect.top+j].field.get());
+						cols.push(value);
 					}
 					rows.push(cols.join("\t"));
 				}
@@ -717,9 +720,10 @@ KarmaFields.selectors.grid = function(tableManager) {
 							manager.onCustomPast(rows);
 						} else if (!rect.isEmpty()) {
 							var cell = manager.getCell(rect.left, rect.top);
-							if (cell.field) {
-								cell.field.history.save();
-							}
+							// if (cell.field) {
+							// 	cell.field.history.save();
+							// }
+							// tableManager.history.startEdit(cell.path, );
 							for (var j = 0; j < rect.height; j++) {
 								var line = j%rows.length;
 								for (var i = 0; i < rect.width; i++) {
@@ -749,14 +753,16 @@ KarmaFields.selectors.grid = function(tableManager) {
 				event.preventDefault();
 			}
 		},
-		addField: function(cell, field, x, y) {
+		addField: function(cell, field, path, render, x, y) {
 
 			if (!this.grid[x]) {
 				this.grid[x] = {};
 			}
 			this.grid[x][y] = {
 				cell: cell,
-				field: field
+				field: field,
+				render: render,
+				path: path
 			};
 
 			this.rect.width = Math.max(x+1, this.rect.width);
@@ -765,9 +771,9 @@ KarmaFields.selectors.grid = function(tableManager) {
 			var rect = this.getSelectionRect();
 			this.updateSelection(rect);
 
-			field.onChangeOthers = function(value) {
-				manager.changeOthers(x, y, value);
-			};
+			// field.onChangeOthers = function(value) {
+			manager.changeOthers(x, y, value);
+			// };
 
 			cell.addEventListener("mousedown", function(event) {
 				if (manager.isSelected(x, y)) {

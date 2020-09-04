@@ -1,13 +1,11 @@
 KarmaFields.filters.posttype = function(filterManager) {
-	return KarmaFields.build({
+	return {
 		class: "filter-item filter-posttype",
-		child: function() {
-			return KarmaFields.build({
-				tag: "h1",
-				text: function() {
-					return filterManager.resource.title;
-				}
-			});
+		child: {
+			tag: "h1",
+			init: function(element) {
+				return filterManager.resource.title;
+			}
 		}
-	});
+	};
 }

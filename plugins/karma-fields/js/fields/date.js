@@ -5,7 +5,10 @@
 KarmaFields.fields.date = function(field) {
   var format = field.resource.format || "dd/mm/yyyy";
   var dateManager = {};
-  dateManager.calendar = Calendar.create();
+  dateManager.calendar = KarmaFields.Calendar.create();
+
+// console.log(KarmaFields.Calendar.format(new Date(), "dd/mm/yyyy"));
+
   var isOpen = false;
   // return KarmaFields.build({
   //  class: "karma-field date-input",
@@ -29,7 +32,7 @@ KarmaFields.fields.date = function(field) {
                   if (!isOpen) {
                     isOpen = true;
                     update();
-                    if (container.getBoundingClientRect().top+window.pageYOffset < 308) {
+                    if (container.getBoundingClientRect().top+window.pageYOffset < 500) {
                       container.classList.add("open-down");
                     } else {
                       container.classList.remove("open-down");
@@ -95,7 +98,7 @@ KarmaFields.fields.date = function(field) {
                                         KarmaFields.build({
                                           class: "karma-current-month",
                                           text: function() {
-                                            return Calendar.format(dateManager.calendar.date, "%fullmonth% yyyy");
+                                            return KarmaFields.Calendar.format(dateManager.calendar.date, "%fullmonth% yyyy");
                                           }
                                         }),
                                         KarmaFields.build({
@@ -127,7 +130,7 @@ KarmaFields.fields.date = function(field) {
                                           return KarmaFields.build({
                                             tag: "li",
                                             text: function() {
-                                              return Calendar.format(day.date, "%d2%");
+                                              return KarmaFields.Calendar.format(day.date, "%d2%");
                                             }
                                           });
                                         });
@@ -145,7 +148,7 @@ KarmaFields.fields.date = function(field) {
                                               return KarmaFields.build({
                                                 tag: "span",
                                                 text: function() {
-                                                  return Calendar.format(day.date, "#d");
+                                                  return KarmaFields.Calendar.format(day.date, "#d");
                                                 }
                                               });
                                             },
@@ -199,35 +202,35 @@ KarmaFields.fields.date = function(field) {
 
                 dateManager.update = function() {
                   if (dateManager.sqlDate) {
-                    var date = Calendar.parse(dateManager.sqlDate);
-                    input.value = Calendar.format(date, format);
+                    var date = KarmaFields.Calendar.parse(dateManager.sqlDate);
+                    input.value = KarmaFields.Calendar.format(date, format);
                   }
                 };
                 // field.onDefault = function(value) {
-    						// 	input.placeholder = value && Calendar.parse(value) || field.resource.placeholder && Calendar.parse(field.resource.placeholder) || "";
+    						// 	input.placeholder = value && KarmaFields.Calendar.parse(value) || field.resource.placeholder && KarmaFields.Calendar.parse(field.resource.placeholder) || "";
     						// }
     						// field.onUpdate = function(value) {
                 //   dateManager.sqlDate = value;
-                //   dateManager.calendar.date = value && Calendar.parse(value) || new Date();
+                //   dateManager.calendar.date = value && KarmaFields.Calendar.parse(value) || new Date();
                 //   dateManager.update();
     						// }
                 // field.fetch().then(function(value) {
                 //   if (!value && field.resource.default === "now") {
-                //     value = Calendar.format(new Date());
+                //     value = KarmaFields.Calendar.format(new Date());
                 //   }
                 //   dateManager.sqlDate = value;
-                //   dateManager.calendar.date = value && Calendar.parse(value) || new Date();
+                //   dateManager.calendar.date = value && KarmaFields.Calendar.parse(value) || new Date();
                 //   dateManager.update();
     						// });
     						// field.fetchPlaceholder().then(function(value) {
     						// 	input.placeholder = value || "";
     						// });
                 field.onUpdate = function(value) {
-                  if (!value && field.resource.default === "now") {
-                    value = Calendar.format(new Date());
+                  if (value && value.length < 19) {
+                    value += ("0000-00-00 00:00:00").slice(value.length);
                   }
                   dateManager.sqlDate = value;
-                  dateManager.calendar.date = value && Calendar.parse(value) || new Date();
+                  dateManager.calendar.date = value && KarmaFields.Calendar.parse(value) || new Date();
                   dateManager.update();
                 }
                 field.onInherit = function(value) {
@@ -248,10 +251,10 @@ KarmaFields.fields.date = function(field) {
 
 
                   input.addEventListener("keyup", function() {
-                    var date = Calendar.parse(this.value, format);
+                    var date = KarmaFields.Calendar.parse(this.value, format);
                     if (date) {
                       dateManager.calendar.date = date;
-                      dateManager.sqlDate = Calendar.format(date);
+                      dateManager.sqlDate = KarmaFields.Calendar.format(date);
                       dateManager.calendar.update();
                       dateManager.update();
                     } else {
@@ -265,12 +268,12 @@ KarmaFields.fields.date = function(field) {
 
                   var keyChange = function(dir) {
                     var index = input.selectionStart || 0;
-                    var date = Calendar.parse(dateManager.sqlDate);
+                    var date = KarmaFields.Calendar.parse(dateManager.sqlDate);
                     if (format[index] === "y" || format[index-1] === "y") date.setFullYear(date.getFullYear() + dir);
                     else if (format[index] === "m" || format[index-1] === "m") date.setMonth(date.getMonth() + dir);
                     else if (format[index] === "d" || format[index-1] === "d") date.setDate(date.getDate() + dir);
-                    input.value = Calendar.format(date, format);
-                    dateManager.sqlDate = Calendar.format(date);
+                    input.value = KarmaFields.Calendar.format(date, format);
+                    dateManager.sqlDate = KarmaFields.Calendar.format(date);
                     dateManager.calendar.date = date;
                     dateManager.calendar.update();
                     input.setSelectionRange(index, index);

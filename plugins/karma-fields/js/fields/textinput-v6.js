@@ -1,6 +1,6 @@
 KarmaFields.fields.textinput = function(field) {
 	var isSaved;
-	return {
+	return KarmaFields.build({
 		tag: "input",
 		class: "text",
 		init: function(input) {
@@ -49,5 +49,5 @@ KarmaFields.fields.textinput = function(field) {
 				input.style.width = field.resource.width;
 			}
 		}
-	};
+	});
 }

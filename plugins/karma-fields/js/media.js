@@ -27,6 +27,15 @@ KarmaFields.storage = { //Window.sessionStorage || {
 	}
 };
 
+KarmaFields.getAsset = function(url) {
+	if (!KarmaFields.assets[args.url]) {
+		KarmaFields.assets[args.url] = fetch(args.url).then(function(response) {
+			return response.text();
+		});
+	}
+	return KarmaFields.assets[url];
+}
+
 window.addEventListener("keydown", function(event) {
 	if (event.metaKey && event.key === "c" && KarmaFields.events.onCopy) {
 		KarmaFields.events.onCopy(event);
