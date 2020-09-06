@@ -4,21 +4,21 @@ KarmaFields.managers.table = function(resource) {
 
 	var manager = {
 		resource: resource,
-		posts: [], // -> moved to history
+		// posts: [], // -> moved to history
 		select: KarmaFields.selectors.grid(),
-		filter: null, // deprecated
-		filters: {},
-		fields: [],
-		options: {},
-		changes: {},
-
-		table: null, // -> for accesding filters
-
-		    // search: "",
-    order: null,
-    orderby: null,
-    page: 1,
-    ppp: resource.ppp || 10,
+		// filter: null, // deprecated
+		// filters: {},
+		// fields: [],
+		// options: {},
+		// changes: {},
+		//
+		// table: null, // -> for accesding filters
+		//
+		//     // search: "",
+    // order: null,
+    // orderby: null,
+    // page: 1,
+    // ppp: resource.ppp || 10,
 
 		build: function() {
 			if (KarmaFields.tables[resource.name || "grid"]) {
@@ -67,63 +67,54 @@ KarmaFields.managers.table = function(resource) {
 
 		// getParams: function() {
 		// 	var params = {};
-		//
-		// 	for (var i in this.filters) {
-		// 		params[i] = this.filters[i];
+		// 	var options = history.read(["options"]);
+		// 	var filters = history.read(["filters"]);
+		// 	for (var i in options) {
+		// 		params[i] = options[i];
 		// 	}
-		//
-		// 	for (var i in this.options) {
-		// 		params[i] = this.options[i];
+		// 	for (var i in filters) {
+		// 		params[i] = filters[i];
 		// 	}
-		//
-		// 	// this.getOptionsFilter(resource.options, params); // -> find key/values in options that we have to send as filter
-		//
-		//
-		//
-		// 	// if (this.page > 1) {
-		// 	// 	params.page = this.page;
-		// 	// }
-		//
-		//
-		// 	// if (this.ppp || resource.ppp) {
-		// 	// 	params.ppp = (this.ppp || resource.ppp);
-		// 	// }
-		// 	// if (this.options.gridoptions.ppp) {
-		// 	// 	params.ppp = this.options.gridoptions.ppp;
-		// 	// }
-		// 	// if (this.order || resource.default_order) {
-		// 	// 	params.order = (this.order || resource.default_order);
-		// 	// }
-		// 	// if (this.orderby || resource.default_orderby) {
-		// 	// 	params.orderby = (this.orderby || resource.default_orderby);
-		// 	// }
 		// 	return params;
 		// },
 		request: function() {
+			// var optionsxx = history.read(["options"]);
+			// console.log(optionsxx);
+			// return;
+
+
 			if (resource.driver || resource.middleware) {
 				var file = KarmaFields.queryURL+"/"+(resource.driver || resource.middleware)+"/"+resource.method;
 				var options = history.read(["options"]);
+
 				var filters = history.read(["filters"]);
-				var params = KarmaFields.Object.serialize(KarmaFields.Object.merge(options, filters));
-				if (params) {
-					file += "?"+params.join("&");
+				var params = KarmaFields.Object.merge(options, filters);
+				var serializedParams = KarmaFields.Object.serialize(params);
+				if (serializedParams) {
+					file += "?"+serializedParams;
 				}
 				this.loading = true;
 				if (this.renderFooter) {
 					this.renderFooter();
 				}
+
+
+
         return fetch(file, {
 					cache: "default" // force-cache
 				}).then(function(response) {
 					return response.json();
 				}).then(function(results) {
-					console.log(results);
+
 					history.write(["items"], results.items.map(function(item) {
 						history.write(["field", item.uri], item, "input");
 						return item.uri;
 					}), "input");
 					// manager.num = parseInt(results.count);
 					history.write(["count"], parseInt(results.count), "input");
+
+
+
 					manager.loading = false;
           if (manager.render) {
             manager.render();
@@ -463,6 +454,12 @@ KarmaFields.managers.table = function(resource) {
 		var filters = manager.getDefaultFilters(resource.filter);
 		history.write(["filters"], filters, "input");
 	}
+
+	history.write(["options"], {
+		page: 1,
+		ppp: 50
+	}, "input");
+
 	if (resource.options) {
 		var options = manager.getDefaultOptions(resource.options);
 		history.write(["options"], options, "input");

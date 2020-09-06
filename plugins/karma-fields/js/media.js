@@ -28,8 +28,8 @@ KarmaFields.storage = { //Window.sessionStorage || {
 };
 
 KarmaFields.getAsset = function(url) {
-	if (!KarmaFields.assets[args.url]) {
-		KarmaFields.assets[args.url] = fetch(args.url).then(function(response) {
+	if (!KarmaFields.assets[url]) {
+		KarmaFields.assets[url] = fetch(url).then(function(response) {
 			return response.text();
 		});
 	}

@@ -46,6 +46,8 @@ KarmaFields.tables.grid = function(manager) {
               child: {
                 tag: "tr",
                 update: function(element, renderRow, args) {
+                  var orderby = manager.history.read(["options", "orderby"], "input");
+                  var order = manager.history.read(["options", "order"], "input");
                   args.children = manager.resource.children.filter(function(column) {
                     return true;
                     // return manager.options.gridoptions.columns[column.key];
@@ -96,19 +98,24 @@ KarmaFields.tables.grid = function(manager) {
                               });
                             },
                             update: function(a) {
-                              a.classList.toggle("asc", manager.options.orderby === column.key && manager.options.order === "asc");
-                              a.classList.toggle("desc", manager.options.orderby === column.key && manager.options.order === "desc");
+                              a.classList.toggle("asc", orderby === column.key && order === "asc");
+                              a.classList.toggle("desc", orderby === column.key && order === "desc");
                             }
                           }
                         ]
                       }
                     };
                   });
-                  if (manager.resource.index_column) {
+                  if (manager.resource.index) {
                     this.children.unshift({
                       tag: "th",
                       init: function(element) {
-                        element.textContent = manager.resource.index_column;
+                        if (manager.resource.index.title) {
+                          element.textContent = manager.resource.index.title;
+                        }
+                        if (manager.resource.index.width) {
+                          element.style.width = manager.resource.index.width;
+                        }
                       },
                       update: function(element) {
                         manager.select.addIndexHeader(element);
@@ -121,62 +128,41 @@ KarmaFields.tables.grid = function(manager) {
             {
               tag: "tbody",
               update: function(element, render, args) {
-                args.children = manager.getItems().filter(function(uri) {
-                  return history.read(["field", uri, "status"], "all");
-                }).map(function(post, rowIndex) {
+                var uris = manager.history.read(["items"], "input");
+                args.children = uris && uris.filter(function(uri) {
+                  return !manager.history.read(["field", uri, "trash"]);
+                }).map(function(uri, rowIndex) {
                   return {
                     tag: "tr",
                     update: function(element, render, args) {
-                      manager.select.addRow(post, rowIndex);
-                      manager.history.setValue(["field", post.uri], post, true);
+                      manager.select.addRow(uri, rowIndex); // really needed?
 
                       args.children = manager.resource.children.filter(function(column) {
                         return true;
-                        // return manager.options.gridoptions.columns[column.key];
                       }).map(function(column, colIndex) {
                         return {
                           tag: "td",
                           id: column.key || column.name,
                           init: function(cell, render, args) {
-                            var fieldManager = KarmaFields.managers.field(column, ["field", post.uri, column.key], manager.history, null);
+                            console
+                            var fieldManager = KarmaFields.managers.field(column, ["field", uri, column.key], manager.history, manager.selection, null);
                             args.manager = fieldManager;
+                            args.child = KarmaFields.fields[column.field](fieldManager);
                           },
                           update: function(cell, render, args) {
-                            // var fieldManager = KarmaFields.managers.field(column, post, manager.resource.middleware, manager.history, null);
-                            // args.manager.rowIndex = (((manager.options.page || 1)-1)*manager.options.ppp || 0)+rowIndex;
-                            // fieldManager.onChangeValue = function(value) {
-                            //   manager.addChange(post, column.method, column.key, value);
-                            // }
-                            // fieldManager.onFilter = function(filters) {
-                            //   manager.filters = filters;
-                            //   manager.request();
-                            //   manager.renderHeader();
-                            // }
-                            // fieldManager.table = manager; // -> for access filters
-                            // fieldManager.onSave = manager.renderFooter;
-                            // manager.fields.push(fieldManager);
-
-                            // if (column.field === "index") {
-                            //   manager.select.addRowIndex(cell, args.manager, colIndex, rowIndex);
-                            // } else {
-                            manager.select.addField(cell, args.manager, ["field", post.uri, column.key], render, colIndex, rowIndex);
-                            // }
-                            // args.manager.onModify = function(isModified) {
-                            //   cell.classList.toggle("modified", fieldManager.modified || false);
-                            // };
-
-                            cell.classList.toggle("modified", manager.history.isModified(["field", post.uri, column.key]));
-
-                            args.child = KarmaFields.fields[column.field](fieldManager);
+                            manager.select.addField(cell, args.manager, ["field", uri, column.key], render, colIndex, rowIndex);
+                            cell.classList.toggle("modified", manager.history.isModified(["field", uri, column.key]));
                           }
                         };
                       });
-                      if (manager.resource.has_index) {
+                      if (manager.resource.index) {
                         this.children.unshift({
                           tag: "td",
                           update: function(td) {
-                            manager.select.addRowIndex(td, colIndex, rowIndex);
-                            td.textContent = (((manager.options.page || 1)-1)*(manager.options.ppp || 0))+rowIndex;
+                            manager.select.addRowIndex(td, rowIndex);
+                            var page = parseInt(manager.history.read(["options", "page"], "input") || 1);
+                            var ppp = parseInt(manager.history.read(["options", "ppp"], "input") || Number.MAX_SAFE_INTEGER);
+                            td.textContent = ((page-1)*ppp)+rowIndex;
                           }
                         });
                       }

@@ -60,6 +60,43 @@ KarmaFields.Calendar = {
 		}
 		return calendar;
 	},
+	getMonthDays: function(monthDate) {
+		var days = [];
+		var lastDayPrevMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 0);
+		var firstDayNextMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+		var date = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1 - lastDayPrevMonth.getDay());
+		var today = (new Date()).setHours(0, 0, 0, 0);
+
+		while((date.getTime() < firstDayNextMonth.getTime()) || date.getDay() !== 1) {
+			var day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+			days.push({
+				date: day,
+				sqlDate: this.format(day),
+				isDayBefore: day.getTime() == lastDayPrevMonth.getTime(),
+				isDayAfter: day.getTime() == firstDayNextMonth.getTime(),
+				isOffset: day.getTime() <= lastDayPrevMonth.getTime() || day.getTime() >= firstDayNextMonth.getTime(),
+				isToday: day.getTime() === today,
+				isWeekend: day.getDay() === 0 || day.getDay() === 6
+			});
+			date.setDate(date.getDate() + 1);
+		}
+		return days;
+	},
+	// setMonth: function(month) {
+	// 	this.date.setMonth(month);
+	// 	this.update();
+	// },
+	// setYear: function(year) {
+	// 	this.date.setFullYear(year);
+	// 	this.update();
+	// },
+	changeMonth: function(date, diff) {
+		date.setMonth(date.getMonth() + diff);
+	},
+	changeYear: function(date, diff) {
+		date.setFullYear(date.getFullYear() + diff);
+	},
 	zeroize: function(number, size) {
 		number = number.toString().slice(-size);
 		while (number.length < size) {
@@ -98,7 +135,6 @@ KarmaFields.Calendar = {
 	},
 	parse: function(dateString, format, outputFormat) {
 		format = format || "yyyy-mm-dd hh:ii:ss";
-
 		var date = new Date(0, 0, 1);
 		var reg = format
 			.replace("yyyy", "([0-9]{4})")

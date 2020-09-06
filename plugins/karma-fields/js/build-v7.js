@@ -29,18 +29,18 @@ KarmaFields.build = function(args, parent, prevElement) {
 			} else {
 				parent.appendChild(element);
 			}
-			// if (args.init) {
-			// 	args.init(element, render, args);
-			// }
-			args.init && args.init(element, render, args) || render();
+			if (args.init) {
+				args.init(element, render, args);
+			}
+			// args.init && args.init(element, render, args) || render();
 		} else {
 			element = prevElement;
-			// if (args.update) {
-			// 	args.update(element, render, args);
-			// }
-			args.update && args.update(element, render, args) || render();
+			// args.update && args.update(element, render, args) || render();
 		}
-		// render();
+		if (args.update) {
+			args.update(element, render, args);
+		}
+		render();
 		return render;
 	} else if (prevElement) {
 		parent.removeChild(prevElement);

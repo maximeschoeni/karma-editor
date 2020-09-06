@@ -3,25 +3,14 @@ KarmaFields.fields.textinput = function(field) {
 	return {
 		tag: "input",
 		class: "text",
-		init: function(input) {
+		init: function(input, render, args) {
 			input.type = field.resource.type || "text";
 			input.id = field.id;
 			if (field.resource.readonly) {
 				input.readOnly = true;
 			} else {
 				input.addEventListener("input", function(event) {
-					field.set(input.value);
-				});
-				input.addEventListener("focus", function(event) {
-					field.history.startEdit(field.resource.key, field.getValue());
-				});
-				input.addEventListener("blur", function(event) {
-					field.history.stopEdit();
-				});
-				input.addEventListener("keyup", function(event) {
-					if (event.key === "Enter") {
-						field.submit();
-					}
+					field.setValue(input.value);
 				});
 			}
 			// field.onInherit = function(value) {
@@ -33,8 +22,13 @@ KarmaFields.fields.textinput = function(field) {
 			// field.onUpdate = function(value) { // -> historic change
 			// 	input.value = value || "";
 			// }
-			field.fetch().then(function(value) { // -> maybe undefined
-				input.value = value || "";
+			field.fetchValue().then(function(value) { // -> maybe undefined
+				args.update = function() {
+					input.value = field.getValue() || "";
+					// input.placeholder = field.getInheritedValue(field.resource.key) || "";
+					input.classList.toggle("modified", field.isModified());
+				}
+				args.update();
 			});
 
 			// field.onFocus = function() {
@@ -47,11 +41,6 @@ KarmaFields.fields.textinput = function(field) {
 			if (field.resource.width) {
 				input.style.width = field.resource.width;
 			}
-		},
-		update: function(input) {
-			input.value = field.getValue(field.resource.key) || "";
-			input.placeholder = field.getInheritedValue(field.resource.key) || "";
-			input.classList.toggle("modified", field.isModified());
 		}
 	};
 }

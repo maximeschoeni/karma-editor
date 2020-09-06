@@ -1,84 +1,93 @@
 KarmaFields.tables.pagination = function(manager) {
   return {
     class: "footer-group table-pagination",
-    children: [
-      {
-        tag: "p",
-        class: "footer-item",
-        update: function(element) {
-          element.textContent = manager.num ? manager.num+" items" : "";
-        }
-      },
-      {
-        tag: "button",
-        class: "button footer-item",
-        init: function(element) {
-          element.innerText = "«";
-          element.addEventListener("click", function() {
-            manager.options.page = 1;
-            manager.request();
-          });
-        },
-        update: function(element) {
-          element.style.display = manager.options.ppp && manager.num > manager.options.ppp ? "block" : "none";
-          element.disabled = (manager.options.page === 1);
-        }
-      },
-      {
-        tag: "button",
-        class: "button footer-item",
-        init: function(element) {
-          element.innerText = "‹";
-          if (manager.options.page === 1) {
-            element.disabled = true;
+    update: function(element, render, args) {
+      var options = manager.history.read(["options"], "input");
+      var ppp = parseInt(options.ppp || Number.MAX_SAFE_INTEGER);
+      var page = parseInt(options.page || 1);
+      var num = parseInt(manager.history.read(["count"], "input") || 0);
+
+      args.children = [
+        {
+          tag: "p",
+          class: "footer-item",
+          update: function(element) {
+            element.textContent = num ? num+" items" : "";
           }
-          element.addEventListener("click", function() {
-            manager.options.page = (manager.options.page || 1)-1;
-            manager.request();
-          });
         },
-        update: function(element) {
-          element.style.display = manager.options.ppp && manager.num > manager.options.ppp ? "block" : "none";
-          element.disabled = (manager.options.page === 1);
-        }
-      },
-      {
-        class: "current-page footer-item",
-        update: function(element) {
-          element.style.display = manager.options.ppp && manager.num > manager.options.ppp ? "block" : "none";
-          element.textContent = manager.options.ppp && (manager.options.page || 1)+" / "+Math.ceil(manager.num/manager.options.ppp) || "";
-        }
-      },
-      {
-        tag: "button",
-        class: "button footer-item",
-        init: function(element) {
-          element.innerText = "›";
-          element.addEventListener("click", function() {
-            manager.options.page = (manager.options.page || 1)+1;
-            manager.request();
-          });
+        {
+          tag: "button",
+          class: "button footer-item",
+          init: function(element) {
+            element.innerText = "«";
+            element.addEventListener("click", function() {
+              // manager.options.page = 1;
+              manager.history.write(["options", "page"], 1, "input");
+              manager.request();
+            });
+          },
+          update: function(element) {
+            element.style.display = num > ppp ? "block" : "none";
+            element.disabled = (page === 1);
+          }
         },
-        update: function(element) {
-          element.style.display = manager.options.ppp && manager.num > manager.options.ppp ? "block" : "none";
-          element.disabled = !manager.options.ppp || manager.options.page >= Math.ceil(manager.num/manager.options.ppp);
-        }
-      },
-      {
-        tag: "button",
-        class: "button footer-item",
-        init: function(element) {
-          element.innerText = "»";
-          element.addEventListener("click", function() {
-            manager.options.page = maxPage;
-            manager.request();
-          });
+        {
+          tag: "button",
+          class: "button footer-item",
+          init: function(element) {
+            element.innerText = "‹";
+            if (page === 1) {
+              element.disabled = true;
+            }
+            element.addEventListener("click", function() {
+              manager.history.write(["options", "page"], page-1, "input");
+              manager.request();
+            });
+          },
+          update: function(element) {
+            element.style.display = num > ppp ? "block" : "none";
+            element.disabled = (page === 1);
+          }
         },
-        update: function(element) {
-          element.style.display = manager.options.ppp && manager.num > manager.options.ppp ? "block" : "none";
-          element.disabled = !manager.options.ppp || manager.options.page >= Math.ceil(manager.num/manager.options.ppp);
+        {
+          class: "current-page footer-item",
+          update: function(element) {
+            element.style.display = num > ppp ? "block" : "none";
+            element.textContent = num && page+" / "+Math.ceil(num/ppp) || "";
+          }
+        },
+        {
+          tag: "button",
+          class: "button footer-item",
+          init: function(element) {
+            element.innerText = "›";
+            element.addEventListener("click", function() {
+              manager.history.write(["options", "page"], page+1, "input");
+              manager.request();
+            });
+          },
+          update: function(element) {
+            element.style.display = num > ppp ? "block" : "none";
+            element.disabled = page >= Math.ceil(num/ppp);
+          }
+        },
+        {
+          tag: "button",
+          class: "button footer-item",
+          init: function(element) {
+            element.innerText = "»";
+            element.addEventListener("click", function() {
+              // manager.options.page = maxPage;
+              manager.history.write(["options", "page"], Math.ceil(num/ppp), "input");
+              manager.request();
+            });
+          },
+          update: function(element) {
+            element.style.display = num > ppp ? "block" : "none";
+            element.disabled = page >= Math.ceil(num/ppp);
+          }
         }
-      }
-    ]
+      ];
+    }
   };
 }

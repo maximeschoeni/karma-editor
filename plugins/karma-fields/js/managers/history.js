@@ -95,6 +95,7 @@ KarmaFields.History.createInstance = function() {
 	history.write = function(keys, value, buffer, noBreak) {
 		// this.startEdit(keys, noBuffer);
 
+		keys = keys.slice();
 		var path = [buffer || "output"].concat(keys);
 
 		if (buffer === "output" && !noBreak && this.edition && KarmaFields.Object.getValue(this.edition, keys) === undefined) {
@@ -107,7 +108,7 @@ KarmaFields.History.createInstance = function() {
 			KarmaFields.Object.setValue(this.edition, path, revertValue, true);
 		}
 
-		value = KarmaFields.Object.clone(value);
+		// value = KarmaFields.Object.clone(value);
 		KarmaFields.Object.setValue(this, path, value);
 
 		if (this.onEdit) {
@@ -213,12 +214,12 @@ KarmaFields.History.createInstance = function() {
 	// };
 	history.read = function(keys, buffer) {
 		var value;
-		if (buffer) {
-			value = KarmaFields.Object.getValue(this[buffer], keys);
+		if (buffer && this[buffer]) {
+			value = KarmaFields.Object.getValue(this[buffer], keys.slice());
 		} else {
-			value = KarmaFields.Object.getValue(this["output"], keys);
+			value = KarmaFields.Object.getValue(this.output, keys.slice());
 			if (value === undefined) {
-				value = KarmaFields.Object.getValue(this["input"], keys);
+				value = KarmaFields.Object.getValue(this.input, keys.slice());
 			}
 		}
 		return KarmaFields.Object.clone(value);
@@ -233,6 +234,9 @@ KarmaFields.History.createInstance = function() {
 		// }
 		// return false;
 	};
+	history.isEmpty = function(buffer) {
+		return KarmaFields.Object.isEmpty(this[buffer]);
+	}
 	// history.sync = function() {
 	// 	return fetch(KarmaFields.saveURL+"/"+history.driver+"/"+history.method, {
 	// 		method: "post",

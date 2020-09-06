@@ -6,10 +6,11 @@ KarmaFields.tables.footer = function(manager) {
       manager.select.onSelect = render;
     },
     update: function(element, render, args) {
-      var editedFields = manager.fields.filter(function(field) {
-        return field.modifiedValue !== undefined;
-      });
-      var modifiedURIs = Object.keys(manager.changes);
+      // var editedFields = manager.fields.filter(function(field) {
+      //   return field.modifiedValue !== undefined;
+      // });
+      // var modifiedURIs = Object.keys(manager.changes);
+
       var items = manager.select.getSelectedItems();
       var selectedRows = manager.select.getSelectedRows();
 
@@ -52,7 +53,7 @@ KarmaFields.tables.footer = function(manager) {
                 KarmaFields.includes.icon({
                   class: "footer-item table-spinner",
                   update: function(element) {
-                    element.classList.taggle("disabled", manager.loading);
+                    element.classList.toggle("disabled", manager.loading);
                   },
                   url: KarmaFields.icons_url+"/update.svg"
                 }),
@@ -70,7 +71,9 @@ KarmaFields.tables.footer = function(manager) {
                     });
                   },
                   update: function(element, render) {
-                    element.disabled = modifiedURIs.length === 0;
+                    // element.disabled = modifiedURIs.length === 0;
+                    element.disabled = manager.history.isEmpty("output");
+
                   }
                 },
                 KarmaFields.includes.icon({

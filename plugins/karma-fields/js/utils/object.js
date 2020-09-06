@@ -11,6 +11,20 @@ KarmaFields.Object.getValue = function(object, keys) {
 	}
 	return object;
 };
+// KarmaFields.Object.setValue = function(object, keys, value, soft) {
+// 	if (keys[1]) {
+// 		var key = keys.shift();
+// 		if (!object[key]) {
+// 			object[key] = {};
+// 		}
+// 		this.setValue(object[key], keys, value);
+// 	// } else if (keys[0] && typeof value === "object") {
+// 	// 	object[keys[0]] = object[keys[0]] || {};
+// 	// 	this.merge(object[key], value, soft);
+// 	} else if (keys[0] && (!soft || object[keys[0]] === undefined)) {
+// 		object[keys[0]] = value;
+// 	}
+// }
 KarmaFields.Object.setValue = function(object, keys, value, soft) {
 	if (keys[1]) {
 		var key = keys.shift();
@@ -18,8 +32,20 @@ KarmaFields.Object.setValue = function(object, keys, value, soft) {
 			object[key] = {};
 		}
 		this.setValue(object[key], keys, value);
-	} else if (keys[0] && (!soft || object[keys[0]] === undefined)) {
-		object[keys[0]] = value;
+	} else if (keys[0]) {
+		if (typeof value === "object") {
+			if (!object[keys[0]]) {
+				if (Array.isArray(value)) {
+					object[keys[0]] = [];
+				} else {
+					object[keys[0]] = {};
+				}
+			}
+			object[keys[0]] = object[keys[0]] || {};
+			this.merge(object[keys[0]], value, soft);
+		} else if (!soft || object[keys[0]] === undefined) {
+			object[keys[0]] = value;
+		}
 	}
 }
 KarmaFields.Object.merge = function(object1, object2, soft) {
@@ -33,7 +59,13 @@ KarmaFields.Object.merge = function(object1, object2, soft) {
 	return object1;
 }
 KarmaFields.Object.clone = function(object) {
-	return this.merge({}, object);
+	if (typeof object === "object") {
+		if (Array.isArray(object)) {
+			return this.merge([], object);
+		}
+		return this.merge({}, object);
+	}
+	return object;
 };
 // KarmaFields.Object.hasDiff = function(obj1, obj2) {
 //   if (obj1 && typeof obj1 === "object") {
@@ -72,6 +104,12 @@ KarmaFields.Object.mask = function(obj, mask) {
     }
   }
   return result;
+};
+KarmaFields.Object.isEmpty = function(object) {
+	for (var i in object) {
+		return false;
+	}
+	return true;
 };
 KarmaFields.Object.serialize = function(object) {
 	var params = [];

@@ -1,5 +1,5 @@
 
-KarmaFields.managers.field = function(resource, path, history, parent) {
+KarmaFields.managers.field = function(resource, path, history, selection, parent) {
 	var manager = {
 		resource: resource,
 		// post: post,
@@ -51,7 +51,7 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 			} else if (resource.key) {
 				childPath[childPath.length-1] = resource.key;
 			}
-			var child = KarmaFields.managers.field(resource, childPath, history, this);
+			var child = KarmaFields.managers.field(resource, childPath, history, selection, this);
 			this.children.push(child);
 			return child;
 		},
@@ -61,11 +61,12 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 		// 	});
 		// },
 		getId: function() {
-			if (resource.key) {
-				return (resource.driver || middleware || "general") + "-" + (post.uri || post.pseudo_uri || "").split("/").join("-") + "-" + resource.key;
-			} else if (parent) {
-				return parent.getId() + "-" + (resource.child_key || "group");
-			}
+			return path.join("-").split("/").join("-");
+			// if (resource.key) {
+			// 	return (resource.driver || middleware || "general") + "-" + (post.uri || post.pseudo_uri || "").split("/").join("-") + "-" + resource.key;
+			// } else if (parent) {
+			// 	return parent.getId() + "-" + (resource.child_key || "group");
+			// }
 		},
 		// getKey: function() {
 		// 	if (resource.key) {
@@ -332,11 +333,11 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 		// 		this.onModify(modified);
 		// 	}
 		// },
-		changeOthers: function(value) {
-			if (this.onChangeOthers) {
-				this.onChangeOthers(value);
-			}
-		},
+		// changeOthers: function(value) {
+		// 	if (this.onChangeOthers) {
+		// 		this.onChangeOthers(value);
+		// 	}
+		// },
 
 		// save: function() {
 		// 	// if (this.get() !== this.getPrevious()) { // ! not working with objects...
@@ -687,37 +688,29 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 		// 	}
 		// 	return this.promise;
 		// },
-		getPath: function() {
-			if (resource.key) {
-				return resource.key;
-			} else if (parent) {
-				var path = parent.getPath();
-				if (resource.child_key) {
-					path += "/"+resource.child_key;
-				}
-				return path;
+		// getPath: function() {
+		// 	if (resource.key) {
+		// 		return resource.key;
+		// 	} else if (parent) {
+		// 		var path = parent.getPath();
+		// 		if (resource.child_key) {
+		// 			path += "/"+resource.child_key;
+		// 		}
+		// 		return path;
+		// 	}
+		// },
+
+		getValue: function(value) {
+			return history.read(path);
+		},
+		setValue: function(value, buffer) {
+			history.write(path, value, buffer || "output");
+			if (selection && selection.onEditCell) {
+				selection.onEditCell(path, value, buffer || "output");
 			}
 		},
-		getValue: function(value, nb) {
-			var path = this.getPath();
-			return history.getValue("field", post.uri, path);
-
-
-			// if (this.value) {
-			// 	return this.value;
-			// } else {
-			// 	this.value = history.getValue("field", post.uri, resource.key);
-			//
-			// }
-			// this.value = value;
-			// var path = this.getPath();
-			// if (path) {
-			// 	history.edit("field", post.uri, path, value, nb);
-			// }
-		},
-		setValue: function(value, nb) {
-			var path = this.getPath();
-			history.edit("field", post.uri, path, value, nb);
+		isModified: function() {
+			return false;
 		},
 		// fetch: function() {
 		// 	if (resource.key) {
@@ -808,14 +801,13 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 		// },
 
 		fetchValue: function() {
-			var path = this.getPath();
-			var value = history.getValue("field", post.uri, resource.key, path);
+			var value = history.read(path);
 			if (value !== undefined) {
 				return Promise.resolve(value);
 			} else {
 				return this.fetch().then(function(value) {
 					if (value !== undefined) {
-						history.edit("field", post.uri, path, value, true);
+						history.write(path, value, "input");
 					}
 				});
 			}
@@ -823,11 +815,7 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 		fetch: function() {
 			if (!this.promise) {
 				if (resource.key) {
-					if (post[resource.key] !== undefined) {
-						this.promise = Promise.resolve(post[resource.key]);
-					} else {
-						this.promise = this.fetchKey(resource.key, resource.method, resource.cache);
-					}
+					this.promise = this.fetchKey(path, resource.method, resource.cache);
 				} else if (parent) {
 					this.promise = parent.fetch().then(function(value) {
 						if (value && resource.child_key) {
@@ -841,12 +829,12 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 			}
 			return this.promise;
 		},
-		fetchKey: function(key, method, cache) {
+		fetchKey: function(keys, method, cache) {
 			var file;
 			if (cache && KarmaFields.cacheURL) {
-				file = KarmaFields.cacheURL+"/"+history.driver+"/"+uri+"/"+cache;
+				file = KarmaFields.cacheURL+"/"+keys.join("/")+cache;
 			} else {
-				file = KarmaFields.getURL+"/"+history.driver+"/"+uri+"/"+(method||"default")+"/"+key;
+				file = KarmaFields.getURL+"/"+keys.join("/")+"/"+(method||"default");
 			}
 			return fetch(file, {
 				cache: "reload"
@@ -986,7 +974,7 @@ KarmaFields.managers.field = function(resource, path, history, parent) {
 		fetchOptions: function(filters) {
 			if (resource.key) {
 				var path = KarmaFields.fetchURL+"/"+history.driver+"/"+resource.method+"/"+resource.key;
-				var filters = KarmaFields.Object.merge(history.getValue("filters"), filters);
+				var filters = history.read(["filters"]);
 				var params = KarmaFields.Object.serialize(filters);
 				if (params) {
 					path += "?"+params;
