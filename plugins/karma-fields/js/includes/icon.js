@@ -1,17 +1,16 @@
 
-KarmaFields.includes.icon = function(args) {
-  var init = args.init;
-  args.init = function(element, render) {
-    if (init) {
-      init(element, render, args);
-    }
-    if (args.url) {
-      KarmaFields.getAsset(args.url).then(function(result) {
-        requestAnimationFrame(function() {
-          element.innerHTML = result;
+KarmaFields.includes.icon = function(url) {
+  return {
+    class: "karma-icon",
+    update: function(icon) {
+      if (this.data.url !== url) {
+        KarmaFields.getAsset(url).then(function(result) {
+          requestAnimationFrame(function() {
+            icon.element.innerHTML = result;
+          });
         });
-      });
+        this.data.url = url;
+      }
     }
-  }
-  return args;
+  };
 }

@@ -25,20 +25,26 @@ KarmaFields.managers.table = function(resource) {
 				return KarmaFields.tables[resource.name || "grid"](this);
 			}
 		},
-		buildFilter: function() {
-			if (resource.filter) {
-				var filter = KarmaFields.managers.filter(resource.filter, this, (resource.driver || resource.middleware));
-				// filter.onBubble = function() {
-				// 	manager.options.page = 1;
-				// 	return manager.request();
-				// }
-				return filter.buildNode();
-			}
-		},
+		// buildFilter: function() {
+		// 	if (resource.filter) {
+		// 		// var filter = KarmaFields.managers.filter(resource.filter, this, (resource.driver || resource.middleware));
+		// 		// var filter = KarmaFields.managers.field(resource.filter, "filters", [], [resource.key || "nokey"], history, null);
+		// 		var filter = KarmaFields.managers.field(resource.filter, {
+		// 			inputBuffer: "filters",
+		// 			outputBuffer: "filters",
+		// 			history: history,
+		// 			tableManager: this,
+		// 			onSetValue: function() {
+		// 				console.log("submit");
+		// 			}
+		// 		});
+		// 		return filter.build();
+		// 	}
+		// },
 
-		buildFooter: function() {
-			return KarmaFields.tables.footer(this);
-		},
+		// buildFooter: function() {
+		// 	return KarmaFields.tables.footer(this);
+		// },
 		// buildOptions: function() {
 		// 	var field = KarmaFields.managers.field(this.resource.options, {
 		// 		pseudo_uri: "options"
@@ -57,7 +63,7 @@ KarmaFields.managers.table = function(resource) {
 		// },
 
 		getItems: function() {
-			return history.read(["items"] || []);
+			return history.read(["table", "items"]);
 			// return history.posts.filter(function(item) {
 			// 	// var action = history.pool.get(history.index, item.uri || item.pseudo_uri, "action");
 			// 	var action = history.get(item.uri || item.pseudo_uri, "action");
@@ -77,52 +83,79 @@ KarmaFields.managers.table = function(resource) {
 		// 	}
 		// 	return params;
 		// },
-		request: function() {
+		request: function(hidden) {
 			// var optionsxx = history.read(["options"]);
 			// console.log(optionsxx);
 			// return;
 
+			this.stopRefresh();
 
-			if (resource.driver || resource.middleware) {
-				var file = KarmaFields.queryURL+"/"+(resource.driver || resource.middleware)+"/"+resource.method;
+			if (resource.driver) {
+				var params = {};
 				var options = history.read(["options"]);
-
 				var filters = history.read(["filters"]);
-				var params = KarmaFields.Object.merge(options, filters);
-				var serializedParams = KarmaFields.Object.serialize(params);
-				if (serializedParams) {
-					file += "?"+serializedParams;
+				KarmaFields.Object.merge(params, filters);
+				KarmaFields.Object.merge(params, options);
+
+				// var file = KarmaFields.queryURL+"/"+resource.driver;
+				// var options = history.read(["options"]);
+				// var filters = history.read(["filters"]);
+				// var params = KarmaFields.Object.merge(options, filters);
+				// var serializedParams = KarmaFields.Object.serialize(params);
+				// if (serializedParams) {
+				// 	file += "?"+serializedParams;
+				// }
+				// this.loading = true;
+				if (!hidden) {
+					history.write(["table", "loading"], 1);
 				}
-				this.loading = true;
 				if (this.renderFooter) {
 					this.renderFooter();
 				}
 
+				return KarmaFields.Transfer.query(resource.driver, params).then(function(results) {
 
 
-        return fetch(file, {
-					cache: "default" // force-cache
-				}).then(function(response) {
-					return response.json();
-				}).then(function(results) {
+				// });
+				//
+        // return fetch(file, {
+				// 	cache: "default" // force-cache
+				// }).then(function(response) {
+				// 	return response.json();
+				// }).then(function(results) {
 
-					history.write(["items"], results.items.map(function(item) {
-						history.write(["field", item.uri], item, "input");
+					history.save(["table", "items"], history.read(["table", "items"]));
+					history.write(["table", "items"], undefined);
+					history.write(["table", "items"], results.items.map(function(item) {
 						return item.uri;
-					}), "input");
-					// manager.num = parseInt(results.count);
-					history.write(["count"], parseInt(results.count), "input");
+					}));
+					history.write(["table", "count"], parseInt(results.count));
+					history.write(["table", "loading"], 0);
+
+					results.items.forEach(function(item) {
+						history.write(["input", item.uri], item);
+					});
+
+					// manager.loading = false;
+
+					console.time('render');
 
 
 
-					manager.loading = false;
+
           if (manager.render) {
             manager.render();
           }
+
+
+					console.timeEnd('render');
+
+					manager.autoRefresh();
+
           return results;
         });
 			} else {
-				return Promise.reject(new Error("Table Manager error: no resource driver or middleware"));
+				return Promise.reject(new Error("Table Manager error: no resource driver"));
 			}
 		},
 
@@ -138,6 +171,7 @@ KarmaFields.managers.table = function(resource) {
 
 		reorder: function(key, default_order) {
 			var options = history.read(["options"]);
+			history.save(["options"], options);
 			if (options.orderby === key) {
 				if (options.order === "asc") {
 					options.order = "desc";
@@ -149,8 +183,24 @@ KarmaFields.managers.table = function(resource) {
 				options.order = default_order || "asc";
 			}
 			options.page = 1;
-			history.write(["options"], options, true);
+			history.write(["options"], options);
 			this.request();
+		},
+
+		getPpp: function() {
+			var ppp = manager.history.read(["options", "ppp"]);
+			return parseInt(ppp || Number.MAX_SAFE_INTEGER);
+		},
+		getPage: function() {
+			var page = manager.history.read(["options", "page"]);
+			return parseInt(page || 1);
+		},
+		setPage: function(page) {
+			manager.history.write(["options", "page"], page.toString());
+		},
+		getCount: function() {
+			var count = manager.history.read(["table", "count"]);
+			return parseInt(count || 0);
 		},
 
 
@@ -223,26 +273,56 @@ KarmaFields.managers.table = function(resource) {
 		// },
 		// add, delete, save fields
 		sync: function() {
+			var params = {
+				fields: history.output
+			};
+
+			console.log(params);
+
 			var options = history.read(["options"]);
 			var filters = history.read(["filters"]);
-			var params = Object.merge(options, filters);
-			var params = Object.merge(params, history.buffer);
+			KarmaFields.Object.merge(params, filters);
+			KarmaFields.Object.merge(params, options);
+			// var options = history.read(["options"]);
+			// var filters = history.read(["filters"]);
+			// var params = Object.merge(options, filters);
+			// params = Object.merge(params, {
+			// 	fields: history.output
+			// });
 
-			this.loading = true;
+			manager.stopRefresh();
+
+			history.write(["table", "loading"], 1);
 			this.renderFooter();
-			return fetch(KarmaFields.saveURL+"/"+(resource.driver || resource.middleware)+"/"+resource.method, {
-				method: "post",
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify(params),
-				mode: "same-origin"
-			}).then(function(response) {
-				return response.json();
-			}).then(function(results) {
-				history.write(["items"], results.items.map(function(item) {
-					history.write(["field", item.uri], item, "input");
+
+			return KarmaFields.Transfer.update(resource.driver, params).then(function(results) {
+			// return fetch(KarmaFields.saveURL+"/"+(resource.driver || resource.middleware)+"/"+resource.key, {
+			// 	method: "post",
+			// 	headers: {"Content-Type": "application/json"},
+			// 	body: JSON.stringify(params),
+			// 	mode: "same-origin"
+			// }).then(function(response) {
+			// 	return response.json();
+			// }).then(function(results) {
+
+				// history.save(["table", "items"], history.read(["table", "items"]));
+				// history.write(["table", "items"], results.items.map(function(item) {
+				// 	history.write(["input", item.uri], item);
+				// 	return item.uri;
+				// }));
+				// history.write(["table", "count"], parseInt(results.count));
+
+				history.save(["table", "items"], history.read(["table", "items"]));
+				history.write(["table", "items"], undefined);
+				history.write(["table", "items"], results.items.map(function(item) {
 					return item.uri;
-				}), "input");
-				history.write(["count"], parseInt(results.count), "input");
+				}));
+				history.write(["table", "count"], parseInt(results.count));
+				history.write(["table", "loading"], 0);
+
+				results.items.forEach(function(item) {
+					history.write(["input", item.uri], item);
+				});
 
 				history.buffer = {};
 				manager.loading = false;
@@ -250,33 +330,76 @@ KarmaFields.managers.table = function(resource) {
 				if (manager.render) {
 					manager.render();
 				}
+
+				manager.autoRefresh();
 			});
 		},
 		addItem: function() {
+			var params = {};
+			params.fields = resource.children.reduce(function(obj, child) {
+				if (child.key && child.default !== undefined) {
+					obj[child.key] = child.default;
+				}
+				return obj;
+			}, {});
 			var options = history.read(["options"]);
 			var filters = history.read(["filters"]);
-			var params = Object.merge(options, filters);
-			this.loading = true;
-			this.renderFooter();
-			return fetch(KarmaFields.addURL+"/"+(resource.driver || resource.middleware)+"/"+resource.method, {
-				method: "post",
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify(params),
-				mode: "same-origin"
-			}).then(function(response) {
-				return response.json();
-			}).then(function(results) {
-				history.write(["items"], results.items.map(function(item) {
-					history.write(["field", item.uri], item, "input");
-					return item.uri;
-				}), "input");
-				history.write(["count"], parseInt(results.count), "input");
+			KarmaFields.Object.merge(params, filters);
+			KarmaFields.Object.merge(params, options);
 
-				manager.loading = false;
-				manager.num = parseInt(results.count);
+
+			// console.log(params);
+
+			// var options = history.read(["options"]);
+			// var filters = history.read(["filters"]);
+			// var params = Object.merge(options, filters);
+			// params.fields = resource.children.reduce(function(obj, item) {
+			// 	if (resource.key && resource.default !== undefined) {
+			// 		obj[resource.key] = resource.default;
+			// 	}
+			// }, {});
+
+			manager.stopRefresh();
+
+			history.write(["table", "loading"], 1);
+			this.renderFooter();
+
+			KarmaFields.Transfer.add(resource.driver, params).then(function(results) {
+			// return fetch(KarmaFields.addURL+"/"+(resource.driver || resource.middleware)+"/"+resource.key, {
+			// 	method: "post",
+			// 	headers: {"Content-Type": "application/json"},
+			// 	body: JSON.stringify(params),
+			// 	mode: "same-origin"
+			// }).then(function(response) {
+			// 	return response.json();
+			// }).then(function(results) {
+
+				// history.save(["table", "items"], history.read(["table", "items"]));
+				// history.write(["table", "items"], results.items.map(function(item) {
+				// 	history.write(["input", item.uri], item);
+				// 	return item.uri;
+				// }));
+				// history.write(["table", "count"], parseInt(results.count));
+
+				history.save(["table", "items"], history.read(["table", "items"]));
+				history.write(["table", "items"], undefined);
+				history.write(["table", "items"], results.items.map(function(item) {
+					return item.uri;
+				}));
+				history.write(["table", "count"], parseInt(results.count));
+				history.write(["table", "loading"], 0);
+
+				results.items.forEach(function(item) {
+					history.write(["input", item.uri], item);
+				});
+
+				// manager.loading = false;
+				// manager.num = parseInt(results.count);
 				if (manager.render) {
 					manager.render();
 				}
+
+				manager.autoRefresh();
 			});
 
 			//
@@ -318,9 +441,9 @@ KarmaFields.managers.table = function(resource) {
 		// 	this.renderFooter();
 		// },
 		removeItems: function(rows) {
-			var items = history.read(["items", "items"]);
+			var items = history.read(["table", "items"]);
 			rows.forEach(function(index) {
-				history.write(["field", "uri", items[index]], "output");
+				history.write(["output", items[index], "trash"], 1);
 			});
 			this.render();
 			// history.save();
@@ -385,6 +508,25 @@ KarmaFields.managers.table = function(resource) {
 		// 		}
 		// 	}
 		// 	return params;
+		// }
+
+		autoRefresh: function() {
+			// this.refreshTimer = setTimeout(function() {
+			// 	if (manager.onRefresh) {
+			// 		manager.onRefresh();
+			// 	}
+			// 	// manager.autoRefresh();
+			// }, this.autorefreshInterval || 5000);
+		},
+		stopRefresh: function() {
+			// if (this.refreshTimer) {
+			// 	clearTimeout(this.refreshTimer);
+			// }
+		}
+		// ,
+		// resetRefresh: function() {
+		// 	this.stopRefresh();
+		// 	this.autoRefresh();
 		// }
 	};
 	// if (!resource.middleware) {
@@ -452,18 +594,30 @@ KarmaFields.managers.table = function(resource) {
 
 	if (resource.filter) {
 		var filters = manager.getDefaultFilters(resource.filter);
-		history.write(["filters"], filters, "input");
+		history.write(["filters"], filters);
 	}
 
 	history.write(["options"], {
 		page: 1,
 		ppp: 50
-	}, "input");
+	});
 
 	if (resource.options) {
 		var options = manager.getDefaultOptions(resource.options);
-		history.write(["options"], options, "input");
+		history.write(["options"], options);
 	}
+
+
+
+	// autorefresh
+	// manager.onRefresh = function() {
+	// 	console.log("auto-refreshing...");
+	// 	manager.request(true).then(function() {
+	// 		console.log("auto refreshed");
+	//
+	// 		manager.autoRefresh();
+	// 	});
+	// }
 
 	return manager;
 }

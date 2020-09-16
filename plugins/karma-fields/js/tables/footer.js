@@ -1,48 +1,94 @@
 KarmaFields.tables.footer = function(manager) {
   return {
     class: "table-footer",
-    init: function(element, render) {
-      manager.renderFooter = render;
-      manager.select.onSelect = render;
+    init: function() {
+      manager.renderFooter = this.render;
+      manager.select.onSelect = this.render;
     },
-    update: function(element, render, args) {
+    update: function() {
       // var editedFields = manager.fields.filter(function(field) {
       //   return field.modifiedValue !== undefined;
       // });
       // var modifiedURIs = Object.keys(manager.changes);
 
-      var items = manager.select.getSelectedItems();
-      var selectedRows = manager.select.getSelectedRows();
+      // var items = manager.select.getSelectedItems();
+      // var selectedRows = manager.select.getSelectedRows();
 
-      args.children = [
-        manager.displayOptions && {
+      this.children = [
+        {
           class: "table-options-container",
-          children: [
-            {
+          update: function(element) {
+            var displayOptions = manager.history.read(["table", "displayOptions"]);
+
+            this.child = displayOptions && {
               class: "table-options-body",
-              init: function(element, render, args) {
-                manager.renderOptions = render; // trigerred when history changes
-                var field = KarmaFields.managers.field(this.resource.options, ["options"], history);
-                args.child = field.build();
+              init: function() {
+                // manager.renderOptions = render; // trigerred when history changes
+                var field = KarmaFields.managers.field(manager.resource.options, {
+                  inputBuffer: "options",
+                  outputBuffer: "options",
+                  history: manager.history,
+                  tableManager: manager
+                });
+                this.children = field.build();
               }
-            },
-            {
-              class: "table-options-footer",
-              children: [
-                KarmaFields.includes.icon({
-                  tag: "button",
-                  class: "button footer-item",
-                  url: KarmaFields.icons_url+"/no.svg",
-                  init: function(element, update) {
-                    element.addEventListener("click", function() {
-                      manager.displayOptions = false;
-                      manager.renderFooter();
-                    });
-                  }
-                }),
-              ]
-            }
-          ]
+            };
+
+            // [
+            //
+            //   // {
+            //   //   class: "table-options-footer",
+            //   //   children: [
+            //   //     {
+            //   //       tag: "button",
+            //   //       class: "button footer-item",
+            //   //       init: function(item) {
+            //   //         KarmaFields.getAsset(KarmaFields.icons_url+"/no.svg").then(function(result) {
+            //   //           requestAnimationFrame(function() {
+            //   //             item.element.innerHTML = result;
+            //   //           });
+            //   //         });
+            //   //         this.element.addEventListener("click", function() {
+            //   //           manager.displayOptions = false;
+            //   //           manager.renderFooter();
+            //   //         });
+            //   //       }
+            //   //     }
+            //   //   ]
+            //   // }
+            // ];
+          }
+          // children: [
+          //   {
+          //     class: "table-options-body",
+          //     init: function(element, render, args) {
+          //       // manager.renderOptions = render; // trigerred when history changes
+          //       var field = KarmaFields.managers.field(manager.resource.options, {
+          //         inputBuffer: "options",
+          //         outputBuffer: "options",
+          //         history: manager.history,
+          //         tableManager: manager
+          //       });
+          //       args.children = field.build();
+          //     }
+          //   },
+          //   {
+          //     class: "table-options-footer",
+          //     children: [
+          //       KarmaFields.includes.icon({
+          //         tag: "button",
+          //         class: "button footer-item",
+          //         url: KarmaFields.icons_url+"/no.svg",
+          //         init: function(element, update) {
+          //           element.addEventListener("click", function() {
+          //             manager.displayOptions = false;
+          //             manager.renderFooter();
+          //           });
+          //         }
+          //       }),
+          //     ]
+          //   }
+          // ]
         },
         {
           class: "footer-bar",
@@ -50,116 +96,186 @@ KarmaFields.tables.footer = function(manager) {
             {
               class: "footer-group table-info",
               children: [
-                KarmaFields.includes.icon({
-                  class: "footer-item table-spinner",
-                  update: function(element) {
-                    element.classList.toggle("disabled", manager.loading);
+                // {
+                //   class: "footer-item table-spinner karma-icon",
+                //   init: function(item) {
+                //     KarmaFields.getAsset(KarmaFields.icons_url+"/update.svg").then(function(result) {
+                //       requestAnimationFrame(function() {
+                //         item.element.innerHTML = result;
+                //       });
+                //     });
+                //   },
+                //   update: function() {
+                //     var loading = manager.history.read(["table", "loading"]);
+                //     console.log(loading);
+                //     this.element.classList.toggle("loading", loading);
+                //   }
+                // },
+                {
+                  tag: "button",
+                  class: "button footer-item",
+                  init: function(item) {
+                    this.element.title = "Reload";
+                    this.child = {
+                      class: "table-spinner",
+                      update: function() {
+                        var loading = manager.history.read(["table", "loading"]);
+                        this.element.classList.toggle("loading", loading);
+                      },
+                      child: KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg")
+                    };
+                    this.element.addEventListener("click", function(event) {
+                      manager.request().then(function() {
+                        item.element.blur();
+                      });
+                    });
+                    this.element.addEventListener("mouseup", function(event) {
+                      event.stopPropagation();
+                    });
                   },
-                  url: KarmaFields.icons_url+"/update.svg"
-                }),
+                  update: function() {
+                    var loading = manager.history.read(["table", "loading"]);
+                    // this.element.classList.toggle("active", loading);
+                  }
+                },
                 {
                   tag: "button",
                   class: "button footer-item primary",
-                  init: function(element, render) {
-                    element.title = "Save";
-                    element.innerText = "Save";
-                    element.addEventListener("click", function(event) {
+                  init: function() {
+                    this.element.title = "Save";
+                    this.element.innerText = "Save";
+                    this.element.addEventListener("click", function(event) {
                       manager.sync();
                     });
-                    element.addEventListener("mouseup", function(event) {
+                    this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();
                     });
                   },
-                  update: function(element, render) {
+                  update: function() {
                     // element.disabled = modifiedURIs.length === 0;
-                    element.disabled = manager.history.isEmpty("output");
+                    this.element.disabled = manager.history.hasChanges();
 
                   }
                 },
-                KarmaFields.includes.icon({
+                {
                   tag: "button",
                   class: "button footer-item",
-                  url: KarmaFields.icons_url+"/admin-generic.svg",
-                  init: function(element, render) {
-                    element.title = "Options";
-                    element.addEventListener("click", function(event) {
-                      manager.displayOptions = !manager.displayOptions;
+                  init: function(item) {
+                    this.element.title = "Options";
+                    // KarmaFields.getAsset(KarmaFields.icons_url+"/admin-generic.svg").then(function(result) {
+                    //   requestAnimationFrame(function() {
+                    //     item.element.innerHTML = result;
+                    //   });
+                    // });
+                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/admin-generic.svg");
+                    this.element.addEventListener("click", function(event) {
+                      var displayOptions = manager.history.read(["table", "displayOptions"]);
+                      manager.history.write(["table", "displayOptions"], !displayOptions);
                       manager.renderFooter();
+                      if (displayOptions) {
+                        item.element.blur();
+                      }
                     });
-                    element.addEventListener("mouseup", function(event) {
+                    this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();
                     });
                   },
-                  update: function(element) {
-                    element.classList.toggle("active", manager.displayOptions);
+                  update: function() {
+                    var displayOptions = manager.history.read(["table", "displayOptions"]);
+                    this.element.classList.toggle("active", displayOptions || false);
                   }
-                }),
-                KarmaFields.includes.icon({
+                },
+                {
                   tag: "button",
                   class: "button footer-item",
-                  url: KarmaFields.icons_url+"/undo.svg",
-                  init: function(element, render) {
-                    element.title = "Undo";
-                    element.addEventListener("click", function(event) {
+                  init: function(item) {
+                    this.element.title = "Undo";
+                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/undo.svg");
+                    // KarmaFields.getAsset(KarmaFields.icons_url+"/undo.svg").then(function(result) {
+                    //   requestAnimationFrame(function() {
+                    //     item.innerHTML = result;
+                    //   });
+                    // });
+                    this.element.addEventListener("click", function(event) {
                       manager.history.undo();
+                      manager.render();
                     });
-                    element.addEventListener("mouseup", function(event) {
+                    this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();
                     });
                   },
-                  update: function(element) {
-                    element.disabled = manager.history.index < 1;
+                  update: function() {
+                    this.element.disabled = !manager.history.hasUndo();
                   }
-                }),
-                KarmaFields.includes.icon({
+                },
+                {
                   tag: "button",
                   class: "button footer-item",
-                  url: KarmaFields.icons_url+"/redo.svg",
-                  init: function(element, render) {
-                    element.title = "Redo";
-                    element.addEventListener("click", function(event) {
+                  init: function(item) {
+                    this.element.title = "Redo";
+                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/redo.svg");
+                    // KarmaFields.getAsset(KarmaFields.icons_url+"/redo.svg").then(function(result) {
+                    //   requestAnimationFrame(function() {
+                    //     item.element.innerHTML = result;
+                    //   });
+                    // });
+                    this.element.addEventListener("click", function(event) {
                       manager.history.redo();
+                      manager.render();
                     });
-                    element.addEventListener("mouseup", function(event) {
+                    this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();
                     });
                   },
                   update: function(element) {
-                    element.disabled = manager.history.index >= manager.history.total;
+                    this.element.disabled = !manager.history.hasRedo();;
                   }
-                }),
-                KarmaFields.includes.icon({
+                },
+                {
                   tag: "button",
                   class: "button footer-item",
-                  url: KarmaFields.icons_url+"/plus-alt2.svg",
-                  init: function(element, render) {
-                    element.title = "Add";
-                    element.addEventListener("click", function(event) {
-                      window.scrollTo(0, document.body.scrollHeight);
+                  init: function(item) {
+                    this.element.title = "Add";
+                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/plus-alt2.svg");
+                    // KarmaFields.getAsset(KarmaFields.icons_url+"/plus-alt2.svg").then(function(result) {
+                    //   requestAnimationFrame(function() {
+                    //     item.element.innerHTML = result;
+                    //   });
+                    // });
+                    this.element.addEventListener("click", function(event) {
+                      // window.scrollTo(0, document.body.scrollHeight);
+                      window.scrollTo(0, 0);
                       manager.addItem();
                     });
-                    element.addEventListener("mouseup", function(event) {
+                    this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();
                     });
                   }
-                }),
-                KarmaFields.includes.icon({
+                },
+                {
                   tag: "button",
                   class: "button footer-item",
-                  url: KarmaFields.icons_url+"/trash.svg",
-                  init: function(element, update) {
-                    element.innerText = "Delete";
-                    element.addEventListener("click", function(event) {
+                  init: function(item) {
+                    this.element.title = "Delete";
+                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/trash.svg");
+                    // KarmaFields.getAsset(KarmaFields.icons_url+"/trash.svg").then(function(result) {
+                    //   requestAnimationFrame(function() {
+                    //     item.element.innerHTML = result;
+                    //   });
+                    // });
+                    this.element.addEventListener("click", function(event) {
+                      var selectedRows = manager.select.getSelectedRows();
                       manager.removeItems(selectedRows);
                     });
-                    element.addEventListener("mouseup", function(event) {
+                    this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();
                     });
                   },
                   update: function(element) {
-                    element.disabled = selectedRows.length === 0;
+                    var selectedRows = manager.select.getSelectedRows();
+                    this.element.disabled = selectedRows.length === 0;
                   }
-                })
+                }
               ]
             },
             KarmaFields.tables.pagination(manager)

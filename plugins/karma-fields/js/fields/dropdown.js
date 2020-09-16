@@ -1,28 +1,32 @@
 KarmaFields.fields.dropdown = function(field) {
-	var options = field.resource.options;
 	return {
 		tag: "select",
-		init: function(select, update, args) {
-			select.id = field.id;
-			select.addEventListener("change", function() {
-				field.setValue(select.value);
+		class: "dropdown",
+		init: function() {
+			this.element.addEventListener("change", function() {
+				field.setValue(this.value);
 			});
+		},
+		update: function(dropdown) {
 			field.fetchValue().then(function(value) { // -> maybe undefined
-				args.update = function(input) {
-					select.value = field.getValue();
-					field.fetchOptions().then(function(results) {
-						args.children = results.items.map(function(item) {
-							return {
-								tag: "option",
-								update: function(option) {
-									option.innerText = item.name;
-									option.value = item.key;
-									option.selected = select.value === item.key;
-								}
-							};
-						});
-					});
-				};
+				dropdown.element.value = value;
+			});
+			Promise.resolve(field.resource.options || field.fetchOptions()).then(function(results) {
+				// results.items.forEach(function(item) {
+				// 	select[item.key] = new Option(item.name, item.key);
+				// });
+				var value = field.getValue();
+				dropdown.children = results.items.map(function(item) {
+					return {
+						tag: "option",
+						update: function() {
+							this.element.textContent = item.name;
+							this.element.value = item.key;
+							this.element.selected = value === item.key;
+						}
+					};
+				});
+				dropdown.render();
 			});
 		}
 	};
