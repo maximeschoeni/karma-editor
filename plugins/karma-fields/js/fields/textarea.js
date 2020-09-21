@@ -2,7 +2,7 @@ KarmaFields.fields.textarea = function(field) {
 	return {
 		tag: "textarea",
 		init: function(input) {
-			input.id = field.id;
+			this.element.id = field.getId();
 
 			if (field.resource.readonly) {
 				this.element.readOnly = true;
@@ -12,10 +12,7 @@ KarmaFields.fields.textarea = function(field) {
 				});
 			}
 			field.fetchValue().then(function(value) { // -> maybe undefined
-				input.update = function() {
-					input.element.value = field.getValue() || "";
-					input.element.classList.toggle("modified", field.isModified());
-				}
+				input.element.value = value;
 			});
 
 			if (field.resource.width) {
@@ -24,6 +21,9 @@ KarmaFields.fields.textarea = function(field) {
 			if (field.resource.height) {
 				this.element.style.height = field.resource.height;
 			}
+		},
+		update: function() {
+			this.element.value = field.getValue() || "";
 		}
 	};
 }

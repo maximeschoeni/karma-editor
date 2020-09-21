@@ -170,7 +170,7 @@ Class Karma_Tables {
 			// wp_enqueue_script('karma-filter-search', $plugin_url . '/js/filters/search.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
 			// wp_enqueue_script('karma-filter-node', $plugin_url . '/js/filters/node.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-filter-dropdown', $plugin_url . '/js/filters/dropdown.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+			// wp_enqueue_script('karma-filter-dropdown', $plugin_url . '/js/filters/dropdown.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
 			// tables
 			wp_enqueue_script('karma-table-grid', $plugin_url . '/js/tables/grid.js', array('karma-fields-media', 'karma-build'), $this->version, true);
@@ -199,6 +199,8 @@ Class Karma_Tables {
 			// wp_enqueue_script('row-manager', $plugin_url . '/js/managers/row-manager.js', array('media-field', 'build'), $this->version, true);
 
 
+			// extra
+			wp_enqueue_script('karma-field-arsenic', $plugin_url . '/js/fields/arsenic.js', array('karma-fields-media'), $this->version, true);
 
 
 			// compat
@@ -267,7 +269,8 @@ Class Karma_Tables {
 		));
 
 		// register_rest_route('karma-fields/v1', '/get/(?P<driver>[a-z0-9_-]+)/(?P<path>[a-z0-9_-]+)?', array(
-		register_rest_route('karma-fields/v1', '/get/(?P<driver>[^/]+)(?P<path>/.+)?/(?P<key>.+)', array(
+		// register_rest_route('karma-fields/v1', '/get/(?P<driver>[^/]+)(?P<path>/.+)?/(?P<key>.+)', array(
+		register_rest_route('karma-fields/v1', '/get/(?P<driver>[^/]+)/(?P<path>[^/]+)/(?P<key>.+)', array(
 			'methods' => 'GET',
 			'callback' => array($this, 'rest_get')
 			// 'args' => array(
@@ -277,17 +280,17 @@ Class Karma_Tables {
 	    // )
 		));
 
-		register_rest_route('karma-fields/v1', '/update/(?P<driver>[a-z0-9_-]+)/?', array(
+		register_rest_route('karma-fields/v1', '/update/', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_update'),
 			'args' => array(
-				'driver' => array(
-					'required' => true
-				),
+				// 'driver' => array(
+				// 	'required' => true
+				// ),
 				// 'key' => array(
 				// 	'required' => true
 				// ),
-				'fields' => array(
+				'drivers' => array(
 					'required' => true
 				)
 				// 'page' => array(
@@ -487,98 +490,63 @@ Class Karma_Tables {
 	 */
 	public function rest_update($request) {
 
-		// $middleware_name = $request->get_param('middleware');
-		$driver_name = $request->get_param('driver');
-		$fields = $request->get_param('fields');
-		// $key = $request->get_param('key');
+		// $driver_name = $request->get_param('driver');
+		$fields = $request->get_param('drivers');
 
-		// $middleware = $this->get_middleware($middleware_name);
-		//
-		//
-		//
-		// $driver = $middleware->get_driver($key);
+		$output = array();
 
-		// $driver = $this->get_key_driver($middleware_name, $key);
+		foreach ($fields as $driver_name => $data) {
 
-		$driver = $this->get_driver($driver_name);
+			$driver = $this->get_driver($driver_name);
 
-		// foreach ($fields as $uri => $item) {
-		//
-			// if (isset($item['action']) && $item['action'] === 'add') {
-			//
-			// 	if (method_exists($driver, 'add')) {
-			//
-			// 		$driver->add($item, $uri, $method, $request, $this);
-			//
-			// 	} else {
-			//
-			// 		return "karma fields error: driver has no method 'add'";
-			//
-			// 	}
-			//
-			// } else if (isset($item['action']) && $item['action'] === 'remove') {
-			//
-			// 	if (method_exists($driver, 'remove')) {
-			//
-			// 		$driver->remove($uri, $method, $request, $this);
-			//
-			// 	} else {
-			//
-			// 		return "karma fields error: driver has no method 'remove'";
-			//
-			// 	}
-			//
-			// } else if (method_exists($driver, 'update')) {
-			//
-			// 	if (method_exists($driver, 'update')) {
-			//
-			// 		$driver->update($item, $uri, $method, $request, $this);
-			//
-			// 	} else {
-			//
-			// 		return "karma fields error: driver has no method 'update'";
-			//
-			// 	}
-			//
-			// }
+			if (method_exists($driver, 'update')) {
 
-		if (method_exists($driver, 'update')) {
+				foreach ($data as $uri => $item) {
 
-			foreach ($fields as $uri => $item) {
+					$driver->update($item, $uri, $output, $request, $this);
 
-				$driver->update($item, $uri, $request, $this);
+				}
+
+			} else {
+
+				return "karma fields error: driver ($driver_name) has no method 'update'";
 
 			}
 
-		} else {
-
-			return "karma fields error: driver has no method 'update'";
-
 		}
 
+		return $output;
+
+
+		// if (method_exists($driver, 'update')) {
+		//
+		// 	$output = array();
+		//
+		// 	foreach ($fields as $uri => $item) {
+		//
+		// 		$driver->update($item, $uri, $output, $request, $this);
+		//
+		// 	}
+		//
+		// } else {
+		//
+		// 	return "karma fields error: driver has no method 'update'";
+		//
 		// }
 
-		if (method_exists($driver, 'query')) {
 
-			return $driver->query($request, $this);
-
-		} else {
-
-			return "karma fields error: driver has no method 'query'";
-
-		}
-
-
-
-
-		// $args = $this->parse_args($request, $middleware);
+		// if (method_exists($driver, 'query')) {
 		//
-		// return $middleware->query($args);
+		// 	return $driver->query($request, $this);
+		//
+		// } else {
+		//
+		// 	return "karma fields error: driver has no method 'query'";
+		//
+		// }
 
-		// return array(
-		// 	'query' => $middleware->query($args),
-		// 	'delta' => $delta
-		// );
+
+
 
 	}
 
@@ -594,7 +562,7 @@ Class Karma_Tables {
 
 		if (method_exists($driver, 'add')) {
 
-			$driver->add($fields, $request, $this);
+			return $driver->add($fields, $request, $this);
 
 		} else {
 
@@ -602,15 +570,15 @@ Class Karma_Tables {
 
 		}
 
-		if (method_exists($driver, 'query')) {
-
-			return $driver->query($request, $this);
-
-		} else {
-
-			return "karma fields error: driver has no method 'query'";
-
-		}
+		// if (method_exists($driver, 'query')) {
+		//
+		// 	return $driver->query($request, $this);
+		//
+		// } else {
+		//
+		// 	return "karma fields error: driver has no method 'query'";
+		//
+		// }
 
 	}
 
@@ -1044,6 +1012,7 @@ Class Karma_Tables {
 			require_once $this->drivers[$driver_name]['path'];
 
 			$driver = new $this->drivers[$driver_name]['class'];
+			$driver->name = $driver_name;
 
 			return $driver;
 

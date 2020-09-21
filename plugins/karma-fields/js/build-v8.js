@@ -1,6 +1,7 @@
  /**
   * build (V8)
   */
+KarmaFields.buildCounter = 0;
 KarmaFields.build = function(args, parentElement, parentItem, index) {
  	if (args) {
  		var item = parentItem && parentItem.childrenItems[index || 0] || {};
@@ -29,10 +30,16 @@ KarmaFields.build = function(args, parentElement, parentItem, index) {
  				parentElement.appendChild(newElement);
  			}
  			item.element = newElement;
+      item.path = (parentItem && parentItem.path || "/")+"/"+tag;
  			item.state = state;
  			item.childrenItems = {};
  			item.length = 0;
  			item.render = function() {
+
+        // KarmaFields.buildCounter++
+        // var timerId = item.path+"-"+KarmaFields.buildCounter;
+        // console.time(timerId);
+
  				var children = [];
  				if (item.child) {
  					children = [item.child];
@@ -44,6 +51,9 @@ KarmaFields.build = function(args, parentElement, parentItem, index) {
  					item.childrenItems[i] = KarmaFields.build(children[i], newElement, item, i);
  				}
  				item.length = Math.min(item.length, children.length);
+
+        // console.timeEnd(timerId);
+
  			}
 			item.data = {};
  			if (item.init) {
@@ -51,7 +61,10 @@ KarmaFields.build = function(args, parentElement, parentItem, index) {
  			}
  		}
  		if (item.update) {
+      // var timerId = item.path;
+      // console.time(timerId);
  			item.update(item);
+      // console.timeEnd(timerId);
  		}
  		if (item.render) {
  			item.render();

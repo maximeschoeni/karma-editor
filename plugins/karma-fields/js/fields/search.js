@@ -2,10 +2,11 @@ KarmaFields.fields.search = function(fieldManager) {
 	return {
 		class: "search-form",
 		init: function(container) {
-			var suggestions = [];
-			var value;
+			container.data.suggestions = [];
+			// var value;
 			this.element.addEventListener("focusout", function() {
-				suggestions = [];
+				// container.data.suggestions = [];
+				fieldManager.history.write("static", ["searchsuggestions", fieldManager.resource.key], undefined);
 				container.render();
 			});
 			this.element.addEventListener("focusin", function() {
@@ -20,7 +21,8 @@ KarmaFields.fields.search = function(fieldManager) {
 						this.element.placeholder = fieldManager.resource.title || "Search";
 						this.element.addEventListener("search", function() {
 							fieldManager.setValue(this.value);
-							suggestions = [];
+							// fieldManager.history.write("static", ["searchsuggestions", fieldManager.resource.key], undefined);
+							container.data.suggestions = [];
 							// fieldManager.tableManager.request();
 						});
 						this.element.addEventListener("input", function(event) {
@@ -28,9 +30,13 @@ KarmaFields.fields.search = function(fieldManager) {
 								fieldManager.fetchOptions({
 									search: this.value
 								}).then(function(results) {
-									suggestions = results.items || [];
+									container.data.suggestions = results.items || [];
+									// fieldManager.history.write("static", ["searchsuggestions", fieldManager.resource.key], results.items || undefined);
 									container.render();
 								});
+							} else if (this.value === "") {
+								container.data.suggestions = [];
+								fieldManager.setValue("");
 							}
 						});
 						if (fieldManager.resource.style) {
@@ -38,9 +44,10 @@ KarmaFields.fields.search = function(fieldManager) {
 						}
 					},
 					update: function() {
-						if (value) {
-							this.element.value = value;
-							value = null;
+						// var value = fieldManager.getValue();
+						if (container.data.value) {
+							this.element.value = container.data.value;
+							container.data.value = null;
 						}
 					}
 				},
@@ -50,17 +57,18 @@ KarmaFields.fields.search = function(fieldManager) {
 
 					},
 					update: function() {
-						this.children = suggestions.map(function(word) {
+						// container.data.suggestions = fieldManager.history.read("static", ["searchsuggestions", fieldManager.resource.key]) || [];
+						this.children = container.data.suggestions.map(function(word, index) {
 							return {
 								tag: "li",
-								init: function() {
+								init: function(item) {
 									this.element.addEventListener("mousedown", function(event) {
 										event.preventDefault();
 									});
 									this.element.addEventListener("click", function(event) {
-										fieldManager.setValue(word);
-										value = word;
-										suggestions = [];
+										fieldManager.setValue(this.innerHTML);
+										container.data.suggestions = [];
+										container.data.value = this.innerHTML;
 										container.render();
 									});
 								},
@@ -69,7 +77,7 @@ KarmaFields.fields.search = function(fieldManager) {
 								}
 							}
 						});
-						this.element.style.display = suggestions.length ? "block" : "none";
+						this.element.style.display = container.data.suggestions.length ? "block" : "none";
 					}
 				}
 			];

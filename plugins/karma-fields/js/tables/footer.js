@@ -18,19 +18,41 @@ KarmaFields.tables.footer = function(manager) {
         {
           class: "table-options-container",
           update: function(element) {
-            var displayOptions = manager.history.read(["table", "displayOptions"]);
+            var displayOptions = manager.history.read("static", ["displayOptions"]);
 
             this.child = displayOptions && {
               class: "table-options-body",
               init: function() {
                 // manager.renderOptions = render; // trigerred when history changes
-                var field = KarmaFields.managers.field(manager.resource.options, {
-                  inputBuffer: "options",
-                  outputBuffer: "options",
-                  history: manager.history,
-                  tableManager: manager
-                });
-                this.children = field.build();
+
+                if (manager.resource.options) {
+                  var field = KarmaFields.managers.field();
+                  field.resource = manager.resource.options;
+                  // field.input = ["options"];
+                  // field.output = ["options"];
+                  field.buffer = "inner";
+                  field.path = "options";
+                  // field.id = "karma-table-options";
+                  field.history = manager.history;
+                  field.onSubmit = function() {
+                    manager.request();
+                  }
+
+                  // manager.resource.options, {
+                  //   inputBuffer: "options",
+                  //   outputBuffer: "options",
+                  //   history: manager.history,
+                  //   tableManager: manager
+                  // });
+                  this.children = field.build();
+                }
+                // var field = KarmaFields.managers.field(manager.resource.options, {
+                //   inputBuffer: "options",
+                //   outputBuffer: "options",
+                //   history: manager.history,
+                //   tableManager: manager
+                // });
+                // this.children = field.build();
               }
             };
 
@@ -119,7 +141,7 @@ KarmaFields.tables.footer = function(manager) {
                     this.child = {
                       class: "table-spinner",
                       update: function() {
-                        var loading = manager.history.read(["table", "loading"]);
+                        var loading = manager.history.read("static", ["loading"]);
                         this.element.classList.toggle("loading", loading);
                       },
                       child: KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg")
@@ -134,7 +156,7 @@ KarmaFields.tables.footer = function(manager) {
                     });
                   },
                   update: function() {
-                    var loading = manager.history.read(["table", "loading"]);
+                    var loading = manager.history.read("table", ["loading"]);
                     // this.element.classList.toggle("active", loading);
                   }
                 },
@@ -152,9 +174,7 @@ KarmaFields.tables.footer = function(manager) {
                     });
                   },
                   update: function() {
-                    // element.disabled = modifiedURIs.length === 0;
-                    this.element.disabled = manager.history.hasChanges();
-
+                    this.element.disabled = !manager.history.diff(["output"], ["input"]);
                   }
                 },
                 {
@@ -169,8 +189,8 @@ KarmaFields.tables.footer = function(manager) {
                     // });
                     this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/admin-generic.svg");
                     this.element.addEventListener("click", function(event) {
-                      var displayOptions = manager.history.read(["table", "displayOptions"]);
-                      manager.history.write(["table", "displayOptions"], !displayOptions);
+                      var displayOptions = manager.history.read("static", ["displayOptions"]);
+                      manager.history.write("static", ["displayOptions"], !displayOptions);
                       manager.renderFooter();
                       if (displayOptions) {
                         item.element.blur();
@@ -181,7 +201,7 @@ KarmaFields.tables.footer = function(manager) {
                     });
                   },
                   update: function() {
-                    var displayOptions = manager.history.read(["table", "displayOptions"]);
+                    var displayOptions = manager.history.read("static", ["displayOptions"]);
                     this.element.classList.toggle("active", displayOptions || false);
                   }
                 },
@@ -244,7 +264,7 @@ KarmaFields.tables.footer = function(manager) {
                     // });
                     this.element.addEventListener("click", function(event) {
                       // window.scrollTo(0, document.body.scrollHeight);
-                      window.scrollTo(0, 0);
+                      // window.scrollTo(0, 0);
                       manager.addItem();
                     });
                     this.element.addEventListener("mouseup", function(event) {
@@ -264,8 +284,12 @@ KarmaFields.tables.footer = function(manager) {
                     //   });
                     // });
                     this.element.addEventListener("click", function(event) {
-                      var selectedRows = manager.select.getSelectedRows();
-                      manager.removeItems(selectedRows);
+                      var uris = manager.select.getSelectedRows().map(function(cell) {
+                        return cell.field.path;
+                      });
+                      if (uris) {
+                        manager.removeItems(uris);
+                      }
                     });
                     this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();

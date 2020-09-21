@@ -15,15 +15,35 @@ KarmaFields.tables.grid = function(manager) {
         class: "table-header",
         init: function() {
           manager.renderHeader = this.render;
-          this.children = manager.resource.filter && KarmaFields.managers.field(manager.resource.filter, {
-            inputBuffer: "filters",
-            outputBuffer: "filters",
-            history: manager.history,
-            tableManager: manager,
-            onSetValue: function() {
+          if (manager.resource.filter) {
+            var filter = KarmaFields.managers.field();
+            filter.resource = manager.resource.filter;
+            // filter.input = "filters";
+            // filter.output = "filters";
+            filter.buffer = manager.resource.filter.buffer || "inner";
+            filter.path = "filters";
+            filter.history = manager.history;
+            // filter.id = "karma-table-filters";
+            filter.onSetValue = function() {
               manager.request();
-            }
-          }).build()
+            };
+            filter.onSubmit = function() {
+              manager.render();
+            };
+            filter.onRequestFooterUpdate = function() {
+              manager.renderFooter();
+            };
+            this.children = filter.build();
+          }
+          // this.children = manager.resource.filter && KarmaFields.managers.field(manager.resource.filter, {
+          //   inputBuffer: "filters",
+          //   outputBuffer: "filters",
+          //   history: manager.history,
+          //   tableManager: manager,
+          //   onSetValue: function() {
+          //     manager.request();
+          //   }
+          // }).build()
         }
       },
       {
@@ -53,8 +73,8 @@ KarmaFields.tables.grid = function(manager) {
               child: {
                 tag: "tr",
                 update: function() {
-                  var orderby = manager.history.read(["options", "orderby"]);
-                  var order = manager.history.read(["options", "order"]);
+                  var orderby = manager.history.read("inner", ["options", "orderby"]);
+                  var order = manager.history.read("inner", ["options", "order"]);
                   this.children = manager.resource.children.filter(function(column) {
                     return true;
                     // return manager.options.gridoptions.columns[column.key];
@@ -79,9 +99,19 @@ KarmaFields.tables.grid = function(manager) {
                         if (column.width) {
                           this.element.style.width = column.width;
                         }
+                        this.element.addEventListener("mousedown", function(event) {
+                    			manager.select.onHeaderMouseDown(colIndex);
+                    		});
+                    		this.element.addEventListener("mousemove", function(event) {
+                    			manager.select.onHeaderMouseMove(colIndex);
+                    		});
+                    		this.element.addEventListener("mouseup", function(event) {
+                    			manager.select.onHeaderMouseUp(colIndex);
+                    			event.stopPropagation();
+                    		});
                       },
                       update: function() {
-                        manager.select.addCol(this.element, colIndex);
+                        // manager.select.addCol(this.element, colIndex);
                       },
                       child: {
                         class: "header-cell",
@@ -125,9 +155,19 @@ KarmaFields.tables.grid = function(manager) {
                         if (manager.resource.index.width) {
                           this.element.style.width = manager.resource.index.width;
                         }
+                        this.element.addEventListener("mousedown", function(event) {
+                    			manager.select.onIndexHeaderMouseDown();
+                    		});
+                    		this.element.addEventListener("mousemove", function(event) {
+                    			manager.select.onIndexHeaderMouseMove();
+                    		});
+                    		this.element.addEventListener("mouseup", function(event) {
+                    			manager.select.onIndexHeaderMouseUp();
+                    			event.stopPropagation();
+                    		});
                       },
                       update: function() {
-                        manager.select.addIndexHeader(this.element);
+                        // manager.select.addIndexHeader(this.element);
                       }
                     });
                   }
@@ -137,17 +177,37 @@ KarmaFields.tables.grid = function(manager) {
             {
               tag: "tbody",
               update: function() {
-                var uris = manager.history.read(["table", "items"]);
+                var uris = manager.history.read("inner", ["table", "items"]);
+
+
 
                 this.children = uris && uris.filter(function(uri) {
-                  return !manager.history.read(["output", uri, "trash"]);
+                  // var trash = manager.history.read(["output", uri, "trash"]);
+                  // console.log(trash, !trash);
+                  // return !trash;
+                  return uri;
                 }).map(function(uri, rowIndex) {
                   return {
                     tag: "tr",
+                    init: function() {
+                      // this.data.trashManager = KarmaFields.managers.field();
+                      // // this.data.trashManager.path = uri;
+                      // this.data.trashManager.resource = {
+                      //   key: "trash"
+                      // };
+                      // this.data.trashManager.incrementHistory = true;
+                      // this.data.trashManager.input = "input";
+                      // this.data.trashManager.output = "output";
+                      // this.data.trashManager.history = manager.history;
+                      // this.data.trashManager.onSetValue = function() {
+                      //   manager.renderFooter();
+                      // }
+                    },
 
+                    update: function(row) {
+                      // row.data.trashManager.path = uri;
 
-                    update: function() {
-                      manager.select.addRow(uri, rowIndex); // really needed?
+                      // manager.select.addField("trash", rowIndex, null, row.data.trashManager);
 
                       this.children = manager.resource.children.filter(function(column) {
                         return true;
@@ -156,35 +216,109 @@ KarmaFields.tables.grid = function(manager) {
                         return {
                           tag: "td",
                           // id: column.key || column.name,
-                          init: function() {
+                          init: function(cell) {
                             // var fieldManager = KarmaFields.managers.field(column, "output", [uri], [column.key], manager.history, manager.selection, null);
 
+                            this.data.fieldManager = KarmaFields.managers.field();
+                            // column, {
+                            //   // ...column,
+                            //   path: uri,
+                            //   inputBuffer: "input",
+                            //   outputBuffer: "output",
+                            //   history: manager.history,
+                            //   selection: manager.selection,
+                            //   tableManager: manager,
+                            //   onSetValue: function() {
+                            //     // requestAnimationFrame(function() {
+                            //     //   manager.renderFooter();
+                            //     // });
+                            //
+                            //     // console.log(manager.history.input, manager.history.output);
+                            //
+                            //     cell.element.classList.toggle("modified", cell.data.fieldManager.isModified());
+                            //     manager.renderFooter();
+                            //   }
+                            // });
+                            this.data.fieldManager.history = manager.history;
+                            this.data.fieldManager.selection = manager.selection;
+                            this.data.fieldManager.buffer = column.buffer || "output";
+                            // this.data.fieldManager.inputBuffer = "input";
+                            this.data.fieldManager.onSetValue = function() {
+                              cell.element.classList.toggle("modified", this.isModified());
+                              manager.renderFooter();
+                            }
+
+                            this.child = KarmaFields.fields[column.field](cell.data.fieldManager);
+
+                            this.element.addEventListener("mousedown", function(event) {
+                              manager.select.onCellMouseDown(colIndex, rowIndex);
+                            });
+                            this.element.addEventListener("mousemove", function() {
+                              manager.select.onCellMouseMove(colIndex, rowIndex);
+                            });
+                            this.element.addEventListener("mouseup", function(event) {
+                              manager.select.onCellMouseUp(colIndex, rowIndex);
+                              event.stopPropagation();
+                            });
                           },
                           update: function(cell) {
-                            var fieldManager = KarmaFields.managers.field(column, {
-                              path: uri,
-                              inputBuffer: "input",
-                              outputBuffer: "output",
-                              history: manager.history,
-                              selection: manager.selection,
-                              tableManager: manager,
-                              onSetValue: function() {
-                                // requestAnimationFrame(function() {
-                                //   manager.renderFooter();
-                                // });
 
-                                // console.log(manager.history.input, manager.history.output);
+                            this.data.fieldManager.resource = column;
 
-                                cell.element.classList.toggle("modified", fieldManager.isModified());
-                                manager.renderFooter();
-                              }
-                            });
+                      			// this.data.fieldManager.input = "input"; //[].concat(args.inputBuffer || [], args.path || [], resource.key || [], manager.subKeys);
+                      			// this.data.fieldManager.output = "output"; //[].concat(args.outputBuffer || [], args.path || [], resource.key || [], manager.subKeys);
+                      			// this.data.fieldManager.id = [uri.split("/"), uri, column.key].join("-");
+                      			this.data.fieldManager.path = uri;
 
-                            this.child = KarmaFields.fields[column.field](fieldManager);
 
-                            manager.select.addField(this.element, uri, column.key, fieldManager, this.render, colIndex, rowIndex);
 
-                            cell.element.classList.toggle("modified", fieldManager.isModified());
+                            // cell.data.fieldManager = KarmaFields.managers.field(column, {
+                            //   // ...column,
+                            //   path: uri,
+                            //   inputBuffer: "input",
+                            //   outputBuffer: "output",
+                            //   history: manager.history,
+                            //   selection: manager.selection,
+                            //   tableManager: manager,
+                            //   onSetValue: function() {
+                            //     // requestAnimationFrame(function() {
+                            //     //   manager.renderFooter();
+                            //     // });
+                            //
+                            //     // console.log(manager.history.input, manager.history.output);
+                            //
+                            //     cell.element.classList.toggle("modified", cell.data.fieldManager.isModified());
+                            //     manager.renderFooter();
+                            //   }
+                            // });
+
+
+                            // var fieldManager = KarmaFields.managers.field(column, {
+                            //   // ...column,
+                            //   path: uri,
+                            //   inputBuffer: "input",
+                            //   outputBuffer: "output",
+                            //   history: manager.history,
+                            //   selection: manager.selection,
+                            //   tableManager: manager,
+                            //   onSetValue: function() {
+                            //     // requestAnimationFrame(function() {
+                            //     //   manager.renderFooter();
+                            //     // });
+                            //
+                            //     // console.log(manager.history.input, manager.history.output);
+                            //
+                            //     cell.element.classList.toggle("modified", fieldManager.isModified());
+                            //     manager.renderFooter();
+                            //   }
+                            // });
+
+
+
+                            // manager.select.addField(this.element, uri, column.key, fieldManager, this.render, colIndex, rowIndex);
+                            manager.select.addField(colIndex, rowIndex, this.element, this.data.fieldManager);
+
+                            cell.element.classList.toggle("modified", this.data.fieldManager.isModified());
 
 
 

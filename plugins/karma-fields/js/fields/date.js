@@ -129,7 +129,7 @@ KarmaFields.fields.date = function(field) {
             init: function(input) {
               // field.input = input;
               this.element.type = "text";
-              this.element.id = field.id;
+              this.element.id = field.getId();
 
               if (field.resource.readonly) {
                 this.element.readOnly = true;

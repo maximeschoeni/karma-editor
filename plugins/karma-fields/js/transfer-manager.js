@@ -9,6 +9,15 @@ KarmaFields.Transfer.serialize = function(object) {
 	}
 	return params.join("&");
 }
+KarmaFields.Transfer.clean = function(object) {
+	var params = {};
+	for (var key in object) {
+		if (object[key]) {
+			params[key] = object[key];
+		}
+	}
+	return params;
+}
 KarmaFields.Transfer.query = function(driver, params) {
 	var file = KarmaFields.restURL+"/query/"+driver;
 	var serial = this.serialize(params);
@@ -22,7 +31,8 @@ KarmaFields.Transfer.query = function(driver, params) {
 	});
 };
 KarmaFields.Transfer.update = function(driver, params) {
-	var file = KarmaFields.restURL+"/update/"+driver
+	var file = KarmaFields.restURL+"/update/"; //+driver
+	var params = this.clean(params);
 	return fetch(file, {
 		method: "post",
 		headers: {"Content-Type": "application/json"},
@@ -50,18 +60,28 @@ KarmaFields.Transfer.get = function(driver, path, key, cache) {
 	} else {
 		file = [KarmaFields.restURL, "get", driver, path || [], key].join("/");
 	}
-	if (!this.cache[file]) {
-		this.cache[file] = fetch(file, {
-			cache: "reload"
-		}).then(function(response) {
-			if (!cache || cache.slice(-5) === ".json") {
-				return response.json();
-			} else {
-				return response.text();
-			}
-		});
-		return this.cache[file];
-	}
+	return fetch(file, {
+		cache: "reload"
+	}).then(function(response) {
+		if (!cache || cache.slice(-5) === ".json") {
+			return response.json();
+		} else {
+			return response.text();
+		}
+	});
+
+	// if (!this.cache[file]) {
+	// 	this.cache[file] = fetch(file, {
+	// 		cache: "reload"
+	// 	}).then(function(response) {
+	// 		if (!cache || cache.slice(-5) === ".json") {
+	// 			return response.json();
+	// 		} else {
+	// 			return response.text();
+	// 		}
+	// 	});
+	// 	return this.cache[file];
+	// }
 };
 KarmaFields.Transfer.fetch = function(driver, key, params) {
 	var file = [].concat(KarmaFields.restURL, "fetch", driver, key).join("/");

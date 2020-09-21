@@ -3,13 +3,14 @@ KarmaFields.fields.dropdown = function(field) {
 		tag: "select",
 		class: "dropdown",
 		init: function() {
+			this.element.id = field.getId();
 			this.element.addEventListener("change", function() {
 				field.setValue(this.value);
 			});
 		},
 		update: function(dropdown) {
 			field.fetchValue().then(function(value) { // -> maybe undefined
-				dropdown.element.value = value;
+				dropdown.element.value = value || "";
 			});
 			Promise.resolve(field.resource.options || field.fetchOptions()).then(function(results) {
 				// results.items.forEach(function(item) {

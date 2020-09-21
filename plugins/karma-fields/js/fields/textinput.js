@@ -2,17 +2,23 @@ KarmaFields.fields.textinput = function(field) {
 	return {
 		tag: "input",
 		class: "text",
-		init: function() {
+		init: function(input) {
 			this.element.type = field.resource.type || "text";
-			this.element.id = field.id;
+			this.element.id = field.getId();
 			if (field.resource.readonly) {
 				this.element.readOnly = true;
 			} else {
 				this.element.addEventListener("input", function(event) {
-					var value = this.value;
-					requestAnimationFrame(function() {
-						field.setValue(value);
-					});
+					// var value = this.value;
+					// requestAnimationFrame(function() {
+					// 	field.setValue(value);
+					// });
+					field.setValue(this.value);
+				});
+				this.element.addEventListener("keyup", function(event) {
+					if (event.key === "enter" && field.onSubmit) {
+						field.onSubmit();
+					}
 				});
 			}
 			if (field.resource.width) {
@@ -21,15 +27,46 @@ KarmaFields.fields.textinput = function(field) {
 			if (field.resource.style) {
 				this.element.style = field.resource.style;
 			}
+			// field.fetchValue().then(function(value) { // -> maybe undefined
+			// 	var isModified = field.isModified();
+			// 	input.element.value = value || "";
+			// 	input.element.classList.toggle("modified", isModified);
+			// });
 		},
 		update: function(input) {
+
+			// var timerId = field.args.path +"/" +field.resource.key;
+			// console.time(timerId);
+
+			// var value = field.getValue();
+			// var isModified = field.isModified();
+			//
+			// input.element.value = value || "";
+			// input.element.classList.toggle("modified", isModified);
+
+			// console.timeEnd(timerId);
+
 			field.fetchValue().then(function(value) { // -> maybe undefined
 
 				// console.log(field.resource.key, field.args.path, value, field.getValue());
 
-				input.element.value = value || "";
-				input.element.classList.toggle("modified", field.isModified());
+
+				// requestAnimationFrame(function() {
+					var isModified = field.isModified();
+
+
+
+					input.element.value = value || "";
+					input.element.classList.toggle("modified", isModified);
+				// });
+
+
+
+
+
 			});
+
+
 		}
 	};
 }
