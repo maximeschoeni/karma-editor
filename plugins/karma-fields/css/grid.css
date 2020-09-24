@@ -356,6 +356,37 @@
 }
 
 
+.karma-fields table.grid td {
+  /* background-image: url(http://localhost:8888/arsenic/wp-content/plugins/karma-editor/plugins/karma-fields/dashicons/admin-users.svg);
+  background-repeat: no-repeat;
+  background-position: top 5px right 5px;
+  background-size: 0;
+  transition: background-size 300ms ease-in-out; */
+  /* animation: animatedBackgroundOut 3s linear 1 backwards; */
+}
+.karma-fields table.grid td.test {
+  /* background-size: 15px; */
+}
+
+
+/* @keyframes animatedBackgroundOut {
+  from {
+    background-size: 35px;
+  }
+  to {
+    background-size: 0;
+  }
+}
+@keyframes animatedBackgroundIn {
+  from {
+    background-size: 35px;
+  }
+  to {
+    background-size: 0;
+  }
+} */
+
+
 /* Grid Text Input
 --------------------------------------*/
 
@@ -679,7 +710,7 @@ td.modified .on-off svg path {
 --------------------------------------*/
 
 .karma-fields .button {
-  color: #f3f5f6;
+  color: #f1f1f1;
   /* border-color: #f3f5f6; */
   border: none;
   background-color: #535c63;;
@@ -690,10 +721,34 @@ td.modified .on-off svg path {
   font-weight: bold;
   font-size: 14px;
   position: relative;
-
-
   /* box-shadow: inset 1px 3px 8px #f1f1f126; */
 }
+.karma-fields .table-footer .button:hover,
+.karma-fields .table-footer .button:focus,
+.karma-fields .table-footer .button.active {
+  box-shadow: none;
+  outline: none;
+  border: none;
+}
+.karma-fields .table-footer .button:focus {
+  color: #f1f1f1;
+  background-color: #535c63;
+}
+.karma-fields .table-footer .button:hover,
+.karma-fields .table-footer .button.active {
+  color: #535c63;
+  background-color: #f1f1f1;
+}
+
+
+.karma-fields .table-footer .button[disabled] {
+  color: #535c63 !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
 .karma-fields .table-footer .karma-icon {
   display: flex;
   align-items: center;
@@ -712,22 +767,23 @@ td.modified .on-off svg path {
   height: 21px;
 }
 .karma-fields .table-footer .karma-icon svg path {
-  fill: #f3f5f6;
+  fill: #f1f1f1;
+}
+
+.karma-fields .table-footer button:focus .karma-icon svg path {
+  fill: #f1f1f1;
 }
 .karma-fields .table-footer button:hover .karma-icon svg path {
   fill: #535c63;
 }
-.karma-fields .table-footer button:focus .karma-icon svg path {
-  fill: #25282d;
-}
 .karma-fields .table-footer button.primary:enabled .karma-icon svg path {
-  fill: #25282d;
+  fill: #535c63;
 }
 .karma-fields .table-footer button.active .karma-icon svg path {
-  fill: #25282d;
+  fill: #535c63;
 }
 .karma-fields .table-footer button.primary:enabled:hover .karma-icon svg path {
-  fill: #f3f5f6;
+  fill: #f1f1f1;
 }
 .karma-fields .table-footer button.active:hover .karma-icon svg path {
   /* fill: #f3f5f6; */
@@ -769,14 +825,7 @@ td.modified .on-off svg path {
 
 
 
-.karma-fields .table-footer .button:hover,
-.karma-fields .table-footer .button:focus,
-.karma-fields .table-footer .button.active {
-  color: #25282d;
-  border-color: #f3f5f6;
-  box-shadow: inset 1px 3px 8px #25282d26;
-  outline: none;
-}
+
 .karma-fields .table-footer .button.active:hover {
   /* color: #f3f5f6;
   background: #25282d;
@@ -789,13 +838,7 @@ td.modified .on-off svg path {
   outline: none;
   box-shadow: none;
 } */
-.karma-fields .table-footer .button[disabled] {
-  color: #5f6469 !important;
-  border-color: #5f6469 !important;
-  background-color: #25282d!important;
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
+
 .karma-fields .table-footer button[disabled] svg path {
   fill: #5f6469;
 }

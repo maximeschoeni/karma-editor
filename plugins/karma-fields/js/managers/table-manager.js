@@ -1,6 +1,6 @@
-KarmaFields.managers.table = function(resource) {
+KarmaFields.managers.table = function(resource, history) {
 	// var history = KarmaFields.managers.history(resource.driver || resource.middleware);
-	var history = KarmaFields.History.createInstance();
+
 
 	var manager = {
 		resource: resource,
@@ -90,9 +90,10 @@ KarmaFields.managers.table = function(resource) {
 				var options = history.read("inner", ["options"]);
 				var filters = history.read("inner", [resource.driver, "filters"]);
 
-
 				KarmaFields.Object.merge(params, filters);
 				KarmaFields.Object.merge(params, options);
+
+
 
 				history.write("static", ["loading"], 1);
 
@@ -102,16 +103,20 @@ KarmaFields.managers.table = function(resource) {
 
 				return KarmaFields.Transfer.query(resource.driver, params).then(function(results) {
 
-					history.write("input", [resource.driver], results.items.reduce(function(obj, item) {
-						obj[item.uri] = item;
-						return obj;
-					}, {}));
+					// history.write("input", [resource.driver], results.items.reduce(function(obj, item) {
+					// 	obj[item.uri] = item;
+					// 	return obj;
+					// }, {}), undefined, true);
 
+
+
+					results.items.forEach(function(item) {
+						history.write("input", [resource.driver, item.uri], item);
+					});
 					history.write("inner", ["table", "items"], results.items.map(function(item) {
 						return item.uri;
 					}));
 					history.write("inner", ["table", "count"], parseInt(results.count));
-
 					history.write("static", ["loading"], 0);
 
 
@@ -263,7 +268,10 @@ KarmaFields.managers.table = function(resource) {
 			var output = history.read("output", []);
 
 			if (KarmaFields.Object.isEmpty(output)) {
-				console.error("Output is empty");
+				console.log(output);
+
+				console.warn("Output is empty");
+				return;
 			}
 			var params = {
 				drivers: output
@@ -291,10 +299,27 @@ KarmaFields.managers.table = function(resource) {
 
 				// history.write("output", [], undefined);
 				history.empty("output", []);
-				history.write("input", [], output);
-				if (results && !KarmaFields.Object.isEmpty(results)) {
-					history.write("input", [], results);
-				}
+				// history.write("input", [], output, undefined, true);
+
+				// console.log(output, {...results});
+
+				history.merge("input", [], output);
+				history.merge("input", [], {...results}); // results is maybe an empty array. Should be {driverName1: {uri1: {key1: value}}}
+
+
+
+
+				// KarmaFields.Object.merge(history.store.input, history.store.output);
+				// KarmaFields.Object.merge(history.store.input, results);
+
+				// results.items.forEach(function(item) {
+				// 	history.write("input", [resource.driver, item.uri], item);
+				// });
+
+
+				// if (results && !KarmaFields.Object.isEmpty(results)) {
+				// 	history.write("input", [], results, undefined, true);
+				// }
 
 
 				// history.write("input", [], results.items.reduce(function(obj, item) {
@@ -336,9 +361,9 @@ KarmaFields.managers.table = function(resource) {
 
 			KarmaFields.Transfer.add(resource.driver, params).then(function(result) {
 
-				history.write("input", [resource.driver, result.uri], result);
+				history.merge("input", [resource.driver, result.uri], result);
 
-				history.write("output", [resource.driver, result.uri, "trash"], "0");
+				history.write("output", [resource.driver, result.uri, "trash"], "0", result.uri);
 
 				var uris = history.read("inner", ["table", "items"]) || [];
 				var count = history.read("inner", ["table", "count"]) || 0;
@@ -411,34 +436,35 @@ KarmaFields.managers.table = function(resource) {
 		// },
 		removeItems: function(rows) {
 
-			history.write("output", [], rows.reduce(function(obj, item) {
-				obj[item] = {};
-				obj[item].trash = "1";
-				return obj;
-			}, {}))
+			var timestamp = Date.now();
+
+			// var deleteObjects = rows.reduce(function(obj, item) {
+			// 	obj[item] = {};
+			// 	obj[item].trash = "1";
+			// 	return obj;
+			// }, {});
+			//
+			// console.log(deleteObjects);
+
+			rows.forEach(function(uri) {
+				history.write("output", [resource.driver, uri, "trash"], "1", timestamp);
+			});
+
+			// history.write("output", [resource.driver], deleteObjects, timestamp, true);
+
+
 
 			var uris = history.read("inner", ["table", "items"]) || [];
 
 			history.write("inner", ["table", "items"], uris.filter(function(uri) {
 				return rows.indexOf(uri) === -1;
-			}));
+			}), timestamp);
+
+			// history.breakFlux();
 
 			this.render();
 
 
-
-			// rows.forEach(function(cell, index) {
-			// 	cell.field.setValue("1", index !== 0, true);
-			// });
-			// var uris = history.read(["table", "items"]);
-			// history.save(["table", "items"], uris, true);
-			// uris = uris.filter(function(uri) {
-			// 	return rows.every(function(cell) {
-			// 		return cell.field.path !== uri;
-			// 	});
-			// });
-			// history.write(["table", "items"], uris);
-			// this.render();
 
 		},
 		getDefaultFilters: function(resource, params) {
@@ -486,17 +512,17 @@ KarmaFields.managers.table = function(resource) {
 		// }
 
 		autoRefresh: function() {
-			// this.refreshTimer = setTimeout(function() {
-			// 	if (manager.onRefresh) {
-			// 		manager.onRefresh();
-			// 	}
-			// 	// manager.autoRefresh();
-			// }, this.autorefreshInterval || 5000);
+			this.refreshTimer = setTimeout(function() {
+				if (manager.onRefresh) {
+					manager.onRefresh();
+				}
+				manager.autoRefresh();
+			}, this.autorefreshInterval || 3000);
 		},
 		stopRefresh: function() {
-			// if (this.refreshTimer) {
-			// 	clearTimeout(this.refreshTimer);
-			// }
+			if (this.refreshTimer) {
+				clearTimeout(this.refreshTimer);
+			}
 		}
 		// ,
 		// resetRefresh: function() {
@@ -564,6 +590,9 @@ KarmaFields.managers.table = function(resource) {
 	// }
 	manager.history = history;
 
+
+	// manager.history.store.input = localStorage.getItem("input");
+
 	manager.select = KarmaFields.selectors.grid(manager);
 
 	// manager.optionsField = KarmaFields.managers.field(manager.resource.options, manager.options);
@@ -571,30 +600,90 @@ KarmaFields.managers.table = function(resource) {
 
 	if (resource.filter) {
 		var filters = manager.getDefaultFilters(resource.filter);
-		history.write("inner", ["filters"], filters);
+		history.merge("inner", ["filters"], filters, true);
 	}
-
-	history.write("inner", ["options"], {
-		page: 1,
-		ppp: 50
-	});
 
 	if (resource.options) {
 		var options = manager.getDefaultOptions(resource.options);
-		history.write("inner", ["options"], options);
+		history.merge("inner", ["options"], options, true);
 	}
 
+	history.merge("inner", ["options"], {
+		page: 1,
+		ppp: 50
+	}, true);
 
 
-	// autorefresh
-	// manager.onRefresh = function() {
-	// 	console.log("auto-refreshing...");
-	// 	manager.request(true).then(function() {
-	// 		console.log("auto refreshed");
-	//
-	// 		manager.autoRefresh();
-	// 	});
-	// }
+
+
+
+	manager.onRefresh = function() {
+		// KarmaFields.Transfer.queryJson(KarmaFields.user_edit).then(function(results) {
+		// 	var lastEdit = history.read("static", ["userEdit"]);
+		// 	if (KarmaFields.Object.diff(results, lastEdit)) {
+		// 		if (results && Array.isArray(results)) {
+		// 			results.forEach(function(path) {
+		// 				KarmaFields.Transfer.get(...path).then(function(value) {
+		// 					history.write("input", path, value);
+		// 					var cell = KarmaFields.Object.getValue(manager.fields, path);
+		// 					cell.render();
+		// 					cell.element.classList.add("test");
+		// 					setTimeout(function() {
+		// 						cell.element.classList.remove("test");
+		// 					}, 2000);
+		// 				});
+		// 			});
+		// 			history.write("static", ["userEdit"], results);
+		// 		}
+		// 	}
+		// });
+
+		// var save = KarmaFields.Object.clone({
+		// 	inner: history.store.inner,
+		// 	output: history.store.output,
+		// 	undos: history.undos,
+		// 	redos: history.redos,
+		// 	temp: history.temp
+		// });
+
+
+		// console.log(history.store.output);
+
+
+		KarmaFields.Transfer.autoSave({
+			input: history.store.input || {},
+			inner: history.store.inner || {},
+			output: history.store.output || {},
+			undos: history.undos || [],
+			redos: history.redos || [],
+			temp: history.temp || {}
+		}).then(function(results) {
+
+			var lastEdit = history.read("static", ["userEdit"]);
+			if (KarmaFields.Object.diff(results, lastEdit)) {
+				if (results && Array.isArray(results)) {
+					results.forEach(function(path) {
+
+						KarmaFields.Transfer.get(...path).then(function(value) {
+							history.write("input", path, value);
+							var cell = KarmaFields.Object.getValue(manager.fields, path);
+							cell.render();
+							cell.element.classList.add("test");
+							setTimeout(function() {
+								cell.element.classList.remove("test");
+							}, 2000);
+						});
+					});
+					history.write("static", ["userEdit"], results);
+				}
+			}
+		});
+
+
+	}
+	manager.autoRefresh();
+
+	console.log(history.redos);
 
 	return manager;
 }

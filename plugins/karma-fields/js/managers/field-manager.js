@@ -62,6 +62,8 @@ KarmaFields.managers.field = function() {
 			// child.id = [this.id].concat(resource.subKeys || []).join("-");
 			child.path = this.path;
 			child.buffer = resource.buffer || this.buffer;
+
+
 			// child.cancelable = this.cancelable;
 
 			return child;
@@ -127,7 +129,12 @@ KarmaFields.managers.field = function() {
 			if (this.history && this.resource) {
 
 				var path = this.getPath();
-				this.history.write(this.buffer, path, value, flux || path.join("/"));
+				if (this.buffer === "output") {
+					this.history.write(this.buffer, path, value, flux || path.join("/"));
+				} else {
+					this.history.write(this.buffer, path, value);
+				}
+
 				// if (this.buffer !== "static") {
 				// 	if (this.cancelable) {
 				// 		var flux = path.join("/");
@@ -186,6 +193,10 @@ KarmaFields.managers.field = function() {
 					}
 				});
 			} else {
+				if (this.resource.default !== undefined) {
+					var path = this.getPath();
+					this.history.write(this.buffer, path, this.resource.default);
+				}
 				return Promise.resolve(this.resource.default);
 			}
 		},

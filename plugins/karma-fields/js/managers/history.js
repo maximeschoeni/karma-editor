@@ -11,8 +11,11 @@ KarmaFields.History.createInstance = function() {
 	history.undos = [];
 	history.redos = [];
 	// history.undoBuffer = {};
-	history.temp = {};
+
 	history.store = {};
+
+	history.temp = {};
+	history.next = {};
 	// history.store = {
 	// 	buffer: {},
 	// 	read: function(path) {
@@ -181,40 +184,211 @@ KarmaFields.History.createInstance = function() {
 		KarmaFields.Object.empty(this.store, [buffer, ...path]);
 	};
 
+	history.breakFlux = function() {
+
+		if (!KarmaFields.Object.isEmpty(this.temp)) {
+
+			// KarmaFields.Object.setValue(this.temp, [buffer, ...path], currentValue);
+
+			this.undos.unshift(this.temp);
+			this.temp = this.next;
+			this.next = {}
+		}
+
+	};
+
+
+
+	// history.write = function(buffer, path, value, flux, mergeObject) {
+	// 	if (buffer !== "static" && buffer !== "input") {
+	//
+	//
+	// 		if (flux) {
+	//
+	// 			if (this.lastFlux !== flux) {
+	//
+	// 				var currentValue = this.read(buffer, path);
+	// 				KarmaFields.Object.setValue(this.temp, [buffer, ...path], currentValue);
+	//
+	// 				console.log([buffer, ...path], currentValue, KarmaFields.Object.isEmpty(this.temp));
+	//
+	// 				if (!KarmaFields.Object.isEmpty(this.temp)) {
+	//
+	// 					// KarmaFields.Object.setValue(this.temp, [buffer, ...path], currentValue);
+	//
+	// 					this.undos.unshift(this.temp);
+	// 					this.temp = this.next;
+	// 					this.next = {}
+	// 				}
+	//
+	//
+	//
+	// 				this.lastFlux = flux;
+	// 			}
+	// 			KarmaFields.Object.setValue(this.temp, [buffer, ...path], value);
+	//
+	// 			this.redos = [];
+	//
+	// 		} else {
+	//
+	// 			if (this.lastFlux) {
+	//
+	// 				var currentValue = this.read(buffer, path);
+	//
+	// 				KarmaFields.Object.setValue(this.temp, [buffer, ...path], currentValue);
+	//
+	// 			}
+	//
+	// 			KarmaFields.Object.setValue(this.next, [buffer, ...path], value);
+	// 		}
+	//
+	//
+	//
+	//
+	//
+	// 	}
+	// 	// console.trace();
+	//
+	// 	// console.log([buffer, ...path], value, mergeObject);
+	//
+	// 	KarmaFields.Object.setValue(this.store, [buffer, ...path], value, mergeObject);
+	//
+	// 	// console.log(KarmaFields.Object.clone(this.temp));
+	// };
+
+
+	// history.write = function(buffer, path, value, flux, mergeObject) {
+	// 	if (buffer !== "static" && buffer !== "input") {
+	//
+	// 		this.redos = [];
+	//
+	// 		if (flux) {
+	//
+	//
+	//
+	//
+	// 			if (this.lastFlux !== flux) {
+	//
+	// 				if (!KarmaFields.Object.isEmpty(this.temp)) {
+	//
+	// 					this.undos.unshift(this.temp);
+	//
+	// 				}
+	//
+	// 				// this.temp = this.next;
+	// 				this.temp = {}
+	//
+	// 				this.lastFlux = flux;
+	// 			}
+	//
+	// 			if (this.undos[0]) {
+	// 				var currentValue = this.read(buffer, path);
+	// 				KarmaFields.Object.setValue(this.undos[0], [buffer, ...path], currentValue, true);
+	// 			}
+	//
+	// 			KarmaFields.Object.setValue(this.temp, [buffer, ...path], value);
+	//
+	//
+	//
+	// 		} else {
+	//
+	// 			if (this.lastFlux) {
+	//
+	// 				if (!KarmaFields.Object.isEmpty(this.temp)) {
+	//
+	// 					this.undos.unshift(this.temp);
+	//
+	// 				}
+	//
+	// 				this.temp = {}
+	//
+	// 				this.lastFlux = undefined;
+	//
+	// 			}
+	//
+	// 			if (this.undos[0]) {
+	//
+	// 				var currentValue = this.read(buffer, path);
+	// 				KarmaFields.Object.setValue(this.undos[0], [buffer, ...path], currentValue, true);
+	// 			}
+	//
+	//
+	// 			KarmaFields.Object.setValue(this.temp, [buffer, ...path], value);
+	// 		}
+	//
+	//
+	//
+	//
+	//
+	// 	}
+	// 	// console.trace();
+	//
+	// 	// console.log([buffer, ...path], value, mergeObject);
+	//
+	// 	KarmaFields.Object.setValue(this.store, [buffer, ...path], value, mergeObject);
+	//
+	// 	// console.log(KarmaFields.Object.clone(this.temp));
+	// };
+
 	history.write = function(buffer, path, value, flux) {
+
+		value = KarmaFields.Object.clone(value);
+
 		if (buffer !== "static" && buffer !== "input") {
 
-			console.log(this.lastFlux !== flux);
+			if (buffer === "output") {
+				this.redos = [];
+			}
+
+
 			if (this.lastFlux !== flux) {
-				var currentValue = this.read(buffer, path);
-				// console.log("write change flux", buffer, path, currentValue);
-				KarmaFields.Object.setValue(this.temp, [buffer, ...path], currentValue);
 
-				if (!KarmaFields.Object.isEmpty(this.temp) && !KarmaFields.Object.contain(this.store, this.temp)) {
+				if (!KarmaFields.Object.isEmpty(this.temp)) {
 
-					console.log(this.temp);
 					this.undos.unshift(this.temp);
-					// console.log("write break", this.undos);
-					this.temp = {};
+
 				}
+
+				// this.temp = this.next;
+				this.temp = {}
+
 				this.lastFlux = flux;
 			}
 
-			if (buffer === "output") {
-				// var flux = path.join("/");
-				// console.log(flux);
-
-
-				KarmaFields.Object.setValue(this.temp, [buffer, ...path], value);
-			} else {
-				// console.log("write temp", buffer, path, value);
-				KarmaFields.Object.setValue(this.temp, [buffer, ...path], value);
+			if (this.undos[0]) {
+				var currentValue = this.read(buffer, path);
+				KarmaFields.Object.setValue(this.undos[0], [buffer, ...path], currentValue, true);
 			}
+
+			KarmaFields.Object.setValue(this.temp, [buffer, ...path], value);
+
 		}
-		// console.log("write", buffer, path, value);
+		// console.trace();
+
+		// console.log([buffer, ...path], value);
+
 		KarmaFields.Object.setValue(this.store, [buffer, ...path], value);
 
 		// console.log(KarmaFields.Object.clone(this.temp));
+
+		if (buffer === "input") {
+			// localStorage.setItem("input", this.store.input);
+		}
+
+
+	};
+
+	history.merge = function(buffer, path, value, under) {
+		if (value && typeof value === "object") {
+			var object = KarmaFields.Object.getValue(this.store, [buffer, ...path]);
+			if (!object || typeof object !== "object") {
+				object = {};
+				KarmaFields.Object.setValue(this.store, [buffer, ...path], object);
+			}
+			KarmaFields.Object.merge(object, value, under);
+		} else if (value !== undefined) {
+			KarmaFields.Object.setValue(this.store, [buffer, ...path], value, under);
+		}
 	};
 
 	// history.write = function(buffer, path, value, flux) {
@@ -253,7 +427,7 @@ KarmaFields.History.createInstance = function() {
 			value = KarmaFields.Object.getValue(this.store, ["input", ...path]);
 			// console.log("read", "input", path, value);
 		}
-		return value;
+		return KarmaFields.Object.clone(value);
 	}
 
 
@@ -314,6 +488,8 @@ KarmaFields.History.createInstance = function() {
 			this.redos.unshift(this.temp);
 			this.temp = this.undos.shift();
 			// console.log(KarmaFields.Object.clone(this.temp));
+
+
 			KarmaFields.Object.merge(this.store, this.temp);
 		}
 	};

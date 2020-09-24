@@ -21,6 +21,7 @@ KarmaFields.tables.grid = function(manager) {
             // filter.input = "filters";
             // filter.output = "filters";
             filter.buffer = manager.resource.filter.buffer || "inner";
+
             filter.path = "filters";
             filter.history = manager.history;
             // filter.id = "karma-table-filters";
@@ -53,6 +54,9 @@ KarmaFields.tables.grid = function(manager) {
           class: "grid",
           init: function() {
             manager.renderBody = this.render;
+
+            // manager.history.write("inner", ["table", "items"], []);
+
             manager.request();
 
             if (manager.resource.width) {
@@ -64,8 +68,7 @@ KarmaFields.tables.grid = function(manager) {
           },
           update: function() {
             manager.select.init(); // = KarmaFields.selectors.grid(manager);
-            // manager.fields = [];
-
+            manager.fields = {};
           },
           children: [
             {
@@ -262,66 +265,14 @@ KarmaFields.tables.grid = function(manager) {
                             });
                           },
                           update: function(cell) {
-
                             this.data.fieldManager.resource = column;
-
-                      			// this.data.fieldManager.input = "input"; //[].concat(args.inputBuffer || [], args.path || [], resource.key || [], manager.subKeys);
-                      			// this.data.fieldManager.output = "output"; //[].concat(args.outputBuffer || [], args.path || [], resource.key || [], manager.subKeys);
-                      			// this.data.fieldManager.id = [uri.split("/"), uri, column.key].join("-");
                       			this.data.fieldManager.path = uri;
 
-
-
-                            // cell.data.fieldManager = KarmaFields.managers.field(column, {
-                            //   // ...column,
-                            //   path: uri,
-                            //   inputBuffer: "input",
-                            //   outputBuffer: "output",
-                            //   history: manager.history,
-                            //   selection: manager.selection,
-                            //   tableManager: manager,
-                            //   onSetValue: function() {
-                            //     // requestAnimationFrame(function() {
-                            //     //   manager.renderFooter();
-                            //     // });
-                            //
-                            //     // console.log(manager.history.input, manager.history.output);
-                            //
-                            //     cell.element.classList.toggle("modified", cell.data.fieldManager.isModified());
-                            //     manager.renderFooter();
-                            //   }
-                            // });
-
-
-                            // var fieldManager = KarmaFields.managers.field(column, {
-                            //   // ...column,
-                            //   path: uri,
-                            //   inputBuffer: "input",
-                            //   outputBuffer: "output",
-                            //   history: manager.history,
-                            //   selection: manager.selection,
-                            //   tableManager: manager,
-                            //   onSetValue: function() {
-                            //     // requestAnimationFrame(function() {
-                            //     //   manager.renderFooter();
-                            //     // });
-                            //
-                            //     // console.log(manager.history.input, manager.history.output);
-                            //
-                            //     cell.element.classList.toggle("modified", fieldManager.isModified());
-                            //     manager.renderFooter();
-                            //   }
-                            // });
-
-
-
-                            // manager.select.addField(this.element, uri, column.key, fieldManager, this.render, colIndex, rowIndex);
                             manager.select.addField(colIndex, rowIndex, this.element, this.data.fieldManager);
 
+                            KarmaFields.Object.setValue(manager.fields, [column.driver, uri, column.key], this);
+
                             cell.element.classList.toggle("modified", this.data.fieldManager.isModified());
-
-
-
                           }
                         };
                       });

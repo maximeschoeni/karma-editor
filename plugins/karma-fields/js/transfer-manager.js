@@ -25,17 +25,24 @@ KarmaFields.Transfer.query = function(driver, params) {
 		file += "?"+serial;
 	}
 	return fetch(file, {
-		cache: "default" // force-cache
+		cache: "default", // force-cache
+		headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': wpApiSettings.nonce
+    },
 	}).then(function(response) {
 		return response.json();
 	});
 };
 KarmaFields.Transfer.update = function(driver, params) {
-	var file = KarmaFields.restURL+"/update/"; //+driver
-	var params = this.clean(params);
+	var file = KarmaFields.restURL+"/update/"+driver;
+	// var params = this.clean(params);
 	return fetch(file, {
 		method: "post",
-		headers: {"Content-Type": "application/json"},
+		headers: {
+			'Content-Type': 'application/json',
+			'X-WP-Nonce': wpApiSettings.nonce
+		},
 		body: JSON.stringify(params),
 		mode: "same-origin"
 	}).then(function(response) {
@@ -46,7 +53,10 @@ KarmaFields.Transfer.add = function(driver, params) {
 	var file = KarmaFields.restURL+"/add/"+driver
 	return fetch(file, {
 		method: "post",
-		headers: {"Content-Type": "application/json"},
+		headers: {
+			'Content-Type': 'application/json',
+			'X-WP-Nonce': wpApiSettings.nonce
+		},
 		body: JSON.stringify(params),
 		mode: "same-origin"
 	}).then(function(response) {
@@ -61,7 +71,11 @@ KarmaFields.Transfer.get = function(driver, path, key, cache) {
 		file = [KarmaFields.restURL, "get", driver, path || [], key].join("/");
 	}
 	return fetch(file, {
-		cache: "reload"
+		cache: "reload",
+		headers: {
+			'Content-Type': 'application/json',
+			'X-WP-Nonce': wpApiSettings.nonce
+		},
 	}).then(function(response) {
 		if (!cache || cache.slice(-5) === ".json") {
 			return response.json();
@@ -91,10 +105,38 @@ KarmaFields.Transfer.fetch = function(driver, key, params) {
 	}
 	if (!this.cache[file]) {
 		this.cache[file] = fetch(file, {
-			cache: "default" // force-cache
+			cache: "default", // force-cache
+			headers: {
+	      'Content-Type': 'application/json',
+	      'X-WP-Nonce': wpApiSettings.nonce
+	    },
 		}).then(function(response) {
 			return response.json();
 		});
 	}
 	return this.cache[file];
+};
+KarmaFields.Transfer.queryJson = function(url) {
+	return KarmaFields.assets[url] = fetch(url, {
+		cache: "no-store" // force-cache
+	}).then(function(response) {
+		return response.json();
+	});
+}
+KarmaFields.Transfer.autoSave = function(params) {
+	var file = KarmaFields.restURL+"/autosave";
+
+	// console.log(params.output);
+	// var params = this.clean(params);
+	return fetch(file, {
+		method: "post",
+		headers: {
+			'Content-Type': 'application/json',
+			'X-WP-Nonce': wpApiSettings.nonce
+		},
+		body: JSON.stringify(params),
+		mode: "same-origin"
+	}).then(function(response) {
+		return response.json();
+	});
 };

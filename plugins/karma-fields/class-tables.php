@@ -52,6 +52,10 @@ Class Karma_Tables {
 
 		add_action('rest_api_init', array($this, 'rest_api_init'));
 
+
+
+
+
 		// disable check for empty post in wp_insert_post
 
 		// from  v1
@@ -230,6 +234,8 @@ Class Karma_Tables {
 				// 'addURL' => rest_url().'karma-fields/v1/add',
 				// 'removeURL' => rest_url().'karma-fields/v1/remove'
 				// 'queryTermsURL' => rest_url().'karma-fields/v1/taxonomy',
+				'user_edit' => home_url('wp-content/karma-fields/users/'.get_current_user_id().'.json'),
+				'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 
 
@@ -249,6 +255,13 @@ Class Karma_Tables {
 	public function init() {
 
 		do_action('karma_fields_init', $this);
+
+		add_action('wp_login', array($this, 'user_login'), 10, 2);
+		add_action('wp_logout', array($this, 'user_logout'));
+
+		if (is_user_logged_in()) {
+			add_action('parse_request', array($this, 'parse_request'), 11);
+		}
 
 	}
 
@@ -280,13 +293,13 @@ Class Karma_Tables {
 	    // )
 		));
 
-		register_rest_route('karma-fields/v1', '/update/', array(
+		register_rest_route('karma-fields/v1', '/update/(?P<driver>[^/]+)', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_update'),
 			'args' => array(
-				// 'driver' => array(
-				// 	'required' => true
-				// ),
+				'driver' => array(
+					'required' => true
+				),
 				// 'key' => array(
 				// 	'required' => true
 				// ),
@@ -328,6 +341,11 @@ Class Karma_Tables {
 					'required' => true
 				)
 	    )
+		));
+
+		register_rest_route('karma-fields/v1', '/autosave', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'rest_autosave')
 		));
 
 		// register_rest_route('karma-fields/v1', '/options/(?P<middleware>[a-z0-9_-]+)/(?P<key>[^/]+)/?', array(
@@ -384,6 +402,11 @@ Class Karma_Tables {
 		// $method = $request->get_param('method');
 
 		$driver = $this->get_driver($driver_name);
+
+		$user_id = get_current_user_id();
+
+		$file = 'wp-content/karma-fields/users/'.$user_id.'.json';
+		$this->update_user_edit_file($file, '[]');
 
 		if ($driver) {
 
@@ -490,7 +513,7 @@ Class Karma_Tables {
 	 */
 	public function rest_update($request) {
 
-		// $driver_name = $request->get_param('driver');
+		$main_driver_name = $request->get_param('driver'); // -> needed for permissions check...
 		$fields = $request->get_param('drivers');
 
 		$output = array();
@@ -514,6 +537,8 @@ Class Karma_Tables {
 			}
 
 		}
+
+		$this->update_users($fields, $request);
 
 		return $output;
 
@@ -579,6 +604,95 @@ Class Karma_Tables {
 		// 	return "karma fields error: driver has no method 'query'";
 		//
 		// }
+
+	}
+
+	// public function merge($obj1, $obj2) {
+	// 	foreach ($obj2 as $key => $child2) {
+	// 		if ($child2 && (is_object($child2) || is_array($child2))) {
+	// 			if (empty($obj1[$key])) {
+	// 				$obj1[$key] = array();
+	// 			}
+	// 		}
+	// 		$this->merge($obj1[$key], $child2);
+	// 	}
+	// 	for (var i in object2) {
+	// 		if (object2[i] && typeof object2[i] === "object" && !Array.isArray(object2[i])) {
+	// 			if (!object1[i]) {
+	// 				object1[i] = {};
+	// 			}
+	// 			this.merge(object1[i], object2[i], soft);
+	// 		} else if (object2[i] !== undefined && (!soft || object1[i] === undefined)) {
+	// 			object1[i] = this.clone(object2[i]);
+	// 		}
+	// 	}
+	//
+	//
+	//
+	// }
+
+
+	public function array_merge_recursive_distinct(&$array1, $array2) {
+
+	  foreach ($array2 as $key => $value) {
+
+	    if (is_array($value) && isset($array1[$key]) && is_array($array1[$key])) {
+
+	      $this->array_merge_recursive_distinct($array1[$key], $value);
+
+	    } else if (isset($value)) {
+
+	      $array1[$key] = $value;
+
+	    }
+
+	  }
+
+	}
+
+	/**
+	 *	@rest 'wp-json/karma-fields/v1/autosave'
+	 */
+	public function rest_autosave($request) {
+
+		$user_id = get_current_user_id();
+
+		// update_user_meta($user_id, 'karma-save', $request->save);
+		$save = array(
+			'input' => $request->get_param('input'),
+			'inner' => $request->get_param('inner'),
+			'output' => $request->get_param('output'),
+			'undos' => $request->get_param('undos'),
+			'redos' => $request->get_param('redos'),
+			'temp' => $request->get_param('temp')
+		);
+
+		// $save = get_user_meta($user_id, 'karma-save-02', true);
+		//
+		// if (!$save) {
+		//
+		// 	$save = array();
+		//
+		// }
+		//
+		// $this->array_merge_recursive_distinct($save, $change);
+
+		// update_user_meta($user_id, 'karma-save-03', $save);
+
+
+		// $path = 'wp-content/karma-fields/users/test.json';
+		// $this->update_user_edit_file($path, json_encode($request->get_param('output'), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+		//
+
+		$path = 'wp-content/karma-fields/users/state-'.$user_id.'.json';
+		// $this->update_user_edit_file($path, json_encode($save));
+
+		$this->update_user_edit_file($path, json_encode($save, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+		$path = 'wp-content/karma-fields/users/'.$user_id.'.json';
+		$user_edit = $this->get_user_edit_file($path);
+
+		return $user_edit;
 
 	}
 
@@ -719,247 +833,247 @@ Class Karma_Tables {
 	// 	}
 	//
 	// }
-
-	/** DEPRECATED
-	 * parse_args
-	 */
-	public function parse_args($request, $middleware) {
-
-		$args = array();
-
-		foreach ($middleware->keys as $key => $resource) {
-
-			if ($request->has_param($key)) {
-
-				$value = $request->get_param($key);
-
-				$driver = $middleware->get_driver($key);
-
-				if ($driver && method_exists($driver, 'parse')) {
-
-					$driver->parse($value, $args);
-
-				} else {
-
-					$args[$key] = $value;
-
-				}
-
-				if ($driver && method_exists($driver, 'filter')) {
-
-					$driver->parse($value, $args, $request);
-
-				}
-				// else {
-				//
-				// 	$args[$key] = $value;
-				//
-				// }
-
-			}
-
-		}
-
-		if ($request->has_param('search')) {
-
-			$word = $request->get_param('search');
-
-			if (method_exists($middleware, 'search')) {
-
-				$middleware->search($word, $args);
-
-			} else {
-
-				$args['search'] = $word;
-
-			}
-
-		}
-
-		if ($request->has_param('orderby')) {
-
-			$key = $request->get_param('orderby');
-
-			$driver = $middleware->get_driver($key);
-
-			if ($driver && method_exists($driver, 'sort')) {
-
-				$order = $request->get_param('order');
-
-				if ($order) {
-
-					$order = strtoupper($order);
-
-				}
-
-				if ($order !== 'ASC' && $order !== 'DESC') {
-
-					$order = null;
-
-				}
-
-				$driver->sort($order, $args, $request);
-
-			}
-			// else {
-			//
-			// 	$args['orderby'] = $key;
-			//
-			// }
-
-		}
-
-		if ($request->has_param('ppp')) {
-
-
-		}
-
-		return $args;
-
-	}
-
-	/** DEPRECATED
-	 *	add_item
-	 */
-	public function add_item($middleware, $fields, $request) {
-
-		$middleware = $this->get_middleware($middleware_name);
-
-		$output = array();
-
-		if (method_exists($middleware, 'add')) {
-
-			$args = $this->parse_args($request, $middleware);
-
-			// $uri =
-			$middleware->add($fields, $args);
-
-			// $args = array();
-
-			foreach ($fields as $key => $value) {
-
-				$driver = $middleware->get_driver($key);
-
-				if ($driver) {
-
-					if (method_exists($driver, 'update')) {
-
-						$driver->update($uri, $value, $args);
-
-					}
-
-				} else {
-
-					return "karma fields rest add_item error: driver not found ($key)";
-
-				}
-
-			}
-
-			// if ($args) {
-			//
-			// 	if (method_exists($middleware, 'update')) {
-			//
-			// 		$middleware->update($uri, $args); // $uri is modified if changed
-			//
-			// 	}
-			//
-			// }
-
-			// return $uri; // -> return new uri
-
-		} else {
-
-			return "karma fields rest add_item error: add method not found";
-
-		}
-
-	}
-
-	/** DEPRECATED
-	 *	update_item
-	 */
-	public function update_item($middleware, $item_fields, $uri, $request = null) {
-
-		$args = array();
-
-		foreach ($item_fields as $key => $value) {
-
-			$driver = $middleware->get_driver($key);
-
-			if ($driver) {
-
-				if (method_exists($driver, 'update')) {
-
-					$driver->update($uri, $value, $args);
-
-				} else if (isset($value)) {
-
-					$args[$key] = $value;
-
-				}
-
-			}
-
-		}
-
-		if ($args) {
-
-			if (method_exists($middleware, 'update')) {
-
-				$middleware->update($uri, $args);
-
-			}
-
-		}
-
-		// return $uri; // return uri for if it changed
-
-	}
-
-	/** DEPRECATED
-	 *	update_item
-	 */
-	public function remove_item($middleware, $uri, $request = null) {
-
-		if (method_exists($middleware, 'remove')) {
-
-			$middleware->remove($uri);
-
-		}
-
-	}
-
-	/** DEPRECATED
-	 *	get_middleware
-	 */
-	public function get_middleware($name) {
-
-		debug_backtrace();
-
-
-		// require_once $this->middlewares[$name]['path'];
-		//
-		// $middleware = new $this->middlewares[$name]['class'];
-		//
-		// $middleware->keys = isset($this->keys[$name]) ? $this->keys[$name] : array();
-		// $middleware->drivers = isset($this->drivers[$name]) ? $this->drivers[$name] : array();
-		//
-		// return $middleware;
-
-	}
+	//
+	// /** DEPRECATED
+	//  * parse_args
+	//  */
+	// public function parse_args($request, $middleware) {
+	//
+	// 	$args = array();
+	//
+	// 	foreach ($middleware->keys as $key => $resource) {
+	//
+	// 		if ($request->has_param($key)) {
+	//
+	// 			$value = $request->get_param($key);
+	//
+	// 			$driver = $middleware->get_driver($key);
+	//
+	// 			if ($driver && method_exists($driver, 'parse')) {
+	//
+	// 				$driver->parse($value, $args);
+	//
+	// 			} else {
+	//
+	// 				$args[$key] = $value;
+	//
+	// 			}
+	//
+	// 			if ($driver && method_exists($driver, 'filter')) {
+	//
+	// 				$driver->parse($value, $args, $request);
+	//
+	// 			}
+	// 			// else {
+	// 			//
+	// 			// 	$args[$key] = $value;
+	// 			//
+	// 			// }
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	if ($request->has_param('search')) {
+	//
+	// 		$word = $request->get_param('search');
+	//
+	// 		if (method_exists($middleware, 'search')) {
+	//
+	// 			$middleware->search($word, $args);
+	//
+	// 		} else {
+	//
+	// 			$args['search'] = $word;
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	if ($request->has_param('orderby')) {
+	//
+	// 		$key = $request->get_param('orderby');
+	//
+	// 		$driver = $middleware->get_driver($key);
+	//
+	// 		if ($driver && method_exists($driver, 'sort')) {
+	//
+	// 			$order = $request->get_param('order');
+	//
+	// 			if ($order) {
+	//
+	// 				$order = strtoupper($order);
+	//
+	// 			}
+	//
+	// 			if ($order !== 'ASC' && $order !== 'DESC') {
+	//
+	// 				$order = null;
+	//
+	// 			}
+	//
+	// 			$driver->sort($order, $args, $request);
+	//
+	// 		}
+	// 		// else {
+	// 		//
+	// 		// 	$args['orderby'] = $key;
+	// 		//
+	// 		// }
+	//
+	// 	}
+	//
+	// 	if ($request->has_param('ppp')) {
+	//
+	//
+	// 	}
+	//
+	// 	return $args;
+	//
+	// }
+	//
+	// /** DEPRECATED
+	//  *	add_item
+	//  */
+	// public function add_item($middleware, $fields, $request) {
+	//
+	// 	$middleware = $this->get_middleware($middleware_name);
+	//
+	// 	$output = array();
+	//
+	// 	if (method_exists($middleware, 'add')) {
+	//
+	// 		$args = $this->parse_args($request, $middleware);
+	//
+	// 		// $uri =
+	// 		$middleware->add($fields, $args);
+	//
+	// 		// $args = array();
+	//
+	// 		foreach ($fields as $key => $value) {
+	//
+	// 			$driver = $middleware->get_driver($key);
+	//
+	// 			if ($driver) {
+	//
+	// 				if (method_exists($driver, 'update')) {
+	//
+	// 					$driver->update($uri, $value, $args);
+	//
+	// 				}
+	//
+	// 			} else {
+	//
+	// 				return "karma fields rest add_item error: driver not found ($key)";
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 		// if ($args) {
+	// 		//
+	// 		// 	if (method_exists($middleware, 'update')) {
+	// 		//
+	// 		// 		$middleware->update($uri, $args); // $uri is modified if changed
+	// 		//
+	// 		// 	}
+	// 		//
+	// 		// }
+	//
+	// 		// return $uri; // -> return new uri
+	//
+	// 	} else {
+	//
+	// 		return "karma fields rest add_item error: add method not found";
+	//
+	// 	}
+	//
+	// }
+	//
+	// /** DEPRECATED
+	//  *	update_item
+	//  */
+	// public function update_item($middleware, $item_fields, $uri, $request = null) {
+	//
+	// 	$args = array();
+	//
+	// 	foreach ($item_fields as $key => $value) {
+	//
+	// 		$driver = $middleware->get_driver($key);
+	//
+	// 		if ($driver) {
+	//
+	// 			if (method_exists($driver, 'update')) {
+	//
+	// 				$driver->update($uri, $value, $args);
+	//
+	// 			} else if (isset($value)) {
+	//
+	// 				$args[$key] = $value;
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	if ($args) {
+	//
+	// 		if (method_exists($middleware, 'update')) {
+	//
+	// 			$middleware->update($uri, $args);
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	// return $uri; // return uri for if it changed
+	//
+	// }
+	//
+	// /** DEPRECATED
+	//  *	update_item
+	//  */
+	// public function remove_item($middleware, $uri, $request = null) {
+	//
+	// 	if (method_exists($middleware, 'remove')) {
+	//
+	// 		$middleware->remove($uri);
+	//
+	// 	}
+	//
+	// }
+	//
+	// /** DEPRECATED
+	//  *	get_middleware
+	//  */
+	// public function get_middleware($name) {
+	//
+	// 	debug_backtrace();
+	//
+	//
+	// 	// require_once $this->middlewares[$name]['path'];
+	// 	//
+	// 	// $middleware = new $this->middlewares[$name]['class'];
+	// 	//
+	// 	// $middleware->keys = isset($this->keys[$name]) ? $this->keys[$name] : array();
+	// 	// $middleware->drivers = isset($this->drivers[$name]) ? $this->drivers[$name] : array();
+	// 	//
+	// 	// return $middleware;
+	//
+	// }
 
 	/** DEPRECATED
 	 *	register_middleware
 	 */
-	public function register_middleware($name, $path, $class) {
-
-		$this->middlewares[$name] = array(
-			'path' => $path,
-			'class' => $class
-		);
-
-	}
+	// public function register_middleware($name, $path, $class) {
+	//
+	// 	$this->middlewares[$name] = array(
+	// 		'path' => $path,
+	// 		'class' => $class
+	// 	);
+	//
+	// }
 
 	/**
 	 *	register_driver
@@ -1024,15 +1138,15 @@ Class Karma_Tables {
 	/** DEPRECATED
 	 *	register_keys
 	 */
-	public function register_keys($middleware_name, $keys) {
-
-		foreach ($keys as $key => $resource) {
-
-			$this->keys[$middleware_name][$key] = $resource;
-
-		}
-
-	}
+	// public function register_keys($middleware_name, $keys) {
+	//
+	// 	foreach ($keys as $key => $resource) {
+	//
+	// 		$this->keys[$middleware_name][$key] = $resource;
+	//
+	// 	}
+	//
+	// }
 
 	/**
 	 *	get_cachefile
@@ -1162,9 +1276,178 @@ Class Karma_Tables {
 
 		$this->prepare($args);
 
+		$user_id = get_current_user_id();
+		$path = 'wp-content/karma-fields/users/state-'.$user_id.'.json';
+
+		$save = $this->get_user_edit_file($path, '{}');
+
+
 		include plugin_dir_path(__FILE__) . 'includes/table.php';
 
 	}
+
+
+
+
+
+	/**
+	 * @hook 'wp_login'
+	 */
+	public function user_login($user_login, $user) {
+
+		update_user_meta($user->ID, 'karma_logedin', '1');
+
+	}
+
+	/**
+	 * @hook 'wp_logout'
+	 */
+	public function user_logout($user_id) {
+
+		update_user_meta($user_id, 'karma_logedin', '');
+
+	}
+
+	/**
+	 *	update_users
+	 */
+	public function parse_object($obj) {
+
+		$paths = array();
+
+		foreach ($obj as $key => $child) {
+
+			if (is_array($child) || is_object($child)) {
+
+				$child_paths = $this->parse_object($child);
+
+				foreach ($child_paths as &$child_path) {
+
+					array_unshift($child_path, $key);
+
+				}
+
+				$paths = array_merge($paths, $child_paths);
+
+			} else {
+
+				$paths[] = array($key);
+			}
+
+		}
+
+
+
+		return $paths;
+	}
+
+
+		// /**
+		//  *	update_users
+		//  */
+		// public function parse_object($obj) {
+		//
+		// 	$paths = array();
+		//
+		// 	foreach ($obj as $key => $child) {
+		//
+		// 		if (is_array($child) || is_object($child)) {
+		//
+		// 			$paths[$key] = $this->parse_object($child);
+		//
+		// 		} else {
+		//
+		// 			$paths[$key] = 0;
+		// 		}
+		//
+		// 	}
+		//
+		// 	return $paths;
+		// }
+
+	/**
+	 *	update_users
+	 */
+	public function update_users($fields, $request) {
+
+		$users = get_users(array(
+			'meta_key' => 'karma_logedin',
+			'meta_value' => '1',
+			'exclude' => array(get_current_user_id())
+		));
+
+		$items = $this->parse_object($fields);
+
+		$value = json_encode($items);
+
+		foreach ($users as $user) {
+
+			$file = 'wp-content/karma-fields/users/'.$user->ID.'.json';
+
+			$this->update_user_edit_file($file, $value);
+
+		}
+
+	}
+
+	/**
+	 * @hook 'parse_request'
+	 */
+	public function parse_request($wp) {
+
+		$user_id = get_current_user_id();
+		$file = 'wp-content/karma-fields/users/'.$user_id.'.json';
+
+		if ($wp->request === $file) {
+
+			$this->update_user_edit_file($file, '[]');
+
+			echo '[]';
+
+			exit;
+
+		}
+
+	}
+
+	/**
+	 * update_user_edit
+	 */
+	public function update_user_edit_file($path, $value) {
+
+		$file = ABSPATH.$path;
+
+		if (!file_exists(dirname($file))) {
+
+			mkdir(dirname($file), 0777, true);
+
+		}
+
+		file_put_contents($file, $value);
+
+	}
+
+	/**
+	 * get_user_edit
+	 */
+	public function get_user_edit_file($path, $default = '[]') {
+
+		$file = ABSPATH.$path;
+
+
+		if (file_exists($file)) {
+
+			return file_get_contents($file);
+
+		}
+
+		return $default;
+
+	}
+
+
+
+
 
 
 
