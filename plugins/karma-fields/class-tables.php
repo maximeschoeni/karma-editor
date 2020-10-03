@@ -4,7 +4,7 @@
 
 Class Karma_Tables {
 
-	public $version = '2';
+	public $version = '8';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -70,6 +70,15 @@ Class Karma_Tables {
 
 			add_action('admin_head', array($this, 'print_footer'));
 
+
+			// $file = 'wp-content/karma-fields/users/reservations/change-2.json';
+			// $this->unset_to_file($file, array('reservations', '27913', 'email'));
+			//
+			// die('aa');
+
+
+
+
 			// add_action('karma_field', array($this, 'print_field'), 10, 4);
 			// add_action('karma_field_group', array($this, 'print_field_group'), 10, 3);
 			//
@@ -116,99 +125,70 @@ Class Karma_Tables {
 		public function enqueue_styles() {
 
 			$plugin_url = trim(plugin_dir_url(__FILE__), '/');
+			$plugin_path = ABSPATH.'wp-content/plugins/karma-editor/plugins/karma-fields';
 
 			wp_enqueue_style('date-field-styles', $plugin_url . '/css/date-field.css');
-			// wp_enqueue_style('media-field-styles', $plugin_url . '/css/media-field.css');
 			wp_enqueue_style('multimedia-styles', $plugin_url . '/css/multimedia.css');
 			wp_enqueue_style('karma-styles-grid', $plugin_url . '/css/grid.css');
 
 
+			// var_dump($plugin_path.'/js/all.min.js', file_exists($plugin_path));
+			// die('asdf');
 
-			// wp_register_script('ajax', $plugin_url . '/js/ajax-v2.js', array(), $this->version, true);
-			// wp_register_script('sortable', $plugin_url . '/js/sortable.js', array(), $this->version, true);
+			if (true && file_exists($plugin_path.'/js/all.min.js')) {
 
+				wp_enqueue_script('karma-fields', $plugin_url . '/js/media.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-fields', $plugin_url . '/js/all.js', array('karma-fields'), $this->version, true);
 
-			wp_enqueue_script('karma-fields-media', $plugin_url . '/js/media.js', array(), $this->version, true);
+			} else {
 
-			wp_register_script('karma-build', $plugin_url . '/js/build-v8.js', array('karma-fields-media'), $this->version, true);
-			wp_register_script('karma-fields-calendar', $plugin_url . '/js/calendar.js', array('karma-fields-media'), $this->version, true);
-			// wp_localize_script('media-field', 'KarmaFieldMedia', array(
-			// 	'ajax_url' => admin_url('admin-ajax.php')
-			// ));
+				wp_enqueue_script('karma-fields-media', $plugin_url . '/js/media.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields', $plugin_url . '/js/karma-fields.js', array(), $this->version, true); // -> extensions must comme after this!
+				wp_register_script('karma-build', $plugin_url . '/js/build-v8.js', array('karma-fields-media'), $this->version, true);
+				wp_register_script('karma-fields-calendar', $plugin_url . '/js/calendar.js', array('karma-fields-media'), $this->version, true);
 
-
-
-			// v1
-			// wp_enqueue_script('date-field', KARMA_FIELDS_URL . '/js/date-field-v2.js', array('media-field', 'build', 'calendar'), $this->version, true);
-
-			// v2 fields
-			wp_enqueue_script('karma-field-group', $plugin_url . '/js/fields/group.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-date', $plugin_url . '/js/fields/date.js', array('karma-fields-media', 'karma-build', 'karma-fields-calendar'), $this->version, true);
-			wp_enqueue_script('karma-field-textinput', $plugin_url . '/js/fields/textinput.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-grid', $plugin_url . '/js/fields/grid.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-file', $plugin_url . '/js/fields/file.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-files', $plugin_url . '/js/fields/files.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-dropdown', $plugin_url . '/js/fields/dropdown.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-checkbox', $plugin_url . '/js/fields/checkbox.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-checkboxes', $plugin_url . '/js/fields/checkboxes.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-textarea', $plugin_url . '/js/fields/textarea.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-
-			wp_enqueue_script('karma-field-checkboxtest', $plugin_url . '/js/fields/checkbox-test.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-index', $plugin_url . '/js/fields/index.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-option-buttons', $plugin_url . '/js/fields/option-buttons.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-submit', $plugin_url . '/js/fields/submit.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-filterlink', $plugin_url . '/js/fields/filterlink.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-autocomplete-textinput', $plugin_url . '/js/fields/autocomplete-textinput.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-
-			wp_enqueue_script('karma-field-posttype', $plugin_url . '/js/fields/posttype.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-field-search', $plugin_url . '/js/fields/search.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				// v2 fields
+				wp_enqueue_script('karma-field-group', $plugin_url . '/js/fields/group.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-date', $plugin_url . '/js/fields/date.js', array('karma-fields-media', 'karma-build', 'karma-fields-calendar'), $this->version, true);
+				wp_enqueue_script('karma-field-textinput', $plugin_url . '/js/fields/textinput.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-grid', $plugin_url . '/js/fields/grid.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-file', $plugin_url . '/js/fields/file.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-files', $plugin_url . '/js/fields/files.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-dropdown', $plugin_url . '/js/fields/dropdown.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-checkbox', $plugin_url . '/js/fields/checkbox.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-checkboxes', $plugin_url . '/js/fields/checkboxes.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-textarea', $plugin_url . '/js/fields/textarea.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-checkboxtest', $plugin_url . '/js/fields/checkbox-test.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-index', $plugin_url . '/js/fields/index.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				// wp_enqueue_script('karma-field-option-buttons', $plugin_url . '/js/fields/option-buttons.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-submit', $plugin_url . '/js/fields/submit.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-filterlink', $plugin_url . '/js/fields/filterlink.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-autocomplete-textinput', $plugin_url . '/js/fields/autocomplete-textinput.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-posttype', $plugin_url . '/js/fields/posttype.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-field-search', $plugin_url . '/js/fields/search.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
 
-			//filters
+				// tables
+				wp_enqueue_script('karma-table-grid', $plugin_url . '/js/tables/grid.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-table-pagination', $plugin_url . '/js/tables/pagination.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				wp_enqueue_script('karma-table-footer', $plugin_url . '/js/tables/footer.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
-			// deprecated: use dropdown
-			wp_enqueue_script('karma-filter-postdate', $plugin_url . '/js/filters/postdate.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				// utils
+				wp_enqueue_script('karma-select-grid', $plugin_url . '/js/grid-select.js', array('karma-fields-media'), $this->version, true);
+				wp_enqueue_script('karma-utils-rect', $plugin_url . '/js/utils/rect.js', array('karma-fields-media'), $this->version, true);
+				wp_enqueue_script('karma-utils-object', $plugin_url . '/js/utils/object.js', array('karma-fields-media'), $this->version, true);
+				wp_enqueue_script('karma-transfer', $plugin_url . '/js/transfer-manager.js', array('karma-fields-media'), $this->version, true);
 
-			wp_enqueue_script('karma-filter-poststatus', $plugin_url . '/js/filters/poststatus.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			// wp_enqueue_script('karma-filter-search', $plugin_url . '/js/filters/search.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				// includes
+				wp_enqueue_script('karma-includes-icon', $plugin_url . '/js/includes/icon.js', array('karma-fields-media', 'karma-build'), $this->version, true);
 
-			// wp_enqueue_script('karma-filter-node', $plugin_url . '/js/filters/node.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			// wp_enqueue_script('karma-filter-dropdown', $plugin_url . '/js/filters/dropdown.js', array('karma-fields-media', 'karma-build'), $this->version, true);
+				// managers
+				wp_enqueue_script('karma-manager-history', $plugin_url . '/js/managers/history.js', array('karma-fields-media', 'karma-utils-object'), $this->version, true);
+				wp_enqueue_script('table-manager', $plugin_url . '/js/managers/table-manager.js', array('karma-fields-media', 'karma-build', 'karma-manager-history'), $this->version, true);
+				wp_enqueue_script('field-manager', $plugin_url . '/js/managers/field-manager.js', array('karma-fields-media', 'karma-build', 'karma-manager-history'), $this->version, true);
 
-			// tables
-			wp_enqueue_script('karma-table-grid', $plugin_url . '/js/tables/grid.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			// wp_enqueue_script('karma-table-grid-body-cell', $plugin_url . '/js/tables/grid-body-cell.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-table-table-header-cell', $plugin_url . '/js/tables/table-header-cell.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-table-table-header', $plugin_url . '/js/tables/table-header.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-table-pagination', $plugin_url . '/js/tables/pagination.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			wp_enqueue_script('karma-table-footer', $plugin_url . '/js/tables/footer.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-
-			// utils
-			wp_enqueue_script('karma-select-grid', $plugin_url . '/js/grid-select.js', array('karma-fields-media'), $this->version, true);
-			wp_enqueue_script('karma-utils-rect', $plugin_url . '/js/utils/rect.js', array('karma-fields-media'), $this->version, true);
-			wp_enqueue_script('karma-utils-object', $plugin_url . '/js/utils/object.js', array('karma-fields-media'), $this->version, true);
-			wp_enqueue_script('karma-transfer', $plugin_url . '/js/transfer-manager.js', array('karma-fields-media'), $this->version, true);
-
-			// includes
-			wp_enqueue_script('karma-includes-icon', $plugin_url . '/js/includes/icon.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-
-			// managers
-			// wp_enqueue_script('karma-manager-pool', $plugin_url . '/js/managers/pool.js', array('karma-fields-media'), $this->version, true);
-			wp_enqueue_script('karma-manager-history', $plugin_url . '/js/managers/history.js', array('karma-fields-media', 'karma-utils-object'), $this->version, true);
-
-			wp_enqueue_script('table-manager', $plugin_url . '/js/managers/table-manager.js', array('karma-fields-media', 'karma-build', 'karma-manager-history'), $this->version, true);
-			wp_enqueue_script('field-manager', $plugin_url . '/js/managers/field-manager.js', array('karma-fields-media', 'karma-build', 'karma-manager-history'), $this->version, true);
-			wp_enqueue_script('filter-manager', $plugin_url . '/js/managers/filter-manager.js', array('karma-fields-media', 'karma-build'), $this->version, true);
-			// wp_enqueue_script('row-manager', $plugin_url . '/js/managers/row-manager.js', array('media-field', 'build'), $this->version, true);
-
-
-			// extra
-			wp_enqueue_script('karma-field-arsenic', $plugin_url . '/js/fields/arsenic.js', array('karma-fields-media'), $this->version, true);
-
-
-			// compat
-			// wp_enqueue_script('multimedia-field', $plugin_url . '/js/multimedia.js', array('build', 'sortable', 'media-field'), $this->version, false);
+			}
 
 		}
 
@@ -259,9 +239,9 @@ Class Karma_Tables {
 		add_action('wp_login', array($this, 'user_login'), 10, 2);
 		add_action('wp_logout', array($this, 'user_logout'));
 
-		if (is_user_logged_in()) {
-			add_action('parse_request', array($this, 'parse_request'), 11);
-		}
+		// if (is_user_logged_in()) {
+		// 	add_action('parse_request', array($this, 'parse_request'), 11);
+		// }
 
 	}
 
@@ -343,9 +323,14 @@ Class Karma_Tables {
 	    )
 		));
 
-		register_rest_route('karma-fields/v1', '/autosave', array(
+		register_rest_route('karma-fields/v1', '/autosave/(?P<driver>[^/]+)/?', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_autosave')
+		));
+
+		register_rest_route('karma-fields/v1', '/autosave2/(?P<driver>[^/]+)/?', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'rest_autosave2')
 		));
 
 		// register_rest_route('karma-fields/v1', '/options/(?P<middleware>[a-z0-9_-]+)/(?P<key>[^/]+)/?', array(
@@ -403,10 +388,14 @@ Class Karma_Tables {
 
 		$driver = $this->get_driver($driver_name);
 
-		$user_id = get_current_user_id();
+		// $params = $request->get_param('p');
+		//
+		// var_dump(json_decode($params));die();
 
-		$file = 'wp-content/karma-fields/users/'.$user_id.'.json';
-		$this->update_user_edit_file($file, '[]');
+		// $user_id = get_current_user_id();
+		//
+		// $file = "wp-content/karma-fields/users/{$driver_name}/change-{$user_id}.json";
+		// $this->update_user_edit_file($file, '[]');
 
 		if ($driver) {
 
@@ -487,6 +476,11 @@ Class Karma_Tables {
 
 		// $driver = $this->get_key_driver($middleware_name, $key);
 
+		$user_id = get_current_user_id();
+		$file = "wp-content/karma-fields/users/{$driver_name}/change-{$user_id}.json";
+		$this->unset_to_file($file, array($driver_name, $uri, $key));
+
+
 		if ($driver) {
 
 			if (method_exists($driver, 'get')) {
@@ -538,7 +532,7 @@ Class Karma_Tables {
 
 		}
 
-		$this->update_users($fields, $request);
+		$this->update_users($fields, $main_driver_name, $request);
 
 		return $output;
 
@@ -595,16 +589,6 @@ Class Karma_Tables {
 
 		}
 
-		// if (method_exists($driver, 'query')) {
-		//
-		// 	return $driver->query($request, $this);
-		//
-		// } else {
-		//
-		// 	return "karma fields error: driver has no method 'query'";
-		//
-		// }
-
 	}
 
 	// public function merge($obj1, $obj2) {
@@ -632,448 +616,77 @@ Class Karma_Tables {
 	// }
 
 
-	public function array_merge_recursive_distinct(&$array1, $array2) {
-
-	  foreach ($array2 as $key => $value) {
-
-	    if (is_array($value) && isset($array1[$key]) && is_array($array1[$key])) {
-
-	      $this->array_merge_recursive_distinct($array1[$key], $value);
-
-	    } else if (isset($value)) {
-
-	      $array1[$key] = $value;
-
-	    }
-
-	  }
-
-	}
 
 	/**
 	 *	@rest 'wp-json/karma-fields/v1/autosave'
 	 */
 	public function rest_autosave($request) {
 
+		$driver_name = $request->get_param('driver');
+
 		$user_id = get_current_user_id();
 
-		// update_user_meta($user_id, 'karma-save', $request->save);
 		$save = array(
-			'input' => $request->get_param('input'),
-			'inner' => $request->get_param('inner'),
-			'output' => $request->get_param('output'),
+			'store' => $request->get_param('store'),
 			'undos' => $request->get_param('undos'),
 			'redos' => $request->get_param('redos'),
 			'temp' => $request->get_param('temp')
 		);
 
-		// $save = get_user_meta($user_id, 'karma-save-02', true);
-		//
-		// if (!$save) {
-		//
-		// 	$save = array();
-		//
-		// }
-		//
-		// $this->array_merge_recursive_distinct($save, $change);
+		$save = $this->clean_array($save);
 
-		// update_user_meta($user_id, 'karma-save-03', $save);
-
-
-		// $path = 'wp-content/karma-fields/users/test.json';
-		// $this->update_user_edit_file($path, json_encode($request->get_param('output'), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-		//
-
-		$path = 'wp-content/karma-fields/users/state-'.$user_id.'.json';
-		// $this->update_user_edit_file($path, json_encode($save));
-
+		$path = "wp-content/karma-fields/users/{$driver_name}/state-{$user_id}.json";
 		$this->update_user_edit_file($path, json_encode($save, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
-		$path = 'wp-content/karma-fields/users/'.$user_id.'.json';
+		$path = "wp-content/karma-fields/users/{$driver_name}/change-{$user_id}.json";
 		$user_edit = $this->get_user_edit_file($path);
 
-		return $user_edit;
+		return json_decode($user_edit);
 
 	}
 
-	// /**
-	//  *	@rest 'wp-json/karma-fields/v1/update/{middleware}'
-	//  */
-	// public function rest_default($request) {
-	//
-	// 	$driver_name = $request->get_param('driver');
-	// 	$method = $request->get_param('method');
-	// 	$key = $request->get_param('key');
-	//
-	// 	$driver = $this->get_driver($driver_name);
-	//
-	// 	if (method_exists($driver, 'default')) {
-	//
-	// 		return $driver->default($method, $key, $request, $this);
-	//
-	// 	} else {
-	//
-	// 		return '';
-	//
-	// 	}
-	//
-	// }
-
-
-
-
-	// /**
-	//  *	@rest 'wp-json/karma-fields/v1/add/{middleware}
-	//  */
-	// public function rest_add($request) {
-	//
-	// 	$middleware_name = $request->get_param('middleware');
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	$filters = $request->get_param('filters');
-	//
-	// 	if ($middleware) {
-	//
-	//
-	// 		// foreach ($filters as $key => $value) {
-	// 		//
-	// 		// 	$filter = $this->get_key_filter($middleware_name, $key);
-	// 		//
-	// 		// 	if ($filter && isset($filter['default']) && is_callable($filter['default'])) {
-	// 		//
-	// 		// 		$args = call_user_func($filter['default'], $args, $value);
-	// 		//
-	// 		// 	}
-	// 		//
-	// 		// }
-	//
-	// 		if (isset($middleware['add']) && is_callable($middleware['add'])) {
-	//
-	// 			return call_user_func($middleware['add'], $filters);
-	//
-	// 		} else {
-	//
-	// 			return "karma fields rest add error: add callback not found";
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		return "karma fields rest add error: middleware not found";
-	//
-	// 	}
-	//
-	// }
-	//
-	// /**
-	//  *	@rest 'wp-json/karma-fields/v1/remove/{middleware}
-	//  */
-	// public function rest_remove($request) {
-	//
-	// 	$middleware_name = $request->get_param('middleware');
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	$uris = $request->get_param('uris');
-	//
-	// 	if ($middleware) {
-	//
-	// 		foreach ($uris as $uri) {
-	//
-	// 			$id = apply_filters("karma_fields_{$middleware_name}_uri", $uri);
-	//
-	// 			if (isset($middleware['remove']) && is_callable($middleware['remove'])) {
-	//
-	// 				return call_user_func($middleware['remove'], $id);
-	//
-	// 			} else {
-	//
-	// 				return "karma fields rest add error: add callback not found";
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		return "karma fields rest add error: middleware not found";
-	//
-	// 	}
-	//
-	// }
-
-
 	/**
-	 *	@rest 'wp-json/karma-fields/v1/get/'
+	 *	@rest 'wp-json/karma-fields/v1/autosave'
 	 */
-	// public function rest_get_field_options($request) {
-	//
-	// 	$middleware_name = $request->get_param('middleware');
-	// 	$key = $request->get_param('key');
-	//
-	// 	$field = $this->get_key_field($middleware_name, $key);
-	//
-	// 	if ($field) {
-	//
-	// 		if (isset($field['fetch']) && is_callable($field['fetch'])) {
-	//
-	// 			return call_user_func($field['fetch'], $request);
-	//
-	// 		} else {
-	//
-	// 			return "karma fields rest get error: get callback not found";
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		return "karma fields rest field option error: field not found";
-	//
-	// 	}
-	//
-	// }
-	//
-	// /** DEPRECATED
-	//  * parse_args
-	//  */
-	// public function parse_args($request, $middleware) {
-	//
-	// 	$args = array();
-	//
-	// 	foreach ($middleware->keys as $key => $resource) {
-	//
-	// 		if ($request->has_param($key)) {
-	//
-	// 			$value = $request->get_param($key);
-	//
-	// 			$driver = $middleware->get_driver($key);
-	//
-	// 			if ($driver && method_exists($driver, 'parse')) {
-	//
-	// 				$driver->parse($value, $args);
-	//
-	// 			} else {
-	//
-	// 				$args[$key] = $value;
-	//
-	// 			}
-	//
-	// 			if ($driver && method_exists($driver, 'filter')) {
-	//
-	// 				$driver->parse($value, $args, $request);
-	//
-	// 			}
-	// 			// else {
-	// 			//
-	// 			// 	$args[$key] = $value;
-	// 			//
-	// 			// }
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// 	if ($request->has_param('search')) {
-	//
-	// 		$word = $request->get_param('search');
-	//
-	// 		if (method_exists($middleware, 'search')) {
-	//
-	// 			$middleware->search($word, $args);
-	//
-	// 		} else {
-	//
-	// 			$args['search'] = $word;
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// 	if ($request->has_param('orderby')) {
-	//
-	// 		$key = $request->get_param('orderby');
-	//
-	// 		$driver = $middleware->get_driver($key);
-	//
-	// 		if ($driver && method_exists($driver, 'sort')) {
-	//
-	// 			$order = $request->get_param('order');
-	//
-	// 			if ($order) {
-	//
-	// 				$order = strtoupper($order);
-	//
-	// 			}
-	//
-	// 			if ($order !== 'ASC' && $order !== 'DESC') {
-	//
-	// 				$order = null;
-	//
-	// 			}
-	//
-	// 			$driver->sort($order, $args, $request);
-	//
-	// 		}
-	// 		// else {
-	// 		//
-	// 		// 	$args['orderby'] = $key;
-	// 		//
-	// 		// }
-	//
-	// 	}
-	//
-	// 	if ($request->has_param('ppp')) {
-	//
-	//
-	// 	}
-	//
-	// 	return $args;
-	//
-	// }
-	//
-	// /** DEPRECATED
-	//  *	add_item
-	//  */
-	// public function add_item($middleware, $fields, $request) {
-	//
-	// 	$middleware = $this->get_middleware($middleware_name);
-	//
-	// 	$output = array();
-	//
-	// 	if (method_exists($middleware, 'add')) {
-	//
-	// 		$args = $this->parse_args($request, $middleware);
-	//
-	// 		// $uri =
-	// 		$middleware->add($fields, $args);
-	//
-	// 		// $args = array();
-	//
-	// 		foreach ($fields as $key => $value) {
-	//
-	// 			$driver = $middleware->get_driver($key);
-	//
-	// 			if ($driver) {
-	//
-	// 				if (method_exists($driver, 'update')) {
-	//
-	// 					$driver->update($uri, $value, $args);
-	//
-	// 				}
-	//
-	// 			} else {
-	//
-	// 				return "karma fields rest add_item error: driver not found ($key)";
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 		// if ($args) {
-	// 		//
-	// 		// 	if (method_exists($middleware, 'update')) {
-	// 		//
-	// 		// 		$middleware->update($uri, $args); // $uri is modified if changed
-	// 		//
-	// 		// 	}
-	// 		//
-	// 		// }
-	//
-	// 		// return $uri; // -> return new uri
-	//
-	// 	} else {
-	//
-	// 		return "karma fields rest add_item error: add method not found";
-	//
-	// 	}
-	//
-	// }
-	//
-	// /** DEPRECATED
-	//  *	update_item
-	//  */
-	// public function update_item($middleware, $item_fields, $uri, $request = null) {
-	//
-	// 	$args = array();
-	//
-	// 	foreach ($item_fields as $key => $value) {
-	//
-	// 		$driver = $middleware->get_driver($key);
-	//
-	// 		if ($driver) {
-	//
-	// 			if (method_exists($driver, 'update')) {
-	//
-	// 				$driver->update($uri, $value, $args);
-	//
-	// 			} else if (isset($value)) {
-	//
-	// 				$args[$key] = $value;
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// 	if ($args) {
-	//
-	// 		if (method_exists($middleware, 'update')) {
-	//
-	// 			$middleware->update($uri, $args);
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// 	// return $uri; // return uri for if it changed
-	//
-	// }
-	//
-	// /** DEPRECATED
-	//  *	update_item
-	//  */
-	// public function remove_item($middleware, $uri, $request = null) {
-	//
-	// 	if (method_exists($middleware, 'remove')) {
-	//
-	// 		$middleware->remove($uri);
-	//
-	// 	}
-	//
-	// }
-	//
-	// /** DEPRECATED
-	//  *	get_middleware
-	//  */
-	// public function get_middleware($name) {
-	//
-	// 	debug_backtrace();
-	//
-	//
-	// 	// require_once $this->middlewares[$name]['path'];
-	// 	//
-	// 	// $middleware = new $this->middlewares[$name]['class'];
-	// 	//
-	// 	// $middleware->keys = isset($this->keys[$name]) ? $this->keys[$name] : array();
-	// 	// $middleware->drivers = isset($this->drivers[$name]) ? $this->drivers[$name] : array();
-	// 	//
-	// 	// return $middleware;
-	//
-	// }
+	public function rest_autosave2($request) {
 
-	/** DEPRECATED
-	 *	register_middleware
-	 */
-	// public function register_middleware($name, $path, $class) {
-	//
-	// 	$this->middlewares[$name] = array(
-	// 		'path' => $path,
-	// 		'class' => $class
-	// 	);
-	//
-	// }
+		$driver_name = $request->get_param('driver');
+
+		$user_id = get_current_user_id();
+
+		// $save = array(
+		// 	'store' => $request->get_param('store'),
+		// 	'undos' => $request->get_param('undos'),
+		// 	'redos' => $request->get_param('redos'),
+		// 	'temp' => $request->get_param('temp')
+		// );
+
+		$timestamp = time();
+
+
+
+		$path = "wp-content/karma-fields/users/{$driver_name}/state-{$user_id}.json";
+		$this->merge_object_to_file($path, array(
+			$timestamp => $request->get_param('diff')
+		));
+
+
+		$path = "wp-content/karma-fields/users/{$driver_name}/change-{$user_id}.json";
+		$user_edit = $this->get_user_edit_file($path);
+
+		return json_decode($user_edit);
+
+		// $save = $this->clean_array($save);
+		//
+		// $path = "wp-content/karma-fields/users/{$driver_name}/state-{$user_id}.json";
+		// $this->update_user_edit_file($path, json_encode($save, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+		//
+		// $path = "wp-content/karma-fields/users/{$driver_name}/change-{$user_id}.json";
+		// $user_edit = $this->get_user_edit_file($path);
+		//
+		// return json_decode($user_edit);
+
+	}
 
 	/**
 	 *	register_driver
@@ -1086,35 +699,6 @@ Class Karma_Tables {
 		);
 
 	}
-
-	/**
-	 * Find driver by middleware/key
-	 */
-	// public function get_key_driver($middleware_name, $key) {
-	//
-	// 	if (isset($this->keys[$middleware_name][$key])) {
-	//
-	// 		$key_resource = $this->keys[$middleware_name][$key];
-	//
-	// 		if (isset($this->drivers[$middleware_name][$key_resource['driver']])) {
-	//
-	// 			$driver_resource = $this->drivers[$middleware_name][$key_resource['driver']];
-	//
-	// 			require_once $driver_resource['path'];
-	//
-	// 			$driver = new $driver_resource['class'];
-	//
-	// 			$driver->resource = $key_resource;
-	// 			$driver->key = $key;
-	// 			$driver->middleware_name = $middleware_name;
-	//
-	// 			return $driver;
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
 
 	/**
 	 * Find driver by middleware/key
@@ -1135,19 +719,6 @@ Class Karma_Tables {
 	}
 
 
-	/** DEPRECATED
-	 *	register_keys
-	 */
-	// public function register_keys($middleware_name, $keys) {
-	//
-	// 	foreach ($keys as $key => $resource) {
-	//
-	// 		$this->keys[$middleware_name][$key] = $resource;
-	//
-	// 	}
-	//
-	// }
-
 	/**
 	 *	get_cachefile
 	 */
@@ -1158,49 +729,6 @@ Class Karma_Tables {
 			return $driver->get_cachefile($key);
 
 		} // else -> no cache
-
-
-
-		// if (isset($this->keys[$middleware_name][$key])) {
-		//
-		// 	$key_resource = $this->keys[$middleware_name][$key];
-		//
-		// 	if (isset($resource['cache'])) {
-		//
-		// 		if ($resource['cache'] === true) {
-		//
-		// 			return $key.'.txt';
-		//
-		// 		} else {
-		//
-		// 			return $resource['cache'];
-		//
-		// 		}
-		//
-		// 	}
-		//
-		//
-		// 	// $resource = $this->keys[$middleware_name][$key];
-		// 	//
-		// 	// if (!isset($resource['cache']) || $resource['cache'] === true) {
-		// 	//
-	  //   //   if (isset($resource['type']) && $resource['type'] === 'json') {
-		// 	//
-	  //   //     return $key.'.json';
-		// 	//
-	  //   //   } else {
-		// 	//
-	  //   //     return $key.'.txt';
-		// 	//
-	  //   //   }
-		// 	//
-	  //   // } else if ($resource['cache']) {
-		// 	//
-	  //   //   return $resource['cache'];
-		// 	//
-	  //   // }
-		//
-		// }
 
 	}
 
@@ -1220,18 +748,6 @@ Class Karma_Tables {
 			return pathinfo($filename)['filename'];
 
 		}
-
-		//
-		//
-		// foreach ($this->keys[$driver_name] as $key => $resource) {
-		//
-		// 	if ($filename === $this->get_cachefile($driver_name, $key)) {
-		//
-		// 		return $key;
-		//
-		// 	}
-		//
-		// }
 
 	}
 
@@ -1277,9 +793,13 @@ Class Karma_Tables {
 		$this->prepare($args);
 
 		$user_id = get_current_user_id();
-		$path = 'wp-content/karma-fields/users/state-'.$user_id.'.json';
 
-		$save = $this->get_user_edit_file($path, '{}');
+		$driver = $args['driver'];
+
+
+		// $path = "wp-content/karma-fields/users/{$driver}/state-{$user_id}.json";
+		//
+		// $save = $this->get_user_edit_file($path, '{}');
 
 
 		include plugin_dir_path(__FILE__) . 'includes/table.php';
@@ -1309,7 +829,7 @@ Class Karma_Tables {
 	}
 
 	/**
-	 *	update_users
+	 *	parse_object
 	 */
 	public function parse_object($obj) {
 
@@ -1336,67 +856,267 @@ Class Karma_Tables {
 
 		}
 
+		return $paths;
+	}
 
+
+	/**
+	 *	update_users
+	 */
+	// public function clean_object(&$obj) {
+	//
+	// 	foreach ($obj as $key => $child) {
+	//
+	// 		if (is_array($child) || is_object($child)) {
+	//
+	// 			if (empty($child)) {
+	//
+	// 				unset($obj[$key]);
+	//
+	// 			} else {
+	//
+	// 				$this->clean_object($child);
+	//
+	// 			}
+	//
+	// 		} else if (!isset($child)) {
+	//
+	// 			unset($obj[$key]);
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// }
+
+	// /**
+	//  *	clean_array
+	//  */
+	// public function clean_array($obj) {
+	//
+	// 	$clone = array();
+	//
+	// 	foreach ($obj as $key => $child) {
+	//
+	// 		if (!empty($child)) {
+	//
+	// 			if (is_array($child)) {
+	//
+	// 				$clone[$key] = $this->clean_array($child);
+	//
+	// 			} else if ($child !== null) {
+	//
+	// 				$clone[$key] = $child;
+	//
+	// 			}
+	//
+	// 		}
+	//
+	//
+	// 	}
+	//
+	// 	return $clone;
+	// }
+
+	/**
+	 *	clean_array
+	 */
+	public function clean_array($obj) {
+
+		$clone = array();
+
+		foreach ($obj as $key => $child) {
+
+			if (is_array($child)) {
+
+				$child = $this->clean_array($child);
+
+				if (!empty($child)) {
+
+					$clone[$key] = $child;
+
+				}
+
+			} else if ($child !== null) {
+
+				$clone[$key] = $child;
+
+			}
+
+		}
+
+		return $clone;
+	}
+
+
+
+	/**
+	 *	pad_object
+	 */
+	public function pad_object($obj, $value = 0) {
+
+		$paths = array();
+
+		foreach ($obj as $key => $child) {
+
+			if (is_array($child) || is_object($child)) {
+
+				$paths[$key] = $this->pad_object($child, $value);
+
+			} else {
+
+				$paths[$key] = $value;
+			}
+
+		}
 
 		return $paths;
 	}
 
 
-		// /**
-		//  *	update_users
-		//  */
-		// public function parse_object($obj) {
-		//
-		// 	$paths = array();
-		//
-		// 	foreach ($obj as $key => $child) {
-		//
-		// 		if (is_array($child) || is_object($child)) {
-		//
-		// 			$paths[$key] = $this->parse_object($child);
-		//
-		// 		} else {
-		//
-		// 			$paths[$key] = 0;
-		// 		}
-		//
-		// 	}
-		//
-		// 	return $paths;
-		// }
+	/**
+	 *	merge_object_deep
+	 */
+	public function merge_object_deep(&$array1, $array2) {
+
+	  foreach ($array2 as $key => $value) {
+
+	    if (is_array($value) && isset($array1[$key]) && is_array($array1[$key])) {
+
+	      $this->merge_object_deep($array1[$key], $value);
+
+	    } else {
+
+	      $array1[$key] = $value;
+
+	    }
+
+	  }
+
+	}
+
 
 	/**
-	 *	update_users
+	 *	set_value_deep
 	 */
-	public function update_users($fields, $request) {
+	public function set_value_deep(&$array, $keys, $value) {
 
-		$users = get_users(array(
-			'meta_key' => 'karma_logedin',
-			'meta_value' => '1',
-			'exclude' => array(get_current_user_id())
-		));
+		if (isset($keys[0])) {
 
-		$items = $this->parse_object($fields);
+			$key = $keys[0];
 
-		$value = json_encode($items);
+			if (isset($keys[1])) {
 
-		foreach ($users as $user) {
+				if (empty($array[$key]) || !is_array($array[$key])) {
 
-			$file = 'wp-content/karma-fields/users/'.$user->ID.'.json';
+					$array[$key] = array();
 
-			$this->update_user_edit_file($file, $value);
+				}
+
+				$this->set_value_deep($array[$key], array_slice($keys, 1), $value);
+
+			} else {
+
+				$array[$key] = $value;
+
+			}
 
 		}
 
 	}
 
 	/**
+	 *	unset_value_deep
+	 */
+	public function unset_value_deep(&$array, $keys) {
+
+
+
+
+		if (isset($keys[0])) {
+
+			$key = $keys[0];
+
+			if (isset($keys[1])) {
+
+				if (isset($array[$key]) && is_array($array[$key])) {
+
+					$this->unset_value_deep($array[$key], array_slice($keys, 1));
+
+				}
+
+			} else if (isset($array[$key])) {
+
+				unset($array[$key]);
+
+			}
+
+		}
+
+	}
+
+	// /**
+	//  *	merge_object_deep
+	//  */
+	// public function merge_object_deep($array1, $array2) {
+	//
+	// 	$clone = array();
+	//
+	//   foreach ($array2 as $key => $value) {
+	//
+	//     if (is_array($value) && isset($array1[$key]) && is_array($array1[$key])) {
+	//
+	//       $clone[$key] = $this->merge_object_deep($array1[$key], $value);
+	//
+	//     } else {
+	//
+	//       $clone[$key] = $value;
+	//
+	//     }
+	//
+	//   }
+	//
+	// 	return $clone;
+	//
+	// }
+
+	/**
+	 *	update_users
+	 */
+	public function update_users($fields, $driver_name, $request) {
+
+		$user_id = get_current_user_id();
+
+		$users = get_users(array(
+			'meta_key' => 'karma_logedin',
+			'meta_value' => '1',
+			'exclude' => array($user_id)
+		));
+
+		$items = $this->pad_object($fields, $user_id);
+
+		foreach ($users as $user) {
+
+
+			$file = "wp-content/karma-fields/users/{$driver_name}/change-{$user->ID}.json";
+
+			$this->merge_object_to_file($file, $items);
+
+		}
+
+	}
+
+
+
+	/**
+	 * deprecated... json file no longer directly fetched
+	 *
 	 * @hook 'parse_request'
 	 */
 	public function parse_request($wp) {
 
 		$user_id = get_current_user_id();
-		$file = 'wp-content/karma-fields/users/'.$user_id.'.json';
+		$file = 'wp-content/karma-fields/users/change-'.$user_id.'.json';
 
 		if ($wp->request === $file) {
 
@@ -1442,6 +1162,61 @@ Class Karma_Tables {
 		}
 
 		return $default;
+
+	}
+
+	/**
+	 * merge_object
+	 */
+	public function merge_object_to_file($path, $value) {
+
+		$content = $this->get_user_edit_file($path, '{}');
+
+		$current = json_decode($content, JSON_OBJECT_AS_ARRAY);
+
+		$this->merge_object_deep($current, $value);
+
+		$current = $this->clean_array($current);
+
+		$content = json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_FORCE_OBJECT);
+
+		$this->update_user_edit_file($path, $content);
+
+	}
+
+	/**
+	 * merge_object
+	 */
+	public function set_value_to_file($path, $keys, $value) {
+
+		$content = $this->get_user_edit_file($path, '[]');
+
+		$current = json_decode($content, JSON_OBJECT_AS_ARRAY);
+
+		$this->set_value_deep($current, $keys, $value);
+
+		$content = json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+		$this->update_user_edit_file($path, $content);
+
+	}
+
+	/**
+	 * merge_object
+	 */
+	public function unset_to_file($path, $keys) {
+
+		$content = $this->get_user_edit_file($path, '[]');
+
+		$current = json_decode($content, JSON_OBJECT_AS_ARRAY);
+
+		$this->unset_value_deep($current, $keys);
+
+		$current = $this->clean_array($current);
+
+		$content = json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+		$this->update_user_edit_file($path, $content);
 
 	}
 

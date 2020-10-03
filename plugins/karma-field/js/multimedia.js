@@ -1258,6 +1258,8 @@ KarmaFieldMedia.fields.image = function(value, options, save) {
 
 KarmaFieldMedia.fields.gallery = function(value, options, save) {
 	var galleryManager = KarmaFieldMedia.createGalleryUploader();
+
+	console.log(options);
 	galleryManager.mimeTypes = options.mimeTypes || ["image"];
 	galleryManager.imageIds = value;
 
