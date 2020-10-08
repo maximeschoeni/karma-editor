@@ -20,9 +20,12 @@ KarmaFields.tables.grid = function(manager) {
             filter.resource = manager.resource.filter;
             // filter.input = "filters";
             // filter.output = "filters";
-            filter.buffer = manager.resource.filter.buffer || "inner";
+            // filter.buffer = manager.resource.filter.buffer || "inner";
 
-            filter.path = "filters";
+            filter.inputBuffer = manager.resource.filter.inputBuffer || "filters";
+            filter.outputBuffer = manager.resource.filter.outputBuffer || "filters";
+
+            // filter.path = "filters";
             filter.history = manager.history;
             // filter.id = "karma-table-filters";
             filter.onSetValue = function() {
@@ -140,7 +143,7 @@ KarmaFields.tables.grid = function(manager) {
                             },
                             init: function() {
                               this.element.addEventListener("click", function() {
-                                manager.reorder(column.key, column.default_order);
+                                manager.reorder(column.key, column.driver, column.default_order);
                                 manager.request();
                               });
                             },
@@ -192,6 +195,8 @@ KarmaFields.tables.grid = function(manager) {
                 // console.trace();
 
                 var uris = manager.getItems();
+
+
 
                 this.children = uris && uris.filter(function(uri) {
                   // var trash = manager.history.read(["output", uri, "trash"]);
@@ -253,7 +258,9 @@ KarmaFields.tables.grid = function(manager) {
                             // });
                             this.data.fieldManager.history = manager.history;
                             this.data.fieldManager.selection = manager.select;
-                            this.data.fieldManager.buffer = column.buffer || "output";
+                            this.data.fieldManager.inputBuffer = column.inputBuffer || "input";
+                            this.data.fieldManager.outputBuffer = column.outputBuffer || "output";
+
                             // this.data.fieldManager.inputBuffer = "input";
                             this.data.fieldManager.onSetValue = function() {
                               cell.element.classList.toggle("modified", this.isModified());
@@ -296,7 +303,7 @@ KarmaFields.tables.grid = function(manager) {
 
                       if (manager.resource.index) {
                         this.children.unshift({
-                          tag: "td",
+                          tag: "th",
                           init: function() {
                             this.element.addEventListener("mousedown", function(event) {
                       				manager.select.onIndexCellMouseDown(rowIndex);

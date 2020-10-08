@@ -1,3 +1,58 @@
+<div id="karma-fields-field-<?php echo $index; ?>-container" class="karma-fields"></div>
+<input type="hidden" name="karma-fields-items[]" id="karma-fields-input-<?php echo $index; ?>">
+
+<?php
+	$action = "karma_field-action";
+	$nonce = "karma_field-nonce";
+
+	wp_nonce_field($action, $nonce, false, true);
+ ?>
+<script>
+	document.addEventListener("DOMContentLoaded", function() {
+		var container = document.getElementById("karma-fields-field-<?php echo $index; ?>-container");
+		var input = document.getElementById("karma-fields-input-<?php echo $index; ?>");
+		var resource = <?php echo json_encode($args); ?>;
+		var id = <?php echo $id; ?>;
+		var history = KarmaFields.History.createInstance();
+
+		window.fieldHistory = history;
+
+		var fieldManager = KarmaFields.managers.field();
+		fieldManager.resource = resource;
+		fieldManager.inputBuffer = "input";
+		fieldManager.outputBuffer = "output";
+		fieldManager.history = history;
+		fieldManager.path = id;
+
+		fieldManager.onSetValue = function() {
+			var output = history.getValue(["output"]);
+			// KarmaFields.Transfer.update(resource.driver, output);
+			input.value = JSON.stringify(output);
+		};
+		var fieldNode = KarmaFields.build({
+			children: fieldManager.build()
+		}, container);
+		container.addEventListener("focusin", function() {
+			KarmaFields.events.onUndo = function(event) {
+
+				history.undo();
+
+				fieldNode.render();
+				event.preventDefault();
+			}
+			KarmaFields.events.onRedo = function(event) {
+				history.redo();
+				event.preventDefault();
+			}
+		});
+
+	});
+</script>
+
+
+
+<?php /*
+
 <div id="karma-fields-field-container-<?php echo $index; ?>" class="karma-fields"></div>
 <input type="hidden" name="karma-fields-items[]" id="karma-fields-input-<?php echo $index; ?>">
 <script>
@@ -25,28 +80,6 @@
 			fieldManager.update();
 		};
 
-		// function() {
-		//
-		// 	if () {
-		// 		fieldManager.onUpdate();
-		// 	}
-		//
-		//
-		// 	// if (field) {
-		// 	// 	container.removeChild(field);
-		// 	// }
-		// 	// fieldManager = KarmaFields.managers.field(resources, post, middleware, history);
-		// 	// fieldManager.onUpdateState = function(state) {
-		// 	// 	// console.trace();
-		// 	// 	// console.log(state);
-		// 	// 	input.value = JSON.stringify(state);
-		// 	// };
-		// 	// fieldManager.build().then(function(element) {
-		// 	// 	field = element;
-		// 	// 	container.appendChild(field);
-		// 	// });
-		//
-		// }
 
 		container.addEventListener("focusin", function() {
 			KarmaFields.events.onUndo = function(event) {
@@ -60,10 +93,8 @@
 		});
 
 
-// setTimeout(function() {
-// 	history.onUpdate();
-// }, 2000);
-
-
 	});
 </script>
+
+
+*/

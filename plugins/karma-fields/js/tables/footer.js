@@ -30,8 +30,11 @@ KarmaFields.tables.footer = function(manager) {
                   field.resource = manager.resource.options;
                   // field.input = ["options"];
                   // field.output = ["options"];
-                  field.buffer = "inner";
-                  field.path = "options";
+                  // field.buffer = "inner";
+                  field.inputBuffer = "options";
+                  field.outputBuffer = "options";
+
+                  // field.path = "options";
                   // field.id = "karma-table-options";
                   field.history = manager.history;
                   field.onSubmit = function() {

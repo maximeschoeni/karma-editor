@@ -40,7 +40,8 @@ KarmaFields.fields.dropdown = function(field) {
 							value = items[0].key;
 
 							// console.log(field.buffer, field.getPath(), field.resource.key, value);
-							field.history.write(field.buffer, field.getPath(), value);
+							// field.history.write(field.buffer, field.getPath(), value);
+							field.write(value);
 						}
 
 						dropdown.children = items.map(function(item) {

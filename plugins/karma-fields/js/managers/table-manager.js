@@ -12,8 +12,8 @@ KarmaFields.managers.table = function(resource, history) {
 			}
 		},
 		getItems: function() {
-			var items = history.read("inner", ["table", "items"]) || {};
-			var drafts = history.read("inner", ["table", "drafts"]) || {};
+			var items = history.read("table", ["items"]) || {};
+			var drafts = history.read("table", ["drafts"]) || {};
 			return Object.values(drafts).concat(Object.values(items)).filter(function(uri) {
 				return history.read("output", [resource.driver, uri, "status"], 1) < 2;
 			});
@@ -25,13 +25,15 @@ KarmaFields.managers.table = function(resource, history) {
 				this.stopRefresh();
 
 				var params = {};
-				var options = history.read("inner", ["options"], {});
-				var filters = history.read("inner", [resource.driver, "filters"], {});
+				params.page = history.read("page", [], 1);
+				// params.ppp = history.read("ppp", [], 50);
+				params.options = history.read("options", [], {});
+				params.filters = history.read("filters", [], {});
 
 
 
-				KarmaFields.Object.merge(params, filters);
-				KarmaFields.Object.merge(params, options);
+				// KarmaFields.Object.merge(params, filters);
+				// KarmaFields.Object.merge(params, options);
 
 
 
@@ -47,20 +49,16 @@ KarmaFields.managers.table = function(resource, history) {
 
 					// console.log(results.items);
 
-					history.write("inner", ["table", "items"], null, "nav");
+					history.write("table", ["items"], null, "nav");
 
 					results.items.filter(function(item) {
 						return item.uri;
 					}).forEach(function(item, index) {
 						history.write("input", [resource.driver, item.uri], item);
-
-						history.write("inner", ["table", "items", index], item.uri, "nav");
+						history.write("table", ["items", index], item.uri, "nav");
 					});
 
-					// history.write("inner", ["table", "items"], results.items.map(function(item) {
-					// 	return item.uri;
-					// }), "nav");
-					history.write("inner", ["table", "count"], parseInt(results.count), "nav");
+					history.write("table", ["count"], parseInt(results.count), "nav");
 					history.write("static", ["loading"], 0);
 
 
@@ -79,38 +77,39 @@ KarmaFields.managers.table = function(resource, history) {
 				return Promise.reject(new Error("Table Manager error: no resource driver"));
 			}
 		},
-
-		reorder: function(key, default_order) {
-			var options = history.read("inner", ["options"], {});
-			if (options.orderby === key) {
-				if (options.order === "asc") {
-					options.order = "desc";
+		reorder: function(key, driver, default_order) {
+			var order = history.read("order", [], {});
+			if (order.orderby === key) {
+				if (order.order === "asc") {
+					order.order = "desc";
 				} else {
-					options.order = "asc";
+					order.order = "asc";
 				}
 			} else {
-				options.orderby = key;
-				options.order = default_order || "asc";
+				order.orderby = key;
+				order.order = default_order || "asc";
 			}
-			options.page = 1;
-			history.write("inner", ["options"], options, "nav");
+			order.driver = driver;
+			// options.page = 1;
+			history.write("page", [], "1", "nav");
+			history.write("order", [], order, "nav");
 			this.request();
 		},
 
 		getPpp: function() {
-			var ppp = manager.history.read("inner", ["options", "ppp"]);
+			var ppp = manager.history.read("options", ["ppp"]);
 			return parseInt(ppp || Number.MAX_SAFE_INTEGER);
 		},
 		getPage: function() {
-			var page = manager.history.read("inner", ["options", "page"]);
+			var page = manager.history.read("page", []);
 			return parseInt(page || 1);
 		},
 		setPage: function(page) {
-			manager.history.write("inner", ["options", "page"], page.toString(), "nav");
+			manager.history.write("page", [], page.toString(), "nav");
 		},
 		getCount: function() {
-			var count = manager.history.read("inner", ["table", "count"]);
-			var drafts = manager.history.read("inner", ["table", "drafts"]) || [];
+			var count = manager.history.read("table", ["count"]);
+			var drafts = manager.history.read("table", ["drafts"]) || [];
 			return parseInt(count || 0) + drafts.length;
 		},
 
@@ -122,20 +121,22 @@ KarmaFields.managers.table = function(resource, history) {
 
 			if (KarmaFields.Object.isEmpty(output)) {
 				console.log(output);
-
 				console.warn("Output is empty");
 				return;
 			}
 			var params = {
-				drivers: output
+				input: output,
+				page: history.read("page", [], 1),
+				options: history.read("options", [], {}),
+				filters: history.read("filters", [], {})
 			};
 
 			// console.log(params);
 
-			var options = history.read("inner", ["options"], {});
-			var filters = history.read("inner", [resource.driver, "filters"], {});
-			KarmaFields.Object.merge(params, filters);
-			KarmaFields.Object.merge(params, options);
+			// var options = history.read("options", [], {});
+			// var filters = history.read("filters", [], {});
+			// KarmaFields.Object.merge(params, filters);
+			// KarmaFields.Object.merge(params, options);
 			// var options = history.read(["options"]);
 			// var filters = history.read(["filters"]);
 			// var params = Object.merge(options, filters);
@@ -152,10 +153,10 @@ KarmaFields.managers.table = function(resource, history) {
 
 				// history.empty("output", []);
 				history.setValue("output", [], null);
-				var drafts = Object.values(history.read("inner", ["table", "drafts"]) || {});
-				var uris = Object.values(history.read("inner", ["table", "items"]) || {});
-				history.write("inner", ["table", "items"], drafts.concat(uris));
-				history.write("inner", ["table", "drafts"], null);
+				var drafts = Object.values(history.read("table", ["drafts"]) || {});
+				var uris = Object.values(history.read("table", ["items"]) || {});
+				history.write("table", ["items"], drafts.concat(uris));
+				history.write("table", ["drafts"], null);
 
 				// history.write("output", [], null, timestamp);
 
@@ -191,10 +192,13 @@ KarmaFields.managers.table = function(resource, history) {
 				}
 				return obj;
 			}, {});
-			var options = history.read("inner", ["options"]);
-			var filters = history.read("inner", [resource.driver, "filters"]);
-			KarmaFields.Object.merge(params, filters);
-			KarmaFields.Object.merge(params, options);
+			params.options = history.read("options", []);
+			params.filter = history.read("filters", []);
+
+			// var options = history.read("options", []);
+			// var filters = history.read("filters", []);
+			// KarmaFields.Object.merge(params, filters);
+			// KarmaFields.Object.merge(params, options);
 
 			history.write("static", ["loading"], 1);
 
@@ -203,9 +207,9 @@ KarmaFields.managers.table = function(resource, history) {
 			KarmaFields.Transfer.add(resource.driver, params).then(function(result) {
 
 				history.merge("input", [resource.driver, result.uri], result);
-				var drafts = Object.values(history.getValue(["inner", "table", "drafts"]) || {});
+				var drafts = Object.values(history.getValue(["table", "drafts"]) || {});
 				console.log(drafts);
-				history.write("inner", ["table", "drafts"], [...drafts, result.uri], result.uri);
+				history.write("table", ["drafts"], [...drafts, result.uri], result.uri);
 				history.write("static", ["loading"], 0);
 				history.write("output", [resource.driver, result.uri, "status"], "1", result.uri);
 
@@ -217,62 +221,17 @@ KarmaFields.managers.table = function(resource, history) {
 			});
 		},
 		removeItems: function(rows) {
-
 			var timestamp = Date.now();
-
-
-			// history.write("inner", ["table", "items"], null, timestamp);
-
-
-			// var items = history.read("inner", ["table", "items"]) || {};
-			// console.log(items);
-			// var uris = Object.values(items);
-			// uris.filter(function(uri) {
-			// 	return rows.indexOf(uri) === -1;
-			// }).forEach(function(uri, i) {
-			// 	history.write("inner", ["table", "items", i], uri, timestamp);
-			// });
-			// rows.forEach(function(uri) {
-			// 	history.write("output", [resource.driver, uri, "status"], "2", timestamp);
-			// });
-
 
 			rows.forEach(function(uri) {
 				history.write("output", [resource.driver, uri, "status"], "2", timestamp);
 			});
 
-			history.filter("inner", ["table", "items"], function(uri) {
+			history.filter("table", ["items"], function(uri) {
 				return rows.indexOf(uri) === -1;
 			});
 
-			// var items = history.read("inner", ["table", "items"]) || {};
-			// var uris = Object.values(items);
-			//
-			// rows.forEach(function(uri) {
-			// 	history.write("output", [resource.driver, uri, "status"], "2", timestamp);
-			// 	history.write("inner", ["table", "items", i], uri, timestamp);
-			// });
-			//
-			//
-			// var items = history.read("inner", ["table", "items"]) || {};
-			// console.log(items);
-			// var uris = Object.values(items);
-			// uris.filter(function(uri) {
-			// 	return rows.indexOf(uri) === -1;
-			// }).forEach(function(uri, i) {
-			// 	history.write("inner", ["table", "items", i], uri, timestamp);
-			// });
-
-
-			// history.write("inner", ["table", "items"], filteredUris, timestamp);
-
-
-
-			// history.write("inner", ["table", "trashitems"], rows, timestamp);
-
 			this.render();
-
-
 		},
 
 		save: function() {
@@ -334,8 +293,11 @@ KarmaFields.managers.table = function(resource, history) {
 			if (!params) {
 				params = {};
 			}
-			if (resource.key && resource.default) {
-				params[resource.key] = resource.default;
+			if (resource.driver && !params[resource.driver]) {
+				params[resource.driver] = {};
+			}
+			if (resource.driver && resource.key && resource.default) {
+				params[resource.driver][resource.key] = resource.default;
 			}
 			if (resource.children) {
 				for (var i = 0; i < resource.children.length; i++) {
@@ -407,6 +369,7 @@ KarmaFields.managers.table = function(resource, history) {
 	}
 	KarmaFields.events.onPast = function(event) {
 		manager.select.onPast(event);
+		manager.render();
 	}
 
 	KarmaFields.events.onSave = function(event) {
@@ -425,8 +388,8 @@ KarmaFields.managers.table = function(resource, history) {
 	}
 
 	KarmaFields.events.onUnload = function() {
-		manager.save();
-		manager.stopRefresh();
+		// manager.save();
+		// manager.stopRefresh();
 	}
 
 
@@ -460,15 +423,16 @@ KarmaFields.managers.table = function(resource, history) {
 
 	if (resource.filter) {
 		var filters = manager.getDefaultFilters(resource.filter);
-		history.merge("inner", [resource.driver, "filters"], filters, true);
+
+		history.merge("filters", [], filters, true);
 	}
 
 	if (resource.options) {
 		var options = manager.getDefaultOptions(resource.options);
-		history.merge("inner", ["options"], options, true);
+		history.merge("options", [], options, true);
 	}
 
-	history.merge("inner", ["options"], {
+	history.merge("options", [], {
 		page: 1,
 		ppp: 50
 	}, true);

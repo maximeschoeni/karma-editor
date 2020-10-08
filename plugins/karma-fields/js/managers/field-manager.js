@@ -4,8 +4,10 @@ KarmaFields.managers.field = function() {
 		resource: {},
 		hasHistory: true,
 		subKeys: [],
-		path: "default_path",
-		buffer: "default_buffer",
+		path: null,
+		// buffer: "default_buffer",
+		inputBuffer: "input",
+		outputBuffet: "ouput",
 
 		// input: "input",
 		// output: "ouput",
@@ -61,7 +63,9 @@ KarmaFields.managers.field = function() {
 			// child.output = this.output; //.slice(0, -1).concat(resource.key || [], resource.subKeys || []);
 			// child.id = [this.id].concat(resource.subKeys || []).join("-");
 			child.path = this.path;
-			child.buffer = resource.buffer || this.buffer;
+			// child.buffer = resource.buffer || this.buffer;
+			child.inputBuffer = resource.inputBuffer || this.inputBuffer;
+			child.outputBuffer = resource.outputBuffer || this.outputBuffer;
 
 
 			// child.cancelable = this.cancelable;
@@ -110,9 +114,13 @@ KarmaFields.managers.field = function() {
 			// }
 			// var path = this.getPath("output");
 		// return this.history.read([this.buffer, this.path, this.key, ...this.subKeys], ["input", this.path, this.key, ...this.subKeys]);
-		if (this.history && this.resource && this.buffer) {
+		if (this.history && this.inputBuffer && this.outputBuffer) {
 			var path = this.getPath();
-			return this.history.read(this.buffer, path);
+			var value = this.history.read(this.outputBuffer, path);
+			if (value === undefined && this.inputBuffer !== this.outputBuffer) {
+				value = this.history.read(this.inputBuffer, path);
+			}
+			return value;
 		}
 
 			// if (value === undefined) {
@@ -120,23 +128,40 @@ KarmaFields.managers.field = function() {
 			// }
 			// return value;
 		},
-		setValue: function(value, flux) {
-			// var path = this.getPath("output");
+		// castAs: function(value, type) {
+		// 	switch (type) {
+		// 		case "array":
+		// 			return Array.isArray(value)&&value||[];
+		// 		case "string":
+		// 			return value.toString();
+		// 		case "int":
+		// 			var num = parseInt(value);
+		// 			return isNaN(num);
+		// 		case "int":
+		// 			return value.toString();
+		// 	}
+		//
+		// },
+		setValue: function(value) {
 
-			// if (multiedit === undefined) {
-			// 	multiedit = this.multiedit;
+			// if (this.history && this.resource) {
+			// 	var path = this.getPath();
+			// 	if (flux === undefined) {
+			// 		if (this.buffer === "output") {
+			// 			flux = path.join("/");
+			// 		} else {
+			// 			flux = "nav";
+			// 		}
+			// 	}
+			// 	this.history.write(this.buffer, path, value, flux);
 			// }
-			if (this.history && this.resource) {
-				var path = this.getPath();
-				if (flux === undefined) {
-					if (this.buffer === "output") {
-						flux = path.join("/");
-					} else {
-						flux = "nav";
-					}
-				}
-				this.history.write(this.buffer, path, value, flux);
-			}
+
+			var path = this.getPath();
+			var flux = path.join("/");
+
+
+
+			this.write(value, flux);
 
 			if (this.resource && this.resource.multiedit && this.selection && this.selection.onMultiEdit) {
 				this.selection.onMultiEdit(this, value, flux);
@@ -144,63 +169,94 @@ KarmaFields.managers.field = function() {
 			if (this.onSetValue) {
 				this.onSetValue(this);
 			}
-
-
+		},
+		write: function(value, flux) {
+			if (this.history) {
+				var path = this.getPath();
+				this.history.write(this.outputBuffer, path, value, flux);
+			}
 		},
 		isModified: function() {
-			// return this.history && this.history.diff(this.buffer);
 			var path = this.getPath();
-			return this.history && this.history.isModified(this.buffer, path);
+			// return this.history && this.history.isModified([this.inputBuffer, path], [this.outputBuffer, path]);
+			return this.history && !this.history.contain([this.inputBuffer, ...path], [this.outputBuffer, ...path]);
 		},
-		fetchValue: function(forceReload) {
+		fetchValue: function(type) {
 			var value = this.getValue();
-			if (!forceReload && value !== undefined) {
+			if (value !== undefined) {
 				return Promise.resolve(value);
-			} else if (this.buffer === "output" && this.resource && this.resource.driver && this.resource.key && this.path) {
-				return this.fetch(this.resource.driver, this.path, this.resource.key, this.resource.subKeys || [], this.resource.cache).then(function(value) {
-					if (value !== undefined) {
-						// var input = this.getPath("input");
-						// manager.history.write(input, value);
-						var path = manager.getPath();
-						manager.history.write("input", path, value);
-						return value;
-					}
+			} else if (this.inputBuffer !== this.outputBuffer && this.resource && this.resource.driver && this.resource.key && this.path) {
+				return this.fetch().then(function(value) {
+					// if (manager.subKeys && manager.subKeys.length) {
+					// 	value = KarmaFields.Object.getValue(value, manager.subKeys);
+					// }
+					var path = manager.getPath();
+					manager.history.write(manager.inputBuffer, path, value);
+					return value;
 				});
 			} else {
 				if (this.resource.default !== undefined) {
 					var path = this.getPath();
-					this.history.write(this.buffer, path, this.resource.default);
+					this.history.write(this.outputBuffer, path, this.resource.default);
+					// this.history.write(this.buffer, path, this.resource.default);
 				}
 				return Promise.resolve(this.resource.default);
 			}
 		},
-		fetch: function(driver, path, key, subkeys, cache) {
-			if (subkeys.length > 0) {
-				var parentKeys = keys.slice();
-				var childKey = parentKeys.pop();
-				return this.fetch(driver, path, key, parentKeys, cache).then(function(value) {
-					return value && value[childKey]
-				});
-			} else {
-				return KarmaFields.Transfer.get(driver, path, key, cache);
-			}
+		fetch: function() {
+			// if (subkeys.length > 0) {
+			// 	var parentKeys = keys.slice();
+			// 	var childKey = parentKeys.unshift();
+			// 	return this.fetch(driver, path, key, parentKeys, cache).then(function(value) {
+			// 		return value && value[childKey]
+			// 	});
+			// } else {
+			// 	return KarmaFields.Transfer.get(driver, path, key, cache);
+			// }
+
+			return KarmaFields.Transfer.get(this.resource.driver, this.path, this.resource.key, this.resource.cache);
+
+			// return KarmaFields.Transfer.get(this.resource.driver, this.path, this.resource.key, this.resource.cache).then(function(value) {
+			// 	var path = manager.getPath();
+			// 	manager.history.write(manager.inputBuffer, path, value);
+			// 	return value;
+			// });
+			//
+			// console.log();
+			//
+			// if (!this.promise) {
+			// 	this.promise = KarmaFields.Transfer.get(this.resource.driver, this.path, this.resource.key, this.resource.cache).then(function(value) {
+			// 		var path = manager.getPath();
+			// 		manager.history.write(manager.inputBuffer, path, value);
+			// 		return value;
+			// 	})
+			// }
+			// return this.promise;
 		},
-		fetchOptions: function(custom) {
+		fetchOptions: function(params) {
 			if (this.resource.driver && this.resource.key) {
-				var params = {};
-				if (this.history) {
-					var filters = this.history.read("inner", [this.resource.driver, "filters"]) || {};
-					for (var i in filters) {
-						if (i !== this.resource.key) {
-							params[i] = filters[i];
-						}
-					}
+				if (!params) {
+					params = {};
 				}
-				if (custom) {
-					for (var i in custom) {
-						params[i] = custom[i];
-					}
-				}
+				params.filters = this.history.read("filters", []);
+
+				// var params = {
+				// 	'filters': this.history.read("filters", []),
+				// 	'custom': custom
+				// };
+				// if (this.history) {
+				// 	var filters = this.history.read("filters", []) || {};
+				// 	for (var i in filters) {
+				// 		if (i !== this.resource.key) {
+				// 			params[i] = filters[i];
+				// 		}
+				// 	}
+				// }
+				// if (custom) {
+				// 	for (var i in custom) {
+				// 		params[i] = custom[i];
+				// 	}
+				// }
 				return KarmaFields.Transfer.fetch(this.resource.driver, this.resource.key, params);
 			} else {
 				return Promise.resolve();

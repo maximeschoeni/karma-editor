@@ -1,13 +1,44 @@
 KarmaFields.Transfer = {}
 KarmaFields.Transfer.cache = {};
+KarmaFields.Transfer.createQuery = function(path, params) {
+	var file = path.join("/");
+	return this.addQueryArgs(file, params);
+}
+KarmaFields.Transfer.addQueryArgs = function(file, params) {
+	if (params) {
+		var serial = this.serialize(params);
+		if (serial) {
+			file += "?"+serial;
+		}
+	}
+	return file;
+}
 KarmaFields.Transfer.serialize = function(object) {
 	var params = [];
+	object = this.flaten(object);
 	for (var key in object) {
 		if (object[key]) {
-			params.push(key + "=" + encodeURIComponent(object[key]));
+			params.push(encodeURI(key) + "=" + encodeURIComponent(object[key]));
 		}
 	}
 	return params.join("&");
+}
+KarmaFields.Transfer.flaten = function(object, parentKey, results) {
+	results = results || {};
+	for (var key in object) {
+		if (object[key]) {
+			var path = key;
+			if (parentKey) {
+				path = parentKey+"/"+key;
+			}
+			if (typeof object[key] === "object") {
+				this.flaten(object[key], path, results);
+			} else {
+				results[path] = object[key];
+			}
+		}
+	}
+	return results;
 }
 KarmaFields.Transfer.clean = function(object) {
 	var params = {};
@@ -19,11 +50,13 @@ KarmaFields.Transfer.clean = function(object) {
 	return params;
 }
 KarmaFields.Transfer.query = function(driver, params) {
-	var file = KarmaFields.restURL+"/query/"+driver;
-	var serial = this.serialize(params);
-	if (serial) {
-		file += "?"+serial;
-	}
+	// var file = KarmaFields.restURL+"/query/"+driver;
+	// var serial = this.serialize(params);
+	// if (serial) {
+	// 	file += "?"+serial;
+	// }
+
+	var file = this.createQuery([KarmaFields.restURL, "query", driver], params);
 
 	// var file = KarmaFields.restURL+"/query/"+driver+"?p="+JSON.stringify(params);
 	// console.log(file);
@@ -101,11 +134,13 @@ KarmaFields.Transfer.get = function(driver, path, key, cache) {
 	// }
 };
 KarmaFields.Transfer.fetch = function(driver, key, params) {
-	var file = [].concat(KarmaFields.restURL, "fetch", driver, key).join("/");
-	var serial = this.serialize(params);
-	if (serial) {
-		file += "?"+serial;
-	}
+	// var file = [KarmaFields.restURL, "fetch", driver, key].join("/");
+	var file = this.createQuery([KarmaFields.restURL, "fetch", driver, key], params);
+
+	// var serial = this.serialize(params);
+	// if (serial) {
+	// 	file += "?"+serial;
+	// }
 	if (!this.cache[file]) {
 		this.cache[file] = fetch(file, {
 			cache: "default", // force-cache

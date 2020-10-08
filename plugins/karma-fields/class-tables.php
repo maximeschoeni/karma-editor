@@ -67,6 +67,7 @@ Class Karma_Tables {
 			add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
 
 			add_action('karma_field_print_grid', array($this, 'print_grid'));
+			add_action('karma_fields_print_field', array($this, 'print_field'), 10, 2);
 
 			add_action('admin_head', array($this, 'print_footer'));
 
@@ -179,6 +180,7 @@ Class Karma_Tables {
 				wp_enqueue_script('karma-utils-rect', $plugin_url . '/js/utils/rect.js', array('karma-fields-media'), $this->version, true);
 				wp_enqueue_script('karma-utils-object', $plugin_url . '/js/utils/object.js', array('karma-fields-media'), $this->version, true);
 				wp_enqueue_script('karma-transfer', $plugin_url . '/js/transfer-manager.js', array('karma-fields-media'), $this->version, true);
+				wp_enqueue_script('karma-caster', $plugin_url . '/js/utils/caster.js', array('karma-fields-media'), $this->version, true);
 
 				// includes
 				wp_enqueue_script('karma-includes-icon', $plugin_url . '/js/includes/icon.js', array('karma-fields-media', 'karma-build'), $this->version, true);
@@ -239,9 +241,66 @@ Class Karma_Tables {
 		add_action('wp_login', array($this, 'user_login'), 10, 2);
 		add_action('wp_logout', array($this, 'user_logout'));
 
-		// if (is_user_logged_in()) {
-		// 	add_action('parse_request', array($this, 'parse_request'), 11);
-		// }
+		$this->register_driver(
+			'posts',
+			KARMA_FIELDS_PATH.'/drivers/driver-posts.php',
+			'Karma_Fields_Driver_Posts'
+		);
+		$this->register_driver(
+			'postmeta',
+			KARMA_FIELDS_PATH.'/drivers/driver-postmeta.php',
+			'Karma_Fields_Driver_Postmeta'
+		);
+
+		add_action('save_post', array($this, 'save'), 10, 3);
+
+
+		// $this->get_driver('postmeta');
+
+	}
+
+	/**
+	 * Save meta boxes
+	 *
+	 * @hook 'save_post'
+	 */
+	public function save($post_id, $post, $update) {
+
+		if (current_user_can('edit_post', $post_id) && (!defined( 'DOING_AUTOSAVE' ) || !DOING_AUTOSAVE )) {
+
+			$action = "karma_field-action";
+			$nonce = "karma_field-nonce";
+
+			if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
+
+				if (isset($_REQUEST['karma-fields-items']) && $_REQUEST['karma-fields-items']) {
+
+					foreach ($_REQUEST['karma-fields-items'] as $encoded_input) {
+
+						$encoded_input = stripslashes($encoded_input);
+						$input = json_decode($encoded_input, true);
+
+						foreach ($input as $driver_name => $data) {
+
+							$driver = $this->get_driver($driver_name);
+
+							// -> should verify permissions here
+
+							if (method_exists($driver, 'update')) {
+
+								$driver->update($data, array(), null, $this);
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
 
 	}
 
@@ -283,7 +342,7 @@ Class Karma_Tables {
 				// 'key' => array(
 				// 	'required' => true
 				// ),
-				'drivers' => array(
+				'input' => array(
 					'required' => true
 				)
 				// 'page' => array(
@@ -383,10 +442,13 @@ Class Karma_Tables {
 	 */
 	public function rest_query($request) {
 
-		$driver_name = $request->get_param('driver');
-		// $method = $request->get_param('method');
+		// $driver_name = $request->get_param('driver');
+		// // $method = $request->get_param('method');
+		//
+		// $driver = $this->get_driver($driver_name);
 
-		$driver = $this->get_driver($driver_name);
+		$params = $this->parse_request_object($request);
+		$driver = $this->get_driver($params['driver']);
 
 		// $params = $request->get_param('p');
 		//
@@ -401,7 +463,7 @@ Class Karma_Tables {
 
 			if (method_exists($driver, 'query')) {
 
-				return $driver->query($request, $this);
+				return $driver->query($params, $request, $this);
 
 				// return apply_filters("karma_fields_{$middleware_name}_results", $results, $args);
 
@@ -424,22 +486,18 @@ Class Karma_Tables {
 	 */
 	public function rest_fetch($request) {
 
-		// $middleware_name = $request->get_param('middleware');
-		$driver_name = $request->get_param('driver');
-		$key = $request->get_param('key');
-		// $params = $request->get_params();
+		// $driver_name = $request->get_param('driver');
+		// $key = $request->get_param('key');
+		// $driver = $this->get_driver($driver_name);
 
-		// $middleware = $this->get_middleware($middleware_name);
-		// $driver = $middleware->get_driver($key);
-
-		// $driver = $this->get_key_driver($middleware_name, $key);
-		$driver = $this->get_driver($driver_name);
+		$params = $this->parse_request_object($request);
+		$driver = $this->get_driver($params['driver']);
 
 		if ($driver) {
 
 			if (method_exists($driver, 'fetch')) {
 
-				return $driver->fetch($key, $request, $this);
+				return $driver->fetch($params['key'], $params, $request, $this);
 
 			} else {
 
@@ -470,7 +528,11 @@ Class Karma_Tables {
 		// $method = array_pop($parts);
 		// $uri = implode('/', $parts);
 
+
+
 		$driver = $this->get_driver($driver_name);
+
+
 
 		// $driver = $this->get_middleware($middleware)->get_driver($key);
 
@@ -507,22 +569,28 @@ Class Karma_Tables {
 	 */
 	public function rest_update($request) {
 
-		$main_driver_name = $request->get_param('driver'); // -> needed for permissions check...
-		$fields = $request->get_param('drivers');
+		$main_driver_name = $request->get_param('driver'); // -> needed for permissions check (multiusers)...
+		// $fields = $request->get_param('output');
+
+		$params = $request->get_params();
 
 		$output = array();
 
-		foreach ($fields as $driver_name => $data) {
+		foreach ($params['input'] as $driver_name => $data) {
 
 			$driver = $this->get_driver($driver_name);
 
 			if (method_exists($driver, 'update')) {
 
-				foreach ($data as $uri => $item) {
+				$driver->update($data, $output, $request, $this);
 
-					$driver->update($item, $uri, $output, $request, $this);
 
-				}
+
+				// foreach ($data as $uri => $item) {
+				//
+				// 	$driver->update($item, $uri, $output, $request, $this);
+				//
+				// }
 
 			} else {
 
@@ -576,12 +644,13 @@ Class Karma_Tables {
 
 		$driver_name = $request->get_param('driver');
 		$fields = $request->get_param('fields');
+		$params = $request->get_params();
 
 		$driver = $this->get_driver($driver_name);
 
 		if (method_exists($driver, 'add')) {
 
-			return $driver->add($fields, $request, $this);
+			return $driver->add($fields, $params, $request, $this);
 
 		} else {
 
@@ -806,6 +875,18 @@ Class Karma_Tables {
 
 	}
 
+	/**
+	 *	print_field
+	 */
+	public function print_field($id, $args) {
+		static $index = 0;
+
+		$index++;
+
+		include plugin_dir_path(__FILE__) . 'includes/fields.php';
+
+	}
+
 
 
 
@@ -827,6 +908,64 @@ Class Karma_Tables {
 		update_user_meta($user_id, 'karma_logedin', '');
 
 	}
+
+
+
+	/**
+	 *	parse_object
+	 */
+	public function parse_param($path, $value, &$results) {
+
+		$key = array_shift($path);
+
+		if (count($path)) {
+
+			if (empty($results[$key])) {
+
+				$results[$key] = array();
+
+			}
+
+			$this->parse_param($path, $value, $results[$key]);
+
+		} else {
+
+			$results[$key] = $value;
+
+		}
+
+	}
+
+	/**
+	 *	parse_object
+	 */
+	public function parse_query_object($object) {
+
+		$results = array();
+
+		foreach ($object as $key => $value) {
+
+			$path = explode('/', $key);
+
+			$this->parse_param($path, $value, $results);
+
+		}
+
+		return $results;
+	}
+
+	/**
+	 *	parse_object
+	 */
+	public function parse_request_object($request) {
+
+		$params = $request->get_params();
+
+		return $this->parse_query_object($params);
+
+	}
+
+
 
 	/**
 	 *	parse_object

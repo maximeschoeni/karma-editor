@@ -365,7 +365,8 @@ KarmaFields.selectors.grid = function(tableManager) {
 						if (manager.onCustomPast) {
 							manager.onCustomPast(rows);
 						} else if (!rect.isEmpty()) {
-							var data = {};
+							// var data = {};
+							var timestamp = Date.now();
 							for (var j = 0; j < rect.height; j++) {
 								var line = j%rows.length;
 								for (var i = 0; i < rect.width; i++) {
@@ -376,23 +377,24 @@ KarmaFields.selectors.grid = function(tableManager) {
 										// tableManager.history.write(cell.field.getOutput(), value, true);
 										// cell.field.setValue(value, true, true);
 										// cell.render();
-										if (cell.field && cell.field.path && cell.field.resource && cell.field.resource.key) {
-											data[cell.field.path] = {};
-											data[cell.field.path][cell.field.resource.key] = value;
+										if (cell.field) {
+
+											cell.field.write(value, timestamp);
+
+											// data[cell.field.path] = {};
+											// data[cell.field.path][cell.field.resource.key] = value;
 										}
 									}
 								}
 							}
-							var cell = manager.getCell(rect.left, rect.top);
-							if (cell && cell.field && cell.field.buffer) {
-								cell.field.history.write(cell.field.buffer, [cell.field.resource.driver], data, cell.field.getPath().join("/")+"/"+rows[0][0]);
-							}
-
-							tableManager.render();
-
-							// if (manager.onSelect) {
-							// 	manager.onSelect(); // -> update table footer
+							// var cell = manager.getCell(rect.left, rect.top);
+							// if (cell && cell.field && cell.field.buffer) {
+							// 	cell.field.history.write(cell.field.buffer, [cell.field.resource.driver], data, cell.field.getPath().join("/")+"/"+rows[0][0]);
 							// }
+
+							// tableManager.render();
+
+
 						}
 					}
 				});
@@ -431,8 +433,9 @@ KarmaFields.selectors.grid = function(tableManager) {
 				var data = {};
 				for (var j = 0; j < rect.height; j++) {
 					var cell = this.grid[field.colIndex][rect.top+j];
-					if (cell.field && cell.field.path && cell.field.path !== field.path) {
-						field.history.write(field.buffer, [field.resource.driver, cell.field.path, field.resource.key], value, flux);
+					if (cell.field && cell.field !== field) {
+						// field.history.write(field.buffer, [field.resource.driver, cell.field.path, field.resource.key], value, flux);
+						cell.field.write(value, flux);
 						if (cell.field.render) {
 							cell.field.render();
 						}

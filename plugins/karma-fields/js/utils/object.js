@@ -46,7 +46,7 @@ KarmaFields.Object.delete = function(object, keys) {
 }
 KarmaFields.Object.merge = function(object1, object2, soft) {
 	for (var i in object2) {
-		if (object2[i] && typeof object2[i] === "object") {
+		if (object2[i] && typeof object2[i] === "object" && !Array.isArray(object2[i])) {
 			if (!object1[i]) {
 				object1[i] = {};
 			}
@@ -58,7 +58,9 @@ KarmaFields.Object.merge = function(object1, object2, soft) {
 }
 KarmaFields.Object.clone = function(object) {
 	var copie;
-	if (object && typeof object === "object") {
+	if (Array.isArray(object)) {
+		copie = object.slice();
+	} else if (object && typeof object === "object") {
 		copie = {};
 		this.merge(copie, object);
 	} else {
