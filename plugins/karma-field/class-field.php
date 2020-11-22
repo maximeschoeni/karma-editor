@@ -184,7 +184,6 @@ Class Karma_Field {
 					$value = isset($_REQUEST[$name]) ? $_REQUEST[$name] : '';
 
 
-
 					if ($datatype === 'json' && $value) {
 
 						$value = stripslashes($value);
@@ -192,7 +191,12 @@ Class Karma_Field {
 
 					}
 
+
+
+
 					$value = apply_filters('karma_field_save', $value, $post, $meta_key, $field);
+
+
 
 					if ($field === 'taxonomy' && isset($_REQUEST['karma_field_taxonomy'][$meta_key]) && !is_null($value)) {
 
@@ -201,8 +205,6 @@ Class Karma_Field {
 						wp_set_object_terms($post_id, $value, $taxonomy);
 
 					}
-
-
 
 					if ($field === 'checkbox') {
 

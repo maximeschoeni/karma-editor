@@ -18,7 +18,7 @@ KarmaFields.selectors.grid = function(tableManager) {
 			return this.selectionRect.intersect(this.rect);
 		},
 		setSelectionRect: function(rect) {
-			this.selectionRect = this.selectionRect.intersect(this.rect);
+			this.selectionRect = this.selectionRect.intersect(rect);
 		},
 		// deprecated
 		addCol: function(cell, col) { // = addHeaderCell
@@ -303,22 +303,6 @@ KarmaFields.selectors.grid = function(tableManager) {
 
 			this.selectionRect = rect;
 		},
-		// updateCell: function(x, y, value, buffer) {
-		// 	var cell = manager.getCell(x, y);
-		// 	if (cell && cell.path && cell.render) {
-		// 		tableManager.history.write(cell.path, value, buffer);
-		// 		cell.render();
-		// 	}
-		// },
-		// changeOthers: function(x, y, value, buffer) {
-		// 	var rect = this.getSelectionRect();
-		// 	for (var i = 0; i < rect.height; i++) {
-		// 		var row = i + rect.top;
-		// 		if (row !== y) {
-		// 			this.updateCell(x, row, value, buffer);
-		// 		}
-		// 	}
-		// },
 		onClick: function() {
 			if (this.selection) {
 				this.selection = null;
@@ -362,6 +346,7 @@ KarmaFields.selectors.grid = function(tableManager) {
 						var rows = text.split("\n").map(function(row) {
 							return row.split("\t");
 						});
+						var cell;
 						if (manager.onCustomPast) {
 							manager.onCustomPast(rows);
 						} else if (!rect.isEmpty()) {
@@ -370,31 +355,20 @@ KarmaFields.selectors.grid = function(tableManager) {
 							for (var j = 0; j < rect.height; j++) {
 								var line = j%rows.length;
 								for (var i = 0; i < rect.width; i++) {
-
-									var cell = manager.grid[rect.left+i][rect.top+j];
+									cell = manager.grid[rect.left+i][rect.top+j];
 									var value = rows[line][i%rows[line].length];
-									if (value !== undefined) {
-										// tableManager.history.write(cell.field.getOutput(), value, true);
-										// cell.field.setValue(value, true, true);
-										// cell.render();
-										if (cell.field) {
-
-											cell.field.write(value, timestamp);
-
-											// data[cell.field.path] = {};
-											// data[cell.field.path][cell.field.resource.key] = value;
-										}
+									// console.log(cell, value);
+									if (value !== undefined && cell.field) {
+										cell.field.write(value, timestamp);
+										cell.field.trigger("modify");
+										cell.field.trigger("render");
 									}
 								}
 							}
-							// var cell = manager.getCell(rect.left, rect.top);
-							// if (cell && cell.field && cell.field.buffer) {
-							// 	cell.field.history.write(cell.field.buffer, [cell.field.resource.driver], data, cell.field.getPath().join("/")+"/"+rows[0][0]);
-							// }
-
-							// tableManager.render();
-
-
+							if (cell) {
+								// cell.field.trigger("updateFooter");
+								cell.field.trigger("update");
+							}
 						}
 					}
 				});
@@ -412,39 +386,23 @@ KarmaFields.selectors.grid = function(tableManager) {
 				event.preventDefault();
 			}
 		},
-		// onEditCell: function(field, value) {
-		// 	var rect = this.getSelectionRect();
-		// 	var key = field.keys.toString();
-		//
-		// 	for (var i = 0; i < rect.height; i++) {
-		// 		for (var j = 0; i < rect.width; i++) {
-		// 			var cell = this.grid[rect.left+i][rect.top+j];
-		// 			if (cell.field !== field && cell.field.keys.toString() === key) {
-		// 				// tableManager.history.write(cell.field.getOutput(), value, true);
-		// 				cell.field.setValue(value, true, true);
-		// 				cell.render();
-		// 			}
-		// 		}
-		// 	}
-		// },
+
 		onMultiEdit: function(field, value, flux) {
 			var rect = this.getSelectionRect();
-			if (field.history && field.path && field.resource && field.resource.key) {
-				var data = {};
-				for (var j = 0; j < rect.height; j++) {
-					var cell = this.grid[field.colIndex][rect.top+j];
-					if (cell.field && cell.field !== field) {
-						// field.history.write(field.buffer, [field.resource.driver, cell.field.path, field.resource.key], value, flux);
+			var key = field.getAttribute("key");
+			for (var j = 0; j < rect.height; j++) {
+				for (var i = 0; i < rect.width; i++) {
+					var cell = this.grid[rect.left+i][rect.top+j];
+					if (cell.field && cell.field.getAttribute("key") === key) {
 						cell.field.write(value, flux);
-						if (cell.field.render) {
-							cell.field.render();
-						}
-						if (cell.element) {
-							cell.element.classList.toggle("modified", cell.field.isModified());
-						}
+						cell.field.trigger("modify");
+						// if (cell.element) {
+						// 	cell.element.classList.toggle("modified", cell.field.isModified());
+						// }
 					}
 				}
 			}
+			field.trigger("updateFooter");
 		},
 		onHeaderMouseDown: function(x) {
 			var rect = manager.createRect(x, 0, 1, manager.rect.height);

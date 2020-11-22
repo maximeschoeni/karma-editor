@@ -671,6 +671,9 @@ KarmaFieldMedia.fields.multimedia = function(value, options, onSave) {
 	var columns = options.columns;
 	var items = value || [];
 	var sortableManager = createSortableManager();
+
+
+		
 	// var dispatcher = {};
 	// var onUpdateTable;
 

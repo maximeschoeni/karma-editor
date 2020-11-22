@@ -6,23 +6,9 @@ KarmaFields.fields.grid = function(field) {
       var gridManager = {
         getValue: function() {
           var value = field.getValue();
-
-
-
-          if (!value) {
+          if (!value || !value.length) {
             value = [[""]];
           }
-          // else if (!Array.isArray(value)) {
-          //   if (typeof value !== "object") {
-          //     value = Object.values(value).map(function(cols) {
-          //       return Object.values(cols);
-          //     });
-          //     // field.write(value);
-          //   } else {
-          //     value = [[value]];
-          //     // field.write(value);
-          //   }
-          // }
           return value;
         },
         addRow: async function(index) {
@@ -50,6 +36,7 @@ KarmaFields.fields.grid = function(field) {
             value = [[""]];
           }
           field.setValue(value);
+          select.select();
           grid.render();
         },
         deleteCols: function(cols) {
@@ -63,76 +50,76 @@ KarmaFields.fields.grid = function(field) {
             return row;
           });
           field.setValue(value);
+          select.select();
           grid.render();
-        },
-        init: function() {
-          KarmaFields.events.onCopy = function(event) {
-        		select.onCopy(event);
-        	}
-        	KarmaFields.events.onPast = function(event) {
-        		select.onPast(event);
-        	}
-          KarmaFields.events.onDelete = function(event) {
-            if (document.activeElement === document.body) {
-              // var rect = select.getSelectionRect();
-              // if (rect.width > 1 || rect.height > 1) {
-                var rows = select.getSelectedRows();
-                var cols = select.getSelectedCols();
-            		if (rows.length) {
-            			gridManager.deleteRows(rows);
-            			event.preventDefault();
-            		} else if (cols.length) {
-            			gridManager.deleteCols(cols);
-            			event.preventDefault();
-            		}
-              // }
-            }
-        	};
-          KarmaFields.events.onSelectAll = function(event) {
-        		select.onSelectAll(event);
-        	};
-          KarmaFields.events.onClick = function(event) {
-        		select.onClick();
-        	};
-          KarmaFields.events.onArrowUp = function(event) {
-            var rect = select.getSelectionRect();
-            if (rect.top > 0) {
-              rect.top--;
-              rect.width = 1;
-              rect.height = 1;
-              select.select(rect);
-            }
-        	};
-          KarmaFields.events.onArrowDown = function(event) {
-            var rect = select.getSelectionRect();
-            if (rect.top + rect.height < select.rect.height) {
-              rect.top = rect.top + rect.height;
-              rect.width = 1;
-              rect.height = 1;
-              select.select(rect);
-            }
-        	};
-          KarmaFields.events.onArrowLeft = function(event) {
-            var rect = select.getSelectionRect();
-            if (rect.left > 0) {
-              rect.left--;
-              rect.width = 1;
-              rect.height = 1;
-              select.select(rect);
-            }
-        	};
-          KarmaFields.events.onArrowRight = function(event) {
-            var rect = select.getSelectionRect();
-            if (rect.left + rect.width < select.rect.width) {
-              rect.left = rect.left + rect.width;
-              rect.width = 1;
-              rect.height = 1;
-              select.select(rect);
-            }
-        	};
         }
       };
-      gridManager.init();
+      field.onFocus = function() {
+        KarmaFields.events.onCopy = function(event) {
+          select.onCopy(event);
+        }
+        KarmaFields.events.onPast = function(event) {
+          select.onPast(event);
+        }
+        KarmaFields.events.onDelete = function(event) {
+          if (document.activeElement === document.body) {
+            var rows = select.getSelectedRows();
+            var cols = select.getSelectedCols();
+            if (rows.length) {
+              gridManager.deleteRows(rows);
+              event.preventDefault();
+            } else if (cols.length) {
+              gridManager.deleteCols(cols);
+              event.preventDefault();
+            }
+          }
+        };
+        KarmaFields.events.onSelectAll = function(event) {
+          select.onSelectAll(event);
+        };
+        KarmaFields.events.onClick = function(event) {
+          select.onClick();
+        };
+        KarmaFields.events.onArrowUp = function(event) {
+          var rect = select.getSelectionRect();
+          if (rect.top > 0) {
+            rect.top--;
+            rect.width = 1;
+            rect.height = 1;
+            select.select(rect);
+          }
+        };
+        KarmaFields.events.onArrowDown = function(event) {
+          var rect = select.getSelectionRect();
+          if (rect.top + rect.height < select.rect.height) {
+            rect.top = rect.top + rect.height;
+            rect.width = 1;
+            rect.height = 1;
+            select.select(rect);
+          }
+        };
+        KarmaFields.events.onArrowLeft = function(event) {
+          var rect = select.getSelectionRect();
+          if (rect.left > 0) {
+            rect.left--;
+            rect.width = 1;
+            rect.height = 1;
+            select.select(rect);
+          }
+        };
+        KarmaFields.events.onArrowRight = function(event) {
+          var rect = select.getSelectionRect();
+          if (rect.left + rect.width < select.rect.width) {
+            rect.left = rect.left + rect.width;
+            rect.width = 1;
+            rect.height = 1;
+            select.select(rect);
+          }
+        };
+      }
+
+      field.onFocus();
+
       this.children = [
         {
           class: "field-controls",
@@ -236,7 +223,7 @@ KarmaFields.fields.grid = function(field) {
               },
               {
                 tag: "button",
-                child: KarmaFields.includes.icon(KarmaFields.icons_url+"/table-row-delete.svg"),
+                child: KarmaFields.includes.icon(KarmaFields.icons_url+"/table-col-delete.svg"),
                 init: function() {
                   this.element.addEventListener("click", function(event) {
                     event.preventDefault();
@@ -264,6 +251,9 @@ KarmaFields.fields.grid = function(field) {
             tag: "tbody",
             init: function() {
               field.fetchValue().then(function(value) {
+                if (!value && field.resource.default) {
+                  field.setValue(field.resource.default);
+								}
                 grid.render();
               });
             },
@@ -289,23 +279,17 @@ KarmaFields.fields.grid = function(field) {
                             event.stopPropagation();
                           });
                         },
-                        update: function() {
-                          var fieldManager = KarmaFields.managers.field();
-                          fieldManager.resource = {
-                            driver: field.resource.driver,
-                            key: field.resource.key
+                        update: function(cell) {
+                          var cellField = field.createChild({
+                            field: "textinput",
+                            // driver: "postmetaobject",
+                            child_keys: [y, x],
+                          });
+                          cellField.events.render = function() {
+                            cell.render();
                           };
-                          fieldManager.subKeys = [y, x];
-                          fieldManager.inputBuffer = field.inputBuffer;
-                          fieldManager.outputBuffer = field.outputBuffer;
-                          fieldManager.path = field.path;
-                          fieldManager.history = field.history;
-                          fieldManager.render = this.render;
-                          fieldManager.colIndex = x;
-                          fieldManager.element = this.element;
-                          fieldManager.onSetValue = field.onSetValue;
-                          this.child = KarmaFields.fields["textinput"](fieldManager);
-                          select.addField(x, y, this.element, fieldManager);
+                          this.child = cellField.buildSingle();
+                          select.addField(x, y, this.element, cellField);
                         }
                       }
                     });

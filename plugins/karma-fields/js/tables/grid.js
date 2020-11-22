@@ -16,39 +16,18 @@ KarmaFields.tables.grid = function(manager) {
         init: function() {
           manager.renderHeader = this.render;
           if (manager.resource.filter) {
-            var filter = KarmaFields.managers.field();
-            filter.resource = manager.resource.filter;
-            // filter.input = "filters";
-            // filter.output = "filters";
-            // filter.buffer = manager.resource.filter.buffer || "inner";
-
-            filter.inputBuffer = manager.resource.filter.inputBuffer || "filters";
-            filter.outputBuffer = manager.resource.filter.outputBuffer || "filters";
-
-            // filter.path = "filters";
-            filter.history = manager.history;
-            // filter.id = "karma-table-filters";
-            filter.onSetValue = function() {
+            var filterField = manager.field.createChild({
+              buffer: "filters"
+            });
+            filterField.events.submit = function() {
               manager.setPage(1);
               manager.request();
-            };
-            filter.onSubmit = function() {
-              manager.render();
-            };
-            filter.onRequestFooterUpdate = function() {
+            }
+            filterField.events.updateFooter = function() {
               manager.renderFooter();
-            };
-            this.children = filter.build();
+            }
+            this.children = filterField.createChild(manager.resource.filter).build();
           }
-          // this.children = manager.resource.filter && KarmaFields.managers.field(manager.resource.filter, {
-          //   inputBuffer: "filters",
-          //   outputBuffer: "filters",
-          //   history: manager.history,
-          //   tableManager: manager,
-          //   onSetValue: function() {
-          //     manager.request();
-          //   }
-          // }).build()
         }
       },
       {
@@ -73,8 +52,6 @@ KarmaFields.tables.grid = function(manager) {
           update: function() {
             manager.select.init(); // = KarmaFields.selectors.grid(manager);
             manager.fields = {};
-
-            // console.log("update table");
           },
           children: [
             {
@@ -82,23 +59,9 @@ KarmaFields.tables.grid = function(manager) {
               child: {
                 tag: "tr",
                 update: function() {
-                  var orderby = manager.history.read("inner", ["options", "orderby"]);
-                  var order = manager.history.read("inner", ["options", "order"]);
                   this.children = manager.resource.children.filter(function(column) {
                     return true;
-                    // return manager.options.gridoptions.columns[column.key];
                   }).map(function(column, colIndex) {
-                    // var headerCell = KarmaFields.tables.headerCell(manager, column);
-                    // // if (column.field === "index") {
-                    // //   manager.select.addIndexHeader(headerCell, colIndex);
-                    // // } else {
-                    // manager.select.addCol(headerCell, colIndex);
-                    // // }
-                    // if (column.width) {
-                    //   headerCell.style.width = column.width;
-                    // }
-                    // return headerCell;
-
                     return {
                       tag: "th",
                       init: function() {
@@ -144,10 +107,14 @@ KarmaFields.tables.grid = function(manager) {
                             init: function() {
                               this.element.addEventListener("click", function() {
                                 manager.reorder(column.key, column.driver, column.default_order);
-                                manager.request();
+                                // manager.request();
                               });
                             },
                             update: function() {
+                              // var orderby = manager.history.request("inner", ["options", "orderby"]);
+                              // var order = manager.history.read("inner", ["options", "order"]);
+                              var orderby = manager.history.request(["order", "orderby"]);
+                        			var order = manager.history.request(["order", "order"]);
                               this.element.classList.toggle("asc", orderby === column.key && order === "asc");
                               this.element.classList.toggle("desc", orderby === column.key && order === "desc");
                             }
@@ -189,86 +156,27 @@ KarmaFields.tables.grid = function(manager) {
             {
               tag: "tbody",
               update: function() {
-                // var uris = manager.history.read("inner", ["table", "items"]);
-
-                // console.log("update tbody");
-                // console.trace();
-
                 var uris = manager.getItems();
 
-
-
+                var tableField = manager.history.createFieldManager({
+                  buffer: "input",
+                  outputBuffer: "output"
+                });
+                tableField.events.updateFooter = function() {
+                  manager.renderFooter();
+                }
                 this.children = uris && uris.filter(function(uri) {
-                  // var trash = manager.history.read(["output", uri, "trash"]);
-                  // console.log(trash, !trash);
-                  // return !trash;
                   return uri;
                 }).map(function(uri, rowIndex) {
                   return {
                     tag: "tr",
-                    init: function() {
-                      // this.data.trashManager = KarmaFields.managers.field();
-                      // // this.data.trashManager.path = uri;
-                      // this.data.trashManager.resource = {
-                      //   key: "trash"
-                      // };
-                      // this.data.trashManager.incrementHistory = true;
-                      // this.data.trashManager.input = "input";
-                      // this.data.trashManager.output = "output";
-                      // this.data.trashManager.history = manager.history;
-                      // this.data.trashManager.onSetValue = function() {
-                      //   manager.renderFooter();
-                      // }
-                    },
-
                     update: function(row) {
-                      // row.data.trashManager.path = uri;
-
-                      // manager.select.addField("trash", rowIndex, null, row.data.trashManager);
-
                       this.children = manager.resource.children.filter(function(column) {
                         return true;
                       }).map(function(column, colIndex) {
-                        // var fieldManager;
                         return {
                           tag: "td",
-                          // id: column.key || column.name,
                           init: function(cell) {
-                            // var fieldManager = KarmaFields.managers.field(column, "output", [uri], [column.key], manager.history, manager.selection, null);
-
-                            this.data.fieldManager = KarmaFields.managers.field();
-                            // column, {
-                            //   // ...column,
-                            //   path: uri,
-                            //   inputBuffer: "input",
-                            //   outputBuffer: "output",
-                            //   history: manager.history,
-                            //   selection: manager.selection,
-                            //   tableManager: manager,
-                            //   onSetValue: function() {
-                            //     // requestAnimationFrame(function() {
-                            //     //   manager.renderFooter();
-                            //     // });
-                            //
-                            //     // console.log(manager.history.input, manager.history.output);
-                            //
-                            //     cell.element.classList.toggle("modified", cell.data.fieldManager.isModified());
-                            //     manager.renderFooter();
-                            //   }
-                            // });
-                            this.data.fieldManager.history = manager.history;
-                            this.data.fieldManager.selection = manager.select;
-                            this.data.fieldManager.inputBuffer = column.inputBuffer || "input";
-                            this.data.fieldManager.outputBuffer = column.outputBuffer || "output";
-
-                            // this.data.fieldManager.inputBuffer = "input";
-                            this.data.fieldManager.onSetValue = function() {
-                              cell.element.classList.toggle("modified", this.isModified());
-                              manager.renderFooter();
-                            }
-
-                            this.child = KarmaFields.fields[column.field](cell.data.fieldManager);
-
                             this.element.addEventListener("mousedown", function(event) {
                               manager.select.onCellMouseDown(colIndex, rowIndex);
                             });
@@ -284,22 +192,23 @@ KarmaFields.tables.grid = function(manager) {
                             }
                           },
                           update: function(cell) {
-                            this.data.fieldManager.resource = column;
-                      			this.data.fieldManager.path = uri;
-                            this.data.fieldManager.selection = manager.select;
-                            this.data.fieldManager.render = this.render;
-                            this.data.fieldManager.colIndex = colIndex;
-                            this.data.fieldManager.element = cell.element;
-
-                            manager.select.addField(colIndex, rowIndex, this.element, this.data.fieldManager);
-
-                            KarmaFields.Object.setValue(manager.fields, [column.driver, uri, column.key], this);
-
-                            cell.element.classList.toggle("modified", this.data.fieldManager.isModified());
+                            var field = tableField.createChild(column);
+                            field.uri = uri;
+                            field.events.update = function() {
+                              manager.renderFooter();
+                            }
+                            field.events.modify = function() {
+                              cell.element.classList.toggle("modified", field.isModified());
+                            }
+                            field.events.render = function() {
+                              cell.render();
+                            }
+                            manager.select.addField(colIndex, rowIndex, this.element, field);
+                            field.trigger("modify");
+                            this.child = field.buildSingle(); // should only do this if there is actual change
                           }
                         };
                       });
-
 
                       if (manager.resource.index) {
                         this.children.unshift({
@@ -322,8 +231,8 @@ KarmaFields.tables.grid = function(manager) {
                           child: {
                             class: "row-index",
                             update: function() {
-                              var page = manager.getPage(); //parseInt(manager.history.read(["options", "page"]) || 1);
-                              var ppp = manager.getPpp(); //parseInt(manager.history.read(["options", "ppp"]) || Number.MAX_SAFE_INTEGER);
+                              var page = manager.getPage();
+                              var ppp = manager.getPpp();
                               this.element.textContent = ((page-1)*ppp)+rowIndex+1;
                             },
                           }

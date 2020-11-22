@@ -13,6 +13,7 @@ KarmaFields.includes = {};
 KarmaFields.events = {};
 KarmaFields.assets = {};
 KarmaFields.fetchCache = {};
+KarmaFields.Loading = function(){}; // create loading instance
 
 KarmaFields.storage = { //Window.sessionStorage || {
 	values: {},

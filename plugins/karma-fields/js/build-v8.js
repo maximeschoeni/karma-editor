@@ -2,7 +2,7 @@
   * build (V8)
   */
 KarmaFields.buildCounter = 0;
-KarmaFields.build = function(args, parentElement, parentItem, index) {
+KarmaFields.build = function(args, parentElement, parentItem, index, hard) {
  	if (args) {
  		var item = parentItem && parentItem.childrenItems[index || 0] || {};
  		var tag = args.tag || "div";
@@ -19,7 +19,7 @@ KarmaFields.build = function(args, parentElement, parentItem, index) {
  		if (args.child) {
  			item.child = args.child;
  		}
- 		if (item.state !== state) {
+ 		if (item.state !== state || hard) {
  			var newElement = document.createElement(tag);
  			if (args.class) {
  				newElement.className = args.class;
@@ -34,7 +34,7 @@ KarmaFields.build = function(args, parentElement, parentItem, index) {
  			item.state = state;
  			item.childrenItems = {};
  			item.length = 0;
- 			item.render = function() {
+ 			item.render = function(hard) {
 
         // KarmaFields.buildCounter++
         // var timerId = item.path+"-"+KarmaFields.buildCounter;
@@ -48,7 +48,7 @@ KarmaFields.build = function(args, parentElement, parentItem, index) {
  				}
  				item.length = Math.max(item.length, children.length);
  				for (var i = 0; i < item.length; i++) {
- 					item.childrenItems[i] = KarmaFields.build(children[i], newElement, item, i);
+ 					item.childrenItems[i] = KarmaFields.build(children[i], newElement, item, i, hard);
  				}
  				item.length = Math.min(item.length, children.length);
 

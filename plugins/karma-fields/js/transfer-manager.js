@@ -64,7 +64,7 @@ KarmaFields.Transfer.query = function(driver, params) {
 		cache: "default", // force-cache
 		headers: {
       'Content-Type': 'application/json',
-      'X-WP-Nonce': wpApiSettings.nonce
+      'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
     },
 	}).then(function(response) {
 		return response.json();
@@ -77,7 +77,7 @@ KarmaFields.Transfer.update = function(driver, params) {
 		method: "post",
 		headers: {
 			'Content-Type': 'application/json',
-			'X-WP-Nonce': wpApiSettings.nonce
+			'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
 		},
 		body: JSON.stringify(params),
 		mode: "same-origin"
@@ -91,7 +91,7 @@ KarmaFields.Transfer.add = function(driver, params) {
 		method: "post",
 		headers: {
 			'Content-Type': 'application/json',
-			'X-WP-Nonce': wpApiSettings.nonce
+			'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
 		},
 		body: JSON.stringify(params),
 		mode: "same-origin"
@@ -110,7 +110,7 @@ KarmaFields.Transfer.get = function(driver, path, key, cache) {
 		cache: "reload",
 		headers: {
 			'Content-Type': 'application/json',
-			'X-WP-Nonce': wpApiSettings.nonce
+			'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
 		},
 	}).then(function(response) {
 		if (!cache || cache.slice(-5) === ".json") {
@@ -146,7 +146,7 @@ KarmaFields.Transfer.fetch = function(driver, key, params) {
 			cache: "default", // force-cache
 			headers: {
 	      'Content-Type': 'application/json',
-	      'X-WP-Nonce': wpApiSettings.nonce
+	      'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
 	    },
 		}).then(function(response) {
 			return response.json();
@@ -170,7 +170,7 @@ KarmaFields.Transfer.autoSave = function(driver, params) {
 		method: "post",
 		headers: {
 			'Content-Type': 'application/json',
-			'X-WP-Nonce': wpApiSettings.nonce
+			'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
 		},
 		body: JSON.stringify(params),
 		mode: "same-origin"
@@ -188,7 +188,7 @@ KarmaFields.Transfer.autoSave2 = function(driver, params) {
 		method: "post",
 		headers: {
 			'Content-Type': 'application/json',
-			'X-WP-Nonce': wpApiSettings.nonce
+			'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
 		},
 		body: JSON.stringify(params),
 		mode: "same-origin"

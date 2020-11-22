@@ -13,12 +13,12 @@ KarmaFields.fields.textinput = function(field) {
 					// requestAnimationFrame(function() {
 					// 	field.setValue(value);
 					// });
-					field.setValue(this.value);
+					field.setValue(this.value, "input");
 				});
 
 				this.element.addEventListener("keyup", function(event) {
-					if (event.key === "Enter" && field.onSubmit) {
-						field.onSubmit();
+					if (event.key === "Enter") {
+						field.setValue(this.value, "enter");
 					}
 				});
 			}
@@ -47,9 +47,12 @@ KarmaFields.fields.textinput = function(field) {
 
 			// console.timeEnd(timerId);
 
+			
+
 			field.fetchValue().then(function(value) { // -> maybe undefined
 
 				// console.log(field.resource.key, field.args.path, value, field.getValue());
+
 
 
 				// requestAnimationFrame(function() {

@@ -3,6 +3,10 @@
 .date-popup-container {
 	position: relative;
 	z-index: 100000;
+	display: none;
+}
+.karma-field-date.open .date-popup-container {
+	display: block;
 }
 .date-popup-container.open-down {
 	/* order: 2; */

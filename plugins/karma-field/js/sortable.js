@@ -76,6 +76,7 @@ function createSortableManager() {
 	};
 
 	function onMouseDown(event) {
+
 		if (manager.checkTarget(event.target)) { //event.target.classList.contains("media-box-cell")
 			event.preventDefault();
 			draggedElement = event.target.parentNode;
@@ -131,5 +132,7 @@ function createSortableManager() {
 		this.removeEventListener("mousemove", onMouseMove);
 	}
 	document.addEventListener("mousedown", onMouseDown);
+
+
 	return manager;
 }

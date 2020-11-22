@@ -26,21 +26,33 @@ KarmaFields.tables.footer = function(manager) {
                 // manager.renderOptions = render; // trigerred when history changes
 
                 if (manager.resource.options) {
-                  var field = KarmaFields.managers.field();
-                  field.resource = manager.resource.options;
-                  // field.input = ["options"];
-                  // field.output = ["options"];
-                  // field.buffer = "inner";
-                  field.inputBuffer = "options";
-                  field.outputBuffer = "options";
 
-                  // field.path = "options";
-                  // field.id = "karma-table-options";
-                  field.history = manager.history;
-                  field.onSubmit = function() {
+                  var optionField = manager.history.createFieldManager({
+                    buffer: "options",
+                    outputBuffer: "options"
+                  });
+                  optionField.events.submit = function() {
                     manager.history.setValue(["static", "displayOptions"], false);
                     manager.request();
-                  }
+                  };
+
+
+
+                  // var field = KarmaFields.managers.field();
+                  // field.resource = manager.resource.options;
+                  // // field.input = ["options"];
+                  // // field.output = ["options"];
+                  // // field.buffer = "inner";
+                  // field.inputBuffer = "options";
+                  // field.outputBuffer = "options";
+                  //
+                  // // field.path = "options";
+                  // // field.id = "karma-table-options";
+                  // field.history = manager.history;
+                  // field.onSubmit = function() {
+                  //   manager.history.setValue(["static", "displayOptions"], false);
+                  //   manager.request();
+                  // }
 
                   // manager.resource.options, {
                   //   inputBuffer: "options",
@@ -48,7 +60,7 @@ KarmaFields.tables.footer = function(manager) {
                   //   history: manager.history,
                   //   tableManager: manager
                   // });
-                  this.children = field.build();
+                  this.children = optionField.createChild(manager.resource.options).build();
                 }
                 // var field = KarmaFields.managers.field(manager.resource.options, {
                 //   inputBuffer: "options",
@@ -253,7 +265,7 @@ KarmaFields.tables.footer = function(manager) {
                     });
                   },
                   update: function(element) {
-                    this.element.disabled = !manager.history.hasRedo();;
+                    this.element.disabled = !manager.history.hasRedo();
                   }
                 },
                 {
@@ -289,8 +301,10 @@ KarmaFields.tables.footer = function(manager) {
                     //   });
                     // });
                     this.element.addEventListener("click", function(event) {
-                      var uris = manager.select.getSelectedRows().map(function(cell) {
-                        return cell.field.path;
+                      var rows = manager.select.getSelectedRows();
+                      var uris = rows.map(function(cell) {
+                        return cell.field.getAttribute("uri");
+                        // return cell.field.path;
                       });
                       if (uris) {
                         manager.removeItems(uris);

@@ -21,7 +21,8 @@ KarmaFields.fields.autocompletetextinput = function(field) {
 							field.fetchOptions({
 								search: input.value
 							}).then(function(results) {
-								manager.options = results.items;
+								var items = results.items || results; // compat !
+								manager.options = items;
 								manager.render();
 							});
 						});

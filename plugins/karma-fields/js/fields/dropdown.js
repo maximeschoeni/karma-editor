@@ -2,80 +2,81 @@ KarmaFields.fields.dropdown = function(field) {
 	return {
 		tag: "select",
 		class: "dropdown",
-		init: function() {
+		init: function(dropdown) {
 			this.element.id = field.getId();
 			this.element.addEventListener("change", function() {
-
-				field.setValue(this.value);
+				field.setValue(this.value, "change");
+			});
+			field.fetchValue().then(function(value) {
+				dropdown.render();
 			});
 			if (field.resource.style) {
 				this.element.style = field.resource.style;
 			}
 		},
 		update: function(dropdown) {
+			var value = field.getValue();
+			Promise.resolve(field.resource.options || field.fetchOptions()).then(function(results) {
 
-
-				Promise.resolve(field.resource.options || field.fetchOptions()).then(function(results) {
-					// results.items.forEach(function(item) {
-					// 	select[item.key] = new Option(item.name, item.key);
-					// });
-
-					field.fetchValue().then(function(value) { // -> maybe undefined
-						// dropdown.element.value = value || "";
-
-
-
-						var items = results.items;
-
-						if (field.resource.novalue !== undefined) {
-							items = [{
-								key: "",
-								name: typeof field.resource.novalue === "string" && field.resource.novalue || "-"
-							}].concat(items);
+				var items = results.items || results; // compat !
+				if (field.resource.novalue !== undefined) {
+					items = [{
+						key: "",
+						name: typeof field.resource.novalue === "string" && field.resource.novalue || "-"
+					}].concat(items);
+				}
+				// if (items.length && items.every(function(item) {
+				// 	return item.key != value;
+				// })) {
+				// 	value = items[0].key;
+				// 	field.write(value);
+				// }
+				if (items.length && items.some(function(item) {
+					return item.group;
+				})) {
+					// optgroups ->
+					var groups = items.reduce(function(obj, item) {
+						if (!obj[item.group || "default"]) {
+							obj[item.group || "default"] = [];
 						}
-
-						if (items.every(function(item) {
-							return item.key !== value;
-						}) && items.length && field.resource.key) {
-							value = items[0].key;
-
-							// console.log(field.buffer, field.getPath(), field.resource.key, value);
-							// field.history.write(field.buffer, field.getPath(), value);
-							field.write(value);
-						}
-
-						dropdown.children = items.map(function(item) {
-							return {
-								tag: "option",
-								update: function() {
-									this.element.textContent = item.name;
-									this.element.value = item.key;
-									this.element.selected = value === item.key;
-								}
-							};
-						});
-						// if (field.resource.novalue) {
-						// 	dropdown.children.unshift({
-						// 		tag: "option",
-						// 		update: function() {
-						// 			this.element.textContent = field.resource.novaluename || "-";
-						// 			this.element.value = "";
-						// 			this.element.selected = value === "";
-						// 		}
-						// 	});
-						// }
-						// if (!valueExist && results.items.length) {
-						// 	field.setValue(results.items[0].key, "nav");
-						// }
-
-						dropdown.render();
-
+						obj[item.group || "default"].push(item);
+						return obj;
+					}, {});
+					dropdown.children = Object.entries(groups).map(function(entry) {
+						return {
+							tag: "optgroup",
+							update: function() {
+								this.element.label = entry[0];
+								this.children = entry[1].map(function(item) {
+									return {
+										tag: "option",
+										update: function() {
+											this.element.textContent = item.name;
+											this.element.value = item.key;
+											this.element.selected = value == item.key;
+										}
+									};
+								})
+							}
+						};
 					});
 
-
-
-				});
-
+				} else {
+					dropdown.children = items.map(function(item) {
+						return {
+							tag: "option",
+							update: function() {
+								this.element.textContent = item.name;
+								this.element.value = item.key;
+								this.element.selected = value == item.key;
+							}
+						};
+					});
+				}
+				dropdown.render();
+				// console.log(dropdown.element, value);
+				// dropdown.element.value = value;
+			});
 
 		}
 	};

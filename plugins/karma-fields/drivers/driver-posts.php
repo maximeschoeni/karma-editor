@@ -1,6 +1,7 @@
 <?php
 
 
+
 Class Karma_Fields_Driver_Posts {
 
 
@@ -333,6 +334,7 @@ Class Karma_Fields_Driver_Posts {
           END AS 'name'";
         $clauses['group'] = "p.post_status";
         $clauses['order'] = "p.post_status ASC";
+        break;
 
       case 'post_type':
         $clauses['select'] = "p.post_type AS 'key', CASE
@@ -342,17 +344,18 @@ Class Karma_Fields_Driver_Posts {
           END AS 'name'";
         $clauses['group'] = "p.post_type";
         $clauses['order'] = "p.post_type ASC";
+        break;
 
       case 'post_author':
         $clauses['select'] = "p.post_author AS 'key', u.display_name AS 'name'";
         $clauses['group'] = "p.post_author";
         $clauses['order'] = "u.display_name ASC";
-        $clauses['join']['u'] = "INNER JOIN $wpdb->users AS u ON (p.post_author = u.ID)"
+        $clauses['join']['u'] = "INNER JOIN $wpdb->users AS u ON (p.post_author = u.ID)";
         break;
 
-      case 'post_author':
+      case 'ID':
         $clauses['select'] = "p.ID AS 'key', p.post_title AS 'name'";
-        $clauses['group'] = "p.post_title";
+        $clauses['group'] = "p.ID";
         $clauses['order'] = "p.post_title ASC";
         break;
 

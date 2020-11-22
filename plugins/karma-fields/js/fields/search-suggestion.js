@@ -26,7 +26,8 @@ KarmaFields.fields.search = function(fieldManager) {
 								fieldManager.fetchOptions({
 									search: this.value
 								}).then(function(results) {
-									container.data.suggestions = results.items || [];
+									var items = results.items || results; // compat !
+									container.data.suggestions = items || [];
 									// fieldManager.history.write("static", ["searchsuggestions", fieldManager.resource.key], results.items || undefined);
 									container.render();
 								});

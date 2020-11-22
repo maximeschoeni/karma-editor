@@ -11,15 +11,35 @@ KarmaFields.Object = {};
 // 	}
 // 	return object;
 // };
+// KarmaFields.Object.getValue = function(object, keys) {
+// 	var key = keys[0];
+// 	if (key !== undefined) {
+// 		if (object[key] && typeof object[key] === "object") {
+// 			return this.getValue(object[key], keys.slice(1));
+// 		}
+// 		return object[key]; //this.clone(object[key]);
+// 	}
+// 	return object;
+// };
+// KarmaFields.Object.getValue = function(object, keys) {
+// 	var key = keys[0];
+// 	if (key !== undefined) {
+// 		if (object && typeof object === "object") {
+// 			return this.getValue(object[key], keys.slice(1));
+// 		}
+// 	} else {
+// 		return object;
+// 	}
+// };
 KarmaFields.Object.getValue = function(object, keys) {
-	var key = keys[0];
-	if (key !== undefined) {
-		if (object[key] && typeof object[key] === "object") {
+	if (keys.length) {
+		var key = keys[0];
+		if (object && typeof object === "object") {
 			return this.getValue(object[key], keys.slice(1));
 		}
-		return object[key]; //this.clone(object[key]);
+	} else {
+		return object;
 	}
-	return object;
 };
 
 // KarmaFields.Object.empty = function(object, keys) {
@@ -44,75 +64,171 @@ KarmaFields.Object.setValue = function(object, keys, value, under) {
 KarmaFields.Object.delete = function(object, keys) {
 	this.setValue(object, keys, null);
 }
-KarmaFields.Object.merge = function(object1, object2, soft) {
+// KarmaFields.Object.merge000 = function(object1, object2, soft) {
+// 	for (var i in object2) {
+// 		if (object2[i] && typeof object2[i] === "object" && !Array.isArray(object2[i])) {
+// 			if (!object1[i]) {
+// 				object1[i] = {};
+// 			}
+// 			this.merge(object1[i], object2[i], soft);
+// 		} else if (object2[i] !== undefined && (!soft || object1[i] === undefined)) {
+// 			object1[i] = this.clone(object2[i]);
+// 		}
+// 	}
+// }
+KarmaFields.Object.merge = function(object1, object2) {
 	for (var i in object2) {
-		if (object2[i] && typeof object2[i] === "object" && !Array.isArray(object2[i])) {
-			if (!object1[i]) {
-				object1[i] = {};
+		if (object2[i] && typeof object2[i] === "object") {
+			if (!object1[i] || typeof object1[i] !== "object") {
+				// object1[i] = new object2[i].constructor;
+				object1[i] = this.getPrimitive(object2[i]);
+				// if (Array.isArray(object2[i])) {
+				// 	object1[i] = [];
+				// } else {
+				// 	object1[i] = {};
+				// }
 			}
-			this.merge(object1[i], object2[i], soft);
-		} else if (object2[i] !== undefined && (!soft || object1[i] === undefined)) {
-			object1[i] = this.clone(object2[i]);
+			this.merge(object1[i], object2[i]);
+		} else if (object2[i] !== undefined) {
+			object1[i] = object2[i];
 		}
 	}
 }
-KarmaFields.Object.clone = function(object) {
-	var copie;
-	if (Array.isArray(object)) {
-		copie = object.slice();
-	} else if (object && typeof object === "object") {
-		copie = {};
-		this.merge(copie, object);
-	} else {
-		copie = object;
+KarmaFields.Object.add = function(...objects) {
+	var result;
+	while (objects.length) {
+		var object = objects.shift();
+		if (object && typeof object === "object") {
+			if (!result || typeof result !== "object") {
+				// result = new object.constructor;
+				result = this.getPrimitive(object);
+				// if (Array.isArray(object)) {
+				// 	result = [];
+				// } else {
+				// 	result = {};
+				// }
+			}
+			this.merge(result, object);
+		} else {
+			result = object;
+		}
 	}
-	return copie;
+	return result;
+}
+
+// KarmaFields.Object.clone = function(object) {
+// 	var copie;
+// 	if (Array.isArray(object)) {
+// 		copie = object.slice();
+// 	} else if (object && typeof object === "object") {
+// 		copie = {};
+// 		this.merge(copie, object);
+// 	} else {
+// 		copie = object;
+// 	}
+// 	return copie;
+// };
+
+KarmaFields.Object.getPrimitive = function(object) {
+	if (Array.isArray(object)) {
+		return [];
+	} else {
+		return {};
+	}
+}
+
+KarmaFields.Object.clone = function(object) {
+	if (object && typeof object === "object") {
+		// var result;
+		// if (Array.isArray(object)) {
+		// 	result = [];
+		// } else {
+		// 	result = {};
+		// }
+		var result = this.getPrimitive(object);
+		this.merge(result, object);
+		return result;
+	} else {
+		return object;
+	}
 };
 KarmaFields.Object.clean = function(object) {
 	if (object && typeof object === "object") {
 		var clone;
-		for (var i in object) {
-			var child = this.clean(object[i]);
-			if (child !== undefined && child !== null) {
-				if (!clone) {
-					clone = {};
+		if (Array.isArray(object)) {
+			var array = object.filter(function(child) {
+				child = KarmaFields.Object.clean(child);
+				return child !== undefined && child !== null;
+			});
+			if (array.length) {
+				clone = array;
+			}
+		} else {
+			for (var i in object) {
+				var child = this.clean(object[i]);
+				if (child !== undefined && child !== null) {
+					if (!clone) {
+						clone = {};
+					}
+					clone[i] = child;
 				}
-				clone[i] = child;
 			}
 		}
 		return clone;
 	}
 	return object;
 }
+
+
+// KarmaFields.Object.diff = function(obj1, obj2) {
+//   var diff;
+// 	if (obj2 === undefined) {
+// 		diff = obj1;
+// 	} else if (obj1 && obj2 && typeof obj1 === "object") {
+// 		for (var i in obj1) {
+// 			var sub = this.diff(obj1[i], obj2[i]);
+//       if (sub !== null) {
+// 				if (diff === null) {
+// 					diff = {};
+// 				}
+//         diff[i] = sub;
+//       }
+// 		}
+// 	} else if (obj1 !== obj2) {
+// 		diff = obj2
+// 	}
+//   return diff;
+// };
 KarmaFields.Object.diff = function(obj1, obj2) {
-  var diff = null;
-	if (obj2 === undefined) {
-		diff = obj1;
-	} else if (obj1 && obj2 && typeof obj1 === "object") {
-		for (var i in obj1) {
-			var sub = this.diff(obj1[i], obj2[i]);
-      if (sub !== null) {
-				if (diff === null) {
-					diff = {};
+	var diff;
+	if (obj1 !== obj2) {
+		if (obj1 === undefined) {
+			diff = null;
+		} else if (obj1 && obj2 && typeof obj1 === "object" && typeof obj2 === "object") {
+			for (var i in obj1) {
+				var child = this.diff(obj1[i], obj2[i]);
+				if (child !== undefined) {
+					if (!diff) {
+						diff = {}; //new obj1.constructor; Never use array because it is filled with null value when exported to json
+					}
+					diff[i] = child;
 				}
-        diff[i] = sub;
-      }
+			}
+		} else {
+			diff = this.clone(obj1);
 		}
-	} else if (obj1 !== obj2) {
-		diff = obj2
 	}
   return diff;
 };
 
-
-KarmaFields.Object.unmerge = function(obj1, obj2) {
+KarmaFields.Object.subtract = function(obj1, obj2) {
 	var diff;
 	if (obj1 !== obj2) {
 		if (obj1 === undefined) {
 			return null;
 		} else if (obj1 && obj2 && typeof obj1 === "object" && typeof obj2 === "object") {
 			for (var i in obj1) {
-				var child = this.unmerge(obj1[i], obj2[i]);
+				var child = this.subtract(obj1[i], obj2[i]);
 				if (child !== undefined) {
 					if (!diff) {
 						diff = {};
@@ -134,11 +250,13 @@ KarmaFields.Object.unmerge = function(obj1, obj2) {
 	}
   return diff;
 };
-
+KarmaFields.Object.unmerge = function(obj1, obj2) {
+	return this.subtract(obj1, obj2);
+}
 
 
 KarmaFields.Object.contain = function(obj1, obj2) {
-	if (obj1 && obj2 && typeof obj2 === "object" && !Array.isArray(obj2)) {
+	if (obj1 && obj2 && typeof obj1 === "object" && typeof obj2 === "object") {
 		for (var i in obj2) {
       if (!this.contain(obj1[i], obj2[i])) {
         return false;
@@ -151,6 +269,7 @@ KarmaFields.Object.contain = function(obj1, obj2) {
 };
 
 
+// deprecated
 KarmaFields.Object.mask = function(obj, mask) {
   var result = {};
   for (var i in mask) {
@@ -179,7 +298,7 @@ KarmaFields.Object.mask = function(obj, mask) {
 KarmaFields.Object.isEmpty = function(object) {
 	if (object && typeof object === "object") {
 		for (var i in object) {
-			if (!KarmaFields.Object.isEmpty(object[i])) {
+			if (!this.isEmpty(object[i])) {
 				return false;
 			}
 		}
@@ -188,14 +307,17 @@ KarmaFields.Object.isEmpty = function(object) {
 	}
 	return true;
 };
-KarmaFields.Object.serialize = function(object) {
-	var params = [];
-	for (var key in object) {
-    params.push(key + "=" + encodeURIComponent(object[key]));
-	}
-	return params.join("&");
-}
 
+// moved
+// KarmaFields.Object.serialize = function(object) {
+// 	var params = [];
+// 	for (var key in object) {
+//     params.push(key + "=" + encodeURIComponent(object[key]));
+// 	}
+// 	return params.join("&");
+// }
+
+// deprecated
 KarmaFields.Object.forEach = function(object, callback, keys) {
 	if (object && typeof object === "object") {
 		for (var key in object) {
@@ -205,3 +327,18 @@ KarmaFields.Object.forEach = function(object, callback, keys) {
 		callback(keys, object);
 	}
 }
+
+// like contain but return true when obj2 is empty
+KarmaFields.Object.compare = function(obj1, obj2) {
+	// if (obj1 && obj2 && typeof obj1 === "object" && typeof obj2 === "object") {
+	if (obj2 && typeof obj2 === "object") {
+		for (var i in obj2) {
+      if (!obj1 || typeof obj1 !== "object" || !this.compare(obj1[i], obj2[i])) {
+        return false;
+      }
+		}
+		return true;
+	} else {
+		return obj1 === obj2;
+	}
+};

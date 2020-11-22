@@ -419,6 +419,10 @@
   background-color: transparent; /* #efebea; */
 }
 
+.karma-fields table td textarea {
+  padding: 5px 5px;
+}
+
 
 /* .karma-fields table.grid td.modified input.text {
   background-image: url(../dashicons/pets.svg);
@@ -508,7 +512,7 @@
 --------------------------------------*/
 
 .karma-fields table.grid td button {
-  display: flex;
+  /* display: flex;
   justify-content: center;
   align-items: center;
   margin: 0;
@@ -516,10 +520,18 @@
   box-sizing: border-box;
   border: 0;
   height: 100%;
-  width: 100%;
+  width: 100%; */
+
+  border: none;
+  width: 20px;
+  height: 20px;
+  padding: 10px;
+  box-sizing: content-box;
+  background-color: transparent;
+  cursor: pointer;
 
 
-  border: 0 solid #7d8993; /* #007bba; */
+  /* border: 0 solid #7d8993; */
 }
 .karma-fields table.grid td button:focus {
   box-shadow: none;
@@ -527,8 +539,8 @@
 }
 .karma-fields table.grid td button svg {
   display: block;
-  height: 30px;
-  width: 30px;
+  /* height: 30px;
+  width: 30px; */
 }
 
 
@@ -596,22 +608,17 @@ td.modified .on-off svg path {
   align-items: center;
   position: sticky;
   top: 32px;
-  /* background-color: white; */
   z-index: 2;
-  /* border-bottom: 1px solid #7e8993; */
   margin-bottom: -1px;
 }
 .field-controls-group {
   display: inline-block;
   background-color: white;
   border: 1px solid #7e8993;
-  /* border-bottom-width: 0; */
   border-right-width: 0;
-  /* border-top-left-radius: 3px; */
 }
 .field-controls-group:last-child {
   border-right-width: 1px;
-  /* border-top-right-radius: 3px; */
 }
 .field-controls button {
   padding: 0;
@@ -624,7 +631,6 @@ td.modified .on-off svg path {
   cursor: pointer;
 }
 .field-controls button:focus {
-  /* outline: none; */
   outline-style: dotted;
   outline-color: #7d8993;
   outline-width: 2px;
@@ -639,15 +645,23 @@ td.modified .on-off svg path {
   opacity: 0.2;
   cursor: default;
 }
-/* .field-controls button:hover:first-child {
-  border-left-color: transparent;
-}
-.field-controls button:hover:last-child {
-  border-right-color: transparent;
-} */
+
 .field-controls button:hover svg {
-  /* fill: #007bba; */
 }
+
+
+/* Field controls in Grid (for files)
+--------------------------------------*/
+
+/* .grid .field-controls {
+  position: absolute;
+  top: auto;
+  bottom: 1px;
+  right: 1px;
+}
+.grid .field-controls button:disabled {
+  display: none;
+} */
 
 
 
@@ -1020,13 +1034,14 @@ td.modified .on-off svg path {
 /* Text-input Field
 --------------------------------------*/
 
-.karma-field input.text,
-.karma-field textarea {
+.karma-fields input.text,
+.karma-fields textarea {
   box-shadow: none;
   border-radius: 0;
+  box-sizing: border-box;
 }
-.karma-field input.text:focus,
-.karma-field textarea:focus {
+.karma-fields input.text:focus,
+.karma-fields textarea:focus {
   outline-color: #7d8993;
   outline-offset: -2px;
 }
@@ -1036,7 +1051,7 @@ td.modified .on-off svg path {
 /* Textarea Field
 --------------------------------------*/
 
-.karma-field textarea {
+.karma-fields textarea {
   padding: 10px;
   width: 100%;
 }
@@ -1062,6 +1077,30 @@ td.modified .on-off svg path {
 .karma-field-file,
 .karma-field-files {
   display: inline-block;
+}
+
+
+/* File Field in Grid
+--------------------------------------*/
+
+.grid .karma-field-file,
+.grid .karma-field-files {
+  display: block;
+  /* margin: -1px; */
+}
+.grid .file-input-thumbs {
+  height: 80px;
+  pointer-events: none;
+  display: flex;
+}
+.grid .selected .file-input-thumbs {
+  pointer-events: auto;
+}
+.grid .karma-field-file img,
+.grid .karma-field-files img {
+  display: block;
+  height: 100%;
+  width: auto;
 }
 
 
@@ -1140,6 +1179,12 @@ td.modified .on-off svg path {
 .karma-field-group.display-block {
 
 }
+.karma-field-group.display-block>.karma-field-item {
+  margin-bottom: 1em;
+}
+.karma-field-group.display-block>.karma-field-item>label {
+  display: block;
+}
 /* .karma-field-group.display-block>.karma-field-item>.karma-field-children {
   display: block;
   margin: -10px 0;
@@ -1179,6 +1224,24 @@ td.modified .on-off svg path {
 
 /* Group Display Table
 --------------------------------------*/
+
+.karma-field-group.display-table {
+  display: table;
+}
+.karma-field-group.display-table>.karma-field-item {
+  display: table-row;
+}
+.karma-field-group.display-table>.karma-field-item>* {
+  display: table-cell;
+  padding: 0 5px;
+  margin-bottom: 0.5em;
+}
+.karma-field-group.display-table>.karma-field-item>label {
+  padding-left: 0;
+  margin: 0;
+  font-weight: bolder;
+  min-width: 150px;
+}
 
 /* .karma-field.display-table .karma-field-children {
   display: table;

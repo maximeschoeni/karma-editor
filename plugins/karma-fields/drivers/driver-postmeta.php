@@ -20,6 +20,9 @@ Class Karma_Fields_Driver_Postmeta {
     foreach ($data as $id => $item) {
 
       foreach ($item as $key => $value) {
+        //
+        // var_dump($key, $value);
+        // die();
 
         update_post_meta($id, $key, $value);
 
@@ -60,7 +63,7 @@ Class Karma_Fields_Driver_Postmeta {
 
     foreach ($filters as $key => $value) {
 
-      $args['meta_query'][$orderby] = array(
+      $args['meta_query'][] = array(
         'key' => $key,
         'value' => $value
       );
