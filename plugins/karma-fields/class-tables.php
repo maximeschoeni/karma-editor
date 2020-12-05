@@ -153,7 +153,7 @@ Class Karma_Tables {
 				wp_enqueue_script('karma-fields-media', $plugin_url . '/js/media.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields', $plugin_url . '/js/karma-fields.js', array(), $this->version, true); // -> extensions must comme after this!
 
-				wp_enqueue_script('karma-build', $plugin_url . '/js/build-v8.js', array('karma-fields-media'), $this->version, true);
+				wp_enqueue_script('karma-build', $plugin_url . '/js/build-v7.1.js', array('karma-fields-media'), $this->version, true);
 				wp_enqueue_script('karma-fields-calendar', $plugin_url . '/js/calendar.js', array('karma-fields-media'), $this->version, true);
 
 
@@ -180,6 +180,7 @@ Class Karma_Tables {
 				wp_enqueue_script('karma-field-array', $plugin_url . '/js/fields/array.js', array('karma-fields-media'), $this->version, true);
 
 				wp_enqueue_script('karma-field-textinput-datalist', $plugin_url . '/js/fields/textinput-datalist.js', array('karma-fields-media'), $this->version, true);
+				wp_enqueue_script('karma-field-table', $plugin_url . '/js/fields/table.js', array('karma-fields-media'), $this->version, true);
 
 
 				// tables
@@ -935,7 +936,7 @@ Class Karma_Tables {
 	}
 
 	/**
-	 *	print_field
+	 *	@hook karma_field
 	 */
 	public function print_field($args) {
 		static $index = 0;

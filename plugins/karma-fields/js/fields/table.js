@@ -1,10 +1,23 @@
+
+KarmaFields.wm.table = new WeakMap();
+
 KarmaFields.fields.table = function(field) {
   return {
-    class: "karma-field-table karma-fields",
+    class: "karma-field-table",
     init: function(container) {
-      var tableManager = KarmaFields.managers.table(field, field.history);
+      var tableManager = KarmaFields.managers.table(field, field.history, field.resource);
       var selectManager = KarmaFields.selectors.grid();
-      field.events.render = this.render;
+      field.events.render = function() {
+        // console.log("render");
+        container.render();
+
+        // setTimeout(function() {
+        //
+        // }, 4000);
+
+      };
+
+
 
 
 
@@ -17,16 +30,16 @@ KarmaFields.fields.table = function(field) {
         {
           class: "table-header",
           init: function(filter) {
-            var filterResources = field.getAttribute("filter");
-            if (filterResources) {
-              var filterField = field.createChild(filterResources);
+            var filterResource = field.getAttribute("filter");
+            if (filterResource) {
+              var filterField = field.createChild(filterResource);
               filterField.buffer = "filters";
               filterField.events.submit = function() {
                 tableManager.setPage(1);
                 tableManager.request();
               }
               filterField.events.render = this.render;
-              this.children = filterField.createChild(filters).build();
+              this.children = filterField.createChild(filterResource).build();
             }
           }
         },
@@ -36,7 +49,7 @@ KarmaFields.fields.table = function(field) {
             tag: "table",
             class: "grid",
             init: function() {
-              tableManager.request();
+
               if (field.resource.width) {
                 this.element.style.width = field.resource.width;
               }
@@ -124,7 +137,7 @@ KarmaFields.fields.table = function(field) {
                           if (field.resource.index.title) {
                             this.element.textContent = field.resource.index.title;
                           }
-                          if (tableManager.resource.index.width) {
+                          if (field.resource.index.width) {
                             this.element.style.width = field.resource.index.width;
                           }
                           this.element.addEventListener("mousedown", function(event) {
@@ -155,7 +168,7 @@ KarmaFields.fields.table = function(field) {
                   // tableField.events.updateFooter = function() {
                   //   manager.renderFooter();
                   // }
-                  tableField.events.render = this.render;
+                  // tableField.events.render = this.render;
                   this.children = uris && uris.filter(function(uri) {
                     return uri;
                   }).map(function(uri, rowIndex) {
@@ -167,6 +180,7 @@ KarmaFields.fields.table = function(field) {
                         }).map(function(column, colIndex) {
                           return {
                             tag: "td",
+                            child: KarmaFields.fields[column.name || column.field || "group"](),
                             init: function(cell) {
                               this.element.addEventListener("mousedown", function(event) {
                                 selectManager.onCellMouseDown(colIndex, rowIndex);
@@ -178,24 +192,29 @@ KarmaFields.fields.table = function(field) {
                                 selectManager.onCellMouseUp(colIndex, rowIndex);
                                 event.stopPropagation();
                               });
+                              var cellField = field.createChild(column);
+                              cellField.element = this.element;
+                              cellField.uri = uri;
+                              cellField.events.update = function() {
+                                container.render();
+                              };
+                              cellField.events.modify = function() {
+                                cell.element.classList.toggle("modified", cellField.isModified());
+                              }
+                              cellField.events.render = cell.render;
+
+                              KarmaFields.wm.table.set(cell.element, cellField);
+
+                              // this.child = cellField.buildSingle(); // should only do this if there is actual change
+
                               if (column.container_style) {
                                 this.element.style = column.container_style;
                               }
                             },
                             update: function(cell) {
-                              var cellField = field.createChild(column);
-                              cellField.uri = uri;
-                              // field.events.update = function() {
-                              //   manager.renderFooter();
-                              // }
-                              cellField.events.update = container.render;
-                              cellField.events.modify = function() {
-                                cell.element.classList.toggle("modified", cellField.isModified());
-                              }
-                              cellField.events.render = cell.render;
-                              selectManager.addField(colIndex, rowIndex, this.element, field);
+                              var cellField = KarmaFields.wm.table.get(cell.element);
+                              selectManager.addField(colIndex, rowIndex, this.element, cellField);
                               cellField.trigger("modify");
-                              this.child = cellField.buildSingle(); // should only do this if there is actual change
                             }
                           };
                         });
@@ -224,7 +243,7 @@ KarmaFields.fields.table = function(field) {
                                 var page = tableManager.getPage();
                                 var ppp = tableManager.getPpp();
                                 this.element.textContent = ((page-1)*ppp)+rowIndex+1;
-                              },
+                              }
                             }
                           });
                         }
@@ -238,9 +257,12 @@ KarmaFields.fields.table = function(field) {
         },
         {
           class: "table-footer",
-          init: function() {
+          init: function(footer) {
+
             // manager.renderFooter = this.render;
-            filed.selectManager.onSelect = this.render;
+            // field.selectManager.onSelect = function() {
+            //   footer.render();
+            // };
           },
           update: function() {
             this.children = [
@@ -273,16 +295,68 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
+                        child: {
+                          class: "table-spinner",
+                          update: function(icon) {
+                            var loading = field.history.read("static", ["loading"]);
+                            this.element.classList.toggle("loading", loading);
+
+
+                            // this.render = function() {};
+                          // },
+                          // update: function(icon) {
+                            // this.element.innerHTML =
+
+                            // KarmaFields.getAsset(KarmaFields.icons_url+"/update.svg").then(function(result) {
+                            //   requestAnimationFrame(function() {
+                            //     icon.element.innerHTML = result;
+                            //   });
+                            // });
+                          },
+
+                          // child: KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg")
+
+                          child: KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg")
+
+
+
+                        },
                         init: function(item) {
                           this.element.title = "Reload";
-                          this.child = {
-                            class: "table-spinner",
-                            update: function() {
-                              var loading = field.history.read("static", ["loading"]);
-                              this.element.classList.toggle("loading", loading);
-                            },
-                            child: KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg")
-                          };
+
+                          field.events["load"] = function() {
+                            field.history.setValue(["static", "loading"], true);
+                            item.render();
+                          }
+
+                          // console.log(KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg"));
+                          // this.child = {
+                          //   class: "table-spinner",
+                          //   update: function(icon) {
+                          //     var loading = field.history.read("static", ["loading"]);
+                          //     this.element.classList.toggle("loading", loading);
+                          //
+                          //
+                          //     // this.render = function() {};
+                          //   },
+                          //   init: function(icon) {
+                          //     // this.element.innerHTML =
+                          //
+                          //     KarmaFields.getAsset(KarmaFields.icons_url+"/update.svg").then(function(result) {
+                          //       requestAnimationFrame(function() {
+                          //         icon.element.innerHTML = result;
+                          //       });
+                          //     });
+                          //     // this.render = function() {};
+                          //   },
+                          //   // child: {
+                          //   //   class: "xxx",
+                          //   //   init: function() {
+                          //   //     console.log(this);
+                          //   //   }
+                          //   // }
+                          //   // child: KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg")
+                          // };
                           this.element.addEventListener("click", function(event) {
                             tableManager.request().then(function() {
                               item.element.blur();
@@ -293,7 +367,7 @@ KarmaFields.fields.table = function(field) {
                           });
                         },
                         update: function() {
-                          var loading = field.history.read("table", ["loading"]);
+                          // var loading = field.history.read("table", ["loading"]);
                         }
                       },
                       {
@@ -316,9 +390,9 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
+                        child: KarmaFields.includes.icon(KarmaFields.icons_url+"/admin-generic.svg"),
                         init: function(item) {
                           this.element.title = "Options";
-                          this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/admin-generic.svg");
                           this.element.addEventListener("click", function(event) {
                             var displayOptions = field.history.read("static", ["displayOptions"]);
 
@@ -340,9 +414,10 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
+                        child: KarmaFields.includes.icon(KarmaFields.icons_url+"/undo.svg"),
                         init: function(item) {
                           this.element.title = "Undo";
-                          this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/undo.svg");
+                          // this.
                           this.element.addEventListener("click", function(event) {
                             field.history.undo();
                             tableManager.render();
@@ -358,9 +433,9 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
+                        child: KarmaFields.includes.icon(KarmaFields.icons_url+"/redo.svg"),
                         init: function(item) {
                           this.element.title = "Redo";
-                          this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/redo.svg");
                           this.element.addEventListener("click", function(event) {
                             field.history.redo();
                             tableManager.render();
@@ -376,9 +451,10 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
+                        child: KarmaFields.includes.icon(KarmaFields.icons_url+"/plus-alt2.svg"),
                         init: function(item) {
                           this.element.title = "Add";
-                          this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/plus-alt2.svg");
+                          // this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/plus-alt2.svg");
                           this.element.addEventListener("click", function(event) {
                             tableManager.addItem();
                           });
@@ -390,9 +466,9 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
+                        child: KarmaFields.includes.icon(KarmaFields.icons_url+"/trash.svg"),
                         init: function(item) {
                           this.element.title = "Delete";
-                          this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/trash.svg");
                           this.element.addEventListener("click", function(event) {
                             var uris = selectManager.getSelectedRows().map(function(cell) {
                               return cell.field.path;
@@ -521,6 +597,8 @@ KarmaFields.fields.table = function(field) {
           }
         }
       ];
+      tableManager.request();
+
       KarmaFields.events.onSelectAll = function(event) {
     		if (document.activeElement === document.body) {
     			selectManager.onSelectAll(event);

@@ -21,7 +21,7 @@ Class Karma_Editor {
 
     // require_once KARMA_FIELDS_PATH . '/class-fields.php';
 
-    require_once KARMA_EDITOR_PATH . '/plugins/karma-fields/class-tables.php';
+    require_once KARMA_FIELDS_PATH . '/class-tables.php';
 
 
     // add_action('admin_menu', array($this, 'register_page'));

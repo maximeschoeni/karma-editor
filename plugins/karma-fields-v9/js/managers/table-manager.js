@@ -1,4 +1,4 @@
-KarmaFields.managers.table = function(field, history) {
+KarmaFields.managers.table = function(field, history, resource) {
 
 	var manager = {
 		// resource: resource,
@@ -28,10 +28,8 @@ KarmaFields.managers.table = function(field, history) {
 
 			history.write("static", ["loading"], 1);
 
-			field.trigger("render");
-			// if (this.renderFooter) {
-			// 	this.renderFooter();
-			// }
+			field.trigger("load");
+
 
 			field.query(params).then(function(results) {
 				var items = history.request(["table", "items"]);
@@ -45,11 +43,8 @@ KarmaFields.managers.table = function(field, history) {
 				}), "nav", items);
 				history.save(["table", "count"], parseInt(results.count), "nav", count);
 
-        // if (manager.render) {
-        //   manager.render();
-        // }
+
 				field.trigger("render");
-				// manager.autoRefresh();
         return results;
       });
 		},
@@ -109,7 +104,7 @@ KarmaFields.managers.table = function(field, history) {
 
 			history.write("static", ["loading"], 1);
 			// this.renderFooter();
-			field.trigger("render");
+			field.trigger("load");
 
 			return field.update(params).then(function(results) {
 
@@ -153,7 +148,7 @@ KarmaFields.managers.table = function(field, history) {
 			params.filter = history.request(["filters"]);
 			history.write("static", ["loading"], 1);
 			// this.renderFooter();
-			field.trigger("render");
+			field.trigger("load");
 			field.add(params).then(function(result) {
 				history.merge("input", [resource.driver, result.uri], result);
 				var drafts = Object.values(history.getValue(["table", "drafts"]) || {});
