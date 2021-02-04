@@ -2,7 +2,7 @@ KarmaFields.fields.files = function(field) {
 
 
   return {
-    class: "karma-field-files",
+    className: "karma-field-files",
     init: function(gallery) {
       var galleryManager = {};
       var galleryUploader = KarmaFields.createGalleryUploader();
@@ -32,19 +32,22 @@ KarmaFields.fields.files = function(field) {
         // galleryManager.renderControls && galleryManager.renderControls();
       };
 
-      this.children = [];
+      this.kids = [];
       if (field.resource.controls !== false) {
-        this.children.push({
-          class: "field-controls",
+        this.kids.push({
+          className: "field-controlsxx",
           child: {
-            class: "field-controls-group",
-            children: [
+            className: "field-controls-group",
+            kids: [
               {
                 tag: "button",
-                child: KarmaFields.includes.icon(KarmaFields.icons_url+"/insert.svg"),
+                // kids: [KarmaFields.includes.icon(KarmaFields.icons_url+"/insert.svg")],
+                kid: KarmaFields.includes.icon({
+                  file: KarmaFields.icons_url+"/insert.svg"
+                }),
                 init: function() {
-                  this.element.disabled = (field.getValue() || []).length;
-                  this.element.addEventListener("click", function(event) {
+                  this.disabled = (field.getValue() || []).length;
+                  this.addEventListener("click", function(event) {
                     event.preventDefault();
                     // if (!galleryUploader.imageIds) {
                     //   galleryUploader.imageIds = [];
@@ -60,14 +63,17 @@ KarmaFields.fields.files = function(field) {
                 update: function() {
                   // var values = field.getValue();
                   // values = Array.isArray(values) && values || [];
-                  // this.element.disabled = values.length > 0;
+                  // this.disabled = values.length > 0;
                 }
               },
               {
                 tag: "button",
-                child: KarmaFields.includes.icon(KarmaFields.icons_url+"/edit.svg"),
+                // kids: [KarmaFields.includes.icon(KarmaFields.icons_url+"/edit.svg")],
+                kid: KarmaFields.includes.icon({
+                  file: KarmaFields.icons_url+"/edit.svg"
+                }),
                 init: function() {
-                  this.element.addEventListener("click", function(event) {
+                  this.addEventListener("click", function(event) {
                     event.preventDefault();
                     var values = field.getValue();
                     values = Array.isArray(values) && values || [];
@@ -81,14 +87,17 @@ KarmaFields.fields.files = function(field) {
                   var values = field.getValue();
 
                   values = Array.isArray(values) && values || [];
-                  this.element.disabled = values.length === 0;
+                  this.disabled = values.length === 0;
                 }
               },
               {
                 tag: "button",
-                child: KarmaFields.includes.icon(KarmaFields.icons_url+"/trash.svg"),
+                // kids: [KarmaFields.includes.icon(KarmaFields.icons_url+"/trash.svg")],
+                kid: KarmaFields.includes.icon({
+                  file: KarmaFields.icons_url+"/trash.svg"
+                }),
                 init: function() {
-                  this.element.addEventListener("click", function(event) {
+                  this.addEventListener("click", function(event) {
                     event.preventDefault();
                     field.setValue([]);
                     gallery.render();
@@ -97,17 +106,17 @@ KarmaFields.fields.files = function(field) {
                 update: function() {
                   var values = field.getValue();
                   values = Array.isArray(values) && values || [];
-                  this.element.disabled = values.length === 0;
+                  this.disabled = values.length === 0;
                 }
               }
             ]
           }
         });
       }
-      this.children.push({
-        class: "file-input-thumbs",
+      this.kids.push({
+        className: "file-input-thumbs",
         init: function() {
-          this.element.addEventListener("click", function(event) {
+          this.addEventListener("click", function(event) {
             event.preventDefault();
             var values = field.getValue();
             values = Array.isArray(values) && values || [];
@@ -122,16 +131,37 @@ KarmaFields.fields.files = function(field) {
         },
         update: function(thumbsContainer) {
           var values = field.getValue();
-          if (values && Array.isArray(values)) {
-            thumbsContainer.children = values.map(function(attachment) {
+          this.kids = [];
+          if (values && Array.isArray(values) && values.length) {
+            this.kids = values.map(function(attachment) {
               return {
                 tag: "img",
                 update: function() {
-                  this.element.src = attachment.thumb;
-                  this.element.width = attachment.thumb_width;
-                  this.element.height = attachment.thumb_height;
+                  this.src = attachment.thumb;
+                  this.width = attachment.thumb_width;
+                  this.height = attachment.thumb_height;
                 }
               };
+            });
+          }
+        }
+      });
+      this.kids.push({
+        className: "field-buttons",
+        kid: {
+          tag: "button",
+          kid: KarmaFields.includes.icon({
+            file: KarmaFields.icons_url+"/insert.svg"
+          }),
+          init: function() {
+            this.addEventListener("click", function(event) {
+              event.preventDefault();
+              var values = field.getValue();
+              values = Array.isArray(values) && values || [];
+              galleryUploader.imageIds = values.map(function(attachment) {
+                return attachment.id;
+              });
+              galleryUploader.open();
             });
           }
         }

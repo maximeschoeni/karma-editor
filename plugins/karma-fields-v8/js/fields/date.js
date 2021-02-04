@@ -30,6 +30,7 @@ KarmaFields.fields.date = function(field) {
       container.kids = [
         {
           className: "date-popup-container",
+
           update: function(popup) {
             this.classList.toggle("open-down", this.getBoundingClientRect().top+window.pageYOffset < 500);
 
@@ -89,6 +90,7 @@ KarmaFields.fields.date = function(field) {
                     },
                     {
                       className: "karma-calendar-body",
+                      clear: true,
                       update: function(body) {
                         var days = KarmaFields.Calendar.getMonthDays(date);
                         var value = field.getValue();
@@ -127,7 +129,6 @@ KarmaFields.fields.date = function(field) {
                                     event.preventDefault();
                                     if (item.day) {
                                       // var date = KarmaFields.wm.date.get(container);
-
 
                                       field.setValue(item.day.sqlDate);
                                       // container.classList.remove("open");
@@ -170,13 +171,14 @@ KarmaFields.fields.date = function(field) {
               this.readOnly = true;
             } else {
               this.addEventListener("keyup", function() {
-                // var date = KarmaFields.Calendar.parse(this.value, format);
-                if (date) {
+                let inputDate = KarmaFields.Calendar.parse(this.value, format);
+                if (inputDate) {
+                  date = inputDate;
                   var sqlDate = KarmaFields.Calendar.format(date);
                   field.setValue(sqlDate);
                   container.render();
                 }
-                this.classList.toggle("valid-date", date);
+                this.classList.toggle("valid-date", inputDate);
               });
 
               var keyChange = function(dir) {
@@ -228,8 +230,9 @@ KarmaFields.fields.date = function(field) {
           update: function() {
             var value = field.getValue();
             var date = value && KarmaFields.Calendar.parse(value);
-
             this.value = date && KarmaFields.Calendar.format(date, format) || "";
+            
+
           }
         }
       ];

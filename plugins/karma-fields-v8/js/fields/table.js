@@ -102,6 +102,9 @@ KarmaFields.fields.table = function(field) {
                   container.render();
                 });
               }
+              filterField.events.update = function() {
+                field.trigger("updateFooter");
+              };
               filterField.events.render = this.render;
               this.kids = filterField.createChild(filterResource).build();
             }
@@ -568,7 +571,7 @@ KarmaFields.fields.table = function(field) {
                           });
                         },
                         update: function(element) {
-                          this.disabled = !field.getAttribute("can_create");
+                          this.disabled = field.getAttribute("disable_create");
                         }
                       },
                       {
@@ -596,7 +599,7 @@ KarmaFields.fields.table = function(field) {
                         },
                         update: function(element) {
                           var selectedRows = selectManager.getSelectedRows();
-                          this.disabled = selectedRows.length === 0 || !field.getAttribute("can_create");;
+                          this.disabled = selectedRows.length === 0 || field.getAttribute("disable_delete");
                         }
                       }
                     ]

@@ -21,10 +21,10 @@
 		fieldManager.outputBuffer = "output";
 
 		// fieldManager.uri = id;
-		// fieldManager.events.update = function() {
-		// 	var output = history.getValue(["output"]);
-		// 	input.value = JSON.stringify(output);
-		// };
+		fieldManager.events.update = function() {
+			var output = history.getValue(["output"]);
+			input.value = JSON.stringify(output);
+		};
 
 		var fieldNode = KarmaFields.build({
 			kids: fieldManager.build()

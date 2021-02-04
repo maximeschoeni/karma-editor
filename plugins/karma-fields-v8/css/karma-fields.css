@@ -4,34 +4,96 @@
     margin-right: 20px;
 }
 
+/* Buttons
+--------------------------------------*/
+.karma-fields button {
+  border: none;
+  background: transparent;
+  padding: 10px;
+  cursor: pointer;
+}
+.karma-fields button .karma-icon {
+  width: 20px;
+  height: 20px;
+}
+/* .karma-fields button .karma-icon path {
+  fill: #32373c;
+}
+.karma-fields button:hover .karma-icon path {
+  fill: #7e8993;
+} */
+
+
+/* Files
+--------------------------------------*/
+
+.karma-fields .field-file .file-thumb {
+  display: flex;
+  align-items: flex-end;
+}
+.karma-fields .field-file .file-thumb img {
+  object-fit: cover;
+  object-position: center;
+  width: 150px;
+  height: 150px;
+  display: block;
+  cursor: pointer;
+}
+.karma-fields .field-file .file-thumb button {
+  padding: 0 10px;
+}
+.karma-fields .field-file .file-thumb button:hover {
+  text-decoration: underline;
+}
+.karma-fields .field-file .file-thumb button:focus {
+  outline: none;
+}
+.karma-fields .field-file .file-thumb button.insert,
+.karma-fields .field-file .file-thumb .wait {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+}
+
+
 
 /* Table
 --------------------------------------*/
 
 .karma-fields .table {
-  border-style: solid;
+  /* border-style: solid;
   border-color: #7e8993;
-  border-width: 0;
-  border-left-width: 1px;
-  border-top-width: 1px;
+  border-width: 1px; */
+  /* border-left-width: 1px;
+  border-top-width: 1px; */
 
   display: grid;
+  grid-gap: 1px;
+  /* background-color: #f1f1f1; */
   /* grid-template-columns: 40px auto 1fr; */
 }
 
 .karma-fields .table .th,
 .karma-fields .table .td {
   box-sizing: border-box;
-  border-style: solid;
+  /* border-style: solid;
   border-color: #7e8993;
   border-width: 0;
   border-right-width: 1px;
-  border-bottom-width: 1px;
+  border-bottom-width: 1px; */
   text-align: left;
   padding: 1px;
   color: #535c63;
 
   display: flex;
+  outline: 1px solid #7e8993;
+}
+.karma-fields .table .flying {
+  position: relative;
+  z-index: 99999;
 }
 .karma-fields .table .th {
   background-color: #d4d8db;
@@ -40,7 +102,12 @@
   justify-content: space-between;
   align-items: center;
 }
-
+.karma-fields .table .th.table-index {
+  justify-content: flex-end;
+}
+.karma-fields .table .td {
+  background-color: #f1f1f1;
+}
 .karma-fields .table .td.selected {
   background-color: white; /* #efebea; */
 }
@@ -59,8 +126,8 @@
 .karma-fields .table .th a.header-cell-order {
   display: block;
   width: 20px;
+  height: 20px;
   cursor: pointer;
-
   background-image: url(../dashicons/sort.svg);
   background-repeat: no-repeat;
   mix-blend-mode: overlay;
@@ -145,7 +212,7 @@
   display: block;
 }
 .karma-fields .table .td button .karma-icon {
-  width: 30px;
+  width: 20px;
 }
 .on-off svg path {
   fill: #535c63;

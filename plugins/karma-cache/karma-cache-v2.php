@@ -121,9 +121,9 @@ class Karma_Cache {
 		if (strpos($wp->request, $this->path) === 0) {
 
 			$path = trim(substr($wp->request, strlen($this->path)), '/');
-
+			
 			$value = $this->request($path);
-
+			
 			if (isset($value)) {
 
 				if (pathinfo($path, PATHINFO_EXTENSION) === 'json') {
@@ -193,7 +193,7 @@ class Karma_Cache {
 	public function request($path) {
 
 		$value = $this->get($path);
-
+		
 		if (!isset($value)) {
 
 			$parts = explode('/', $path);
@@ -209,7 +209,7 @@ class Karma_Cache {
 			do_action("karma_cache_{$middleware}_request", $uri, $file, $this);
 
 			$value = $this->get($path);
-
+			
 		}
 
 		return $value;

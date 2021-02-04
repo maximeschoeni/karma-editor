@@ -62,6 +62,7 @@ function karma_register_cluster($post_type, $callback) {
 
 
   $hook = function($post, $post_cache) use($callback) {
+  
     $cluster = new stdClass();
     call_user_func($callback, $cluster, $post, $post_cache);
     $post_cache->update($post->ID, 'data.json', $cluster);

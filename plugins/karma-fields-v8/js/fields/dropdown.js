@@ -19,17 +19,29 @@ KarmaFields.fields.dropdown = function(field) {
 			// 	value = field.getValue();
 			// 	return value;
 			// });
+
+			if (field.resource.script_init) {
+				(new Function("element", "field", field.resource.script_init))(dropdown, field);
+			}
 		},
 		update: function(dropdown) {
+
+
+			if (field.resource.script_update) {
+				let f = new Function("element", "field", field.resource.script_update);
+				f(dropdown, field);
+			}
+
 			value = field.getValue();
 
 			return field.fetchValue().then(function() {
-				return Promise.resolve(field.resource.options || field.fetchOptions());
+				return Promise.resolve(field.getAttribute("options") || field.fetchOptions());
 			}).then(function(results) {
 
 				value = field.getValue();
 
 				items = results.items || results; // compat !
+
 				if (field.resource.novalue !== undefined) {
 					items = [{
 						key: "",

@@ -16,22 +16,25 @@ KarmaFields.managers.table = function(field, history, resource) {
 			var drafts = history.read("table", ["drafts"]) || {};
 			return Object.values(drafts).concat(Object.values(items)).filter(function(uri) {
 				var status = history.request(["output", resource.driver, uri, "status"], ["input", resource.driver, uri, "status"]);
+
 				return parseInt(status) < 2;
 			});
 		},
 		request: function() {
 			// this.stopRefresh();
+			// var driver = field.getAttribute("driver") || "nodriver";
 			var params = {};
 			params.page = history.read("page", [], 1);
 			params.options = history.read("options", [], {});
 			params.filters = history.read("filters", [], {});
+			params.order = history.read("order", [], {});
 
 			history.write("static", ["loading"], 1);
 
-			field.trigger("load");
+			// field.trigger("load");
 
 
-			field.query(params).then(function(results) {
+			return field.query(params).then(function(results) {
 				var items = history.request(["table", "items"]);
 				var count = history.request(["table", "count"]);
 				results.items.forEach(function(item) {
@@ -44,7 +47,7 @@ KarmaFields.managers.table = function(field, history, resource) {
 				history.save(["table", "count"], parseInt(results.count), "nav", count);
 
 
-				field.trigger("render");
+				// field.trigger("render");
         return results;
       });
 		},
@@ -65,7 +68,7 @@ KarmaFields.managers.table = function(field, history, resource) {
 				history.save(["order", "order"], column.default_order || "asc", "nav", order);
 			}
 			history.save(["page"], "1", "nav", page);
-			this.request();
+			return this.request();
 		},
 
 		getPpp: function() {
@@ -104,9 +107,9 @@ KarmaFields.managers.table = function(field, history, resource) {
 
 			history.write("static", ["loading"], 1);
 			// this.renderFooter();
-			field.trigger("load");
+			// field.trigger("load");
 
-			return field.update(params).then(function(results) {
+			return field.sync(params).then(function(results) {
 
 				// var timestamp = Date.now();
 
@@ -131,7 +134,7 @@ KarmaFields.managers.table = function(field, history, resource) {
 				// 	manager.render();
 				// }
 
-				field.trigger("render");
+				// field.trigger("render");
 			});
 		},
 		addItem: function() {
@@ -148,14 +151,14 @@ KarmaFields.managers.table = function(field, history, resource) {
 			params.filter = history.request(["filters"]);
 			history.write("static", ["loading"], 1);
 			// this.renderFooter();
-			field.trigger("load");
-			field.add(params).then(function(result) {
+			// field.trigger("load");
+			return field.add(params).then(function(result) {
 				history.merge("input", [resource.driver, result.uri], result);
 				var drafts = Object.values(history.getValue(["table", "drafts"]) || {});
 				history.save(["table", "drafts"], [...drafts, result.uri], result.uri, drafts);
 				history.save(["output", resource.driver, result.uri, "status"], "1", result.uri, "0");
 				history.write("static", ["loading"], 0);
-				field.trigger("render");
+				// field.trigger("render");
 				// if (manager.render) {
 				// 	manager.render();
 				// }
@@ -164,7 +167,7 @@ KarmaFields.managers.table = function(field, history, resource) {
 			});
 		},
 		removeItems: function(rows) {
-			// var timestamp = Date.now();
+			var timestamp = Date.now();
 			rows.forEach(function(uri) {
 				history.save(["output", resource.driver, uri, "status"], "2", timestamp, "1");
 			});
@@ -172,8 +175,11 @@ KarmaFields.managers.table = function(field, history, resource) {
 			history.save(["table", "items"], items.filter(function(uri) {
 				return rows.indexOf(uri) === -1;
 			}), timestamp, items);
+
+
+
 			// this.render();
-			field.trigger("render");
+			// field.trigger("render");
 		},
 
 		// save: function() {

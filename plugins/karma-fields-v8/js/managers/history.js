@@ -469,6 +469,8 @@ KarmaFields.History.createInstance = function(store) {
 						params = {};
 					}
 					params.filters = this.getAttribute("fetch_filters") || history.read("filters", []);
+
+
 					return KarmaFields.Transfer.fetch(driver, key, params);
 				} else {
 					return Promise.resolve();

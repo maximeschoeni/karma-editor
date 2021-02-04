@@ -4,7 +4,7 @@
 
 Class Karma_Tables {
 
-	public $version = '9';
+	public $version = '11';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -352,6 +352,7 @@ Class Karma_Tables {
 		register_rest_route('karma-fields/v1', '/query/(?P<driver>[a-z0-9_-]+)/?', array(
 			'methods' => 'GET',
 			'callback' => array($this, 'rest_query'),
+			'permission_callback' => '__return_true',
 			'args' => array(
 				'driver' => array(
 					'required' => true
@@ -363,7 +364,8 @@ Class Karma_Tables {
 		// register_rest_route('karma-fields/v1', '/get/(?P<driver>[^/]+)(?P<path>/.+)?/(?P<key>.+)', array(
 		register_rest_route('karma-fields/v1', '/get/(?P<driver>[^/]+)/(?P<path>[^/]+)/(?P<key>.+)', array(
 			'methods' => 'GET',
-			'callback' => array($this, 'rest_get')
+			'callback' => array($this, 'rest_get'),
+			'permission_callback' => '__return_true'
 			// 'args' => array(
 			// 	'path' => array(
 			// 		'required' => true
@@ -374,6 +376,7 @@ Class Karma_Tables {
 		register_rest_route('karma-fields/v1', '/update/(?P<driver>[^/]+)', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_update'),
+			'permission_callback' => '__return_true',
 			'args' => array(
 				'driver' => array(
 					'required' => true
@@ -393,6 +396,7 @@ Class Karma_Tables {
 		register_rest_route('karma-fields/v1', '/fetch/(?P<driver>[^/]+)/(?P<key>[^/?]+)', array(
 			'methods' => 'GET',
 			'callback' => array($this, 'rest_fetch'),
+			'permission_callback' => '__return_true',
 			'args' => array(
 				'driver' => array(
 					'required' => true
@@ -411,6 +415,7 @@ Class Karma_Tables {
 		register_rest_route('karma-fields/v1', '/add/(?P<driver>[a-z0-9_-]+)/?', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_add'),
+			'permission_callback' => '__return_true',
 			'args' => array(
 				'driver' => array(
 					'required' => true
@@ -423,12 +428,14 @@ Class Karma_Tables {
 
 		register_rest_route('karma-fields/v1', '/autosave/(?P<driver>[^/]+)/?', array(
 			'methods' => 'POST',
-			'callback' => array($this, 'rest_autosave')
+			'callback' => array($this, 'rest_autosave'),
+			'permission_callback' => '__return_true'
 		));
 
 		register_rest_route('karma-fields/v1', '/autosave2/(?P<driver>[^/]+)/?', array(
 			'methods' => 'POST',
-			'callback' => array($this, 'rest_autosave2')
+			'callback' => array($this, 'rest_autosave2'),
+			'permission_callback' => '__return_true'
 		));
 
 		// register_rest_route('karma-fields/v1', '/options/(?P<middleware>[a-z0-9_-]+)/(?P<key>[^/]+)/?', array(
