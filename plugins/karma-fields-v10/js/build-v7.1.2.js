@@ -1,24 +1,24 @@
 /**
  * build (V7.1)
  */
-KarmaFields.build = function(args, parent, element) {
+KarmaFields.build = function(args, parent, element, clean) {
 	if (args) {
 		if (args.kids || args.kid || args.className) {
 			console.error(args, "bad args");
 		}
-		args.render = function() {
+		args.render = function(clean) {
 			let children = this.children || this.child && [this.child] || [];
 			let i = 0;
 			let child = this.element.firstElementChild;
 			while (i < children.length || child) {
 				let next = child && child.nextElementSibling;
-				KarmaFields.build(children[i], this.element, child);
+				KarmaFields.build(children[i], this.element, child, clean);
 				i++;
 				child = next;
 			}
 		};
 
-		if (!element || args.clear || args.reflow && args.reflow(element)) {
+		if (!element || clean || args.clear || args.reflow && args.reflow(element)) {
 			args.element = document.createElement(args.tag || "div");
 			if (args.class) {
 				args.element.className = args.class;

@@ -6,6 +6,37 @@ KarmaFields.fields.group = function(field) {
 				this.element.style = field.resource.style;
 			}
 
+			(field.resource.children || []).map(function(resource) {
+				if (resource.key) {
+					child = field.get(value.id) || field.createChild(resource);
+				}
+
+
+			});
+
+
+		},
+		update: function(group) {
+
+
+
+
+			if (field.resource.label) {
+				this.children = [
+					{
+						tag: "label",
+						init: function(label) {
+							this.element.htmlFor = manager.getId();
+							this.element.innerText = manager.resource.label;
+						}
+					},
+					KarmaFields.fields[manager.resource.name || manager.resource.field || "group"](manager)
+				];
+			} else {
+				return [
+					KarmaFields.fields[manager.resource.name || manager.resource.field || "group"](manager)
+				];
+			}
 		},
 		children: (field.resource.children || []).map(function(resource) {
 			return {

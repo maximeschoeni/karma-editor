@@ -12,13 +12,20 @@
 		var container = document.getElementById("karma-fields-field-<?php echo $index; ?>-container");
 		var input = document.getElementById("karma-fields-input-<?php echo $index; ?>");
 		var resource = <?php echo json_encode($args); ?>;
-		var history = KarmaFields.History.createInstance();
+		var history = {
+			index: 0
+		};
 
-		window.fieldHistory = history; // -> for debug
+		let field = KarmaFields.Field({
+			key: 'posts',
 
-		var fieldManager = history.createFieldManager(resource);
-		fieldManager.buffer = "input";
-		fieldManager.outputBuffer = "output";
+		});
+
+		// window.fieldHistory = history; // -> for debug
+		//
+		// var fieldManager = history.createFieldManager(resource);
+		// fieldManager.buffer = "input";
+		// fieldManager.outputBuffer = "output";
 
 		// fieldManager.uri = id;
 		fieldManager.events.update = function() {

@@ -1,12 +1,9 @@
 
-KarmaFields.Field = function() {
+KarmaFields.Field = function(resource) {
 	let field = {
 		children: [],
-		resource: {},
-		originalValue: undefined,
-		value: undefined,
+		resource: resource || {},
 		data: {},
-		key: undefined,
 		events: {},
 
 		getId: function() {
@@ -30,62 +27,151 @@ KarmaFields.Field = function() {
 			// let child = KarmaFields.Field();
 			this.children.push(child);
 			child.parent = this;
+		},
+		createChild: function(resource) {
+			let child = KarmaFields.Field(resource);
+			this.add(child);
 			return child;
 		},
-		trigger: function(eventName, currentField) {
+		findByKey: function(key) {
+			return this.children.find(function(child) {
+				return child.resource.key == key;
+			})
+		},
+		trigger: function(eventName, param) {
 			if (this.events[eventName]) {
-				this.events[eventName](currentField);
+				this.events[eventName](param);
 			} else if (this.parent) {
-				this.parent.trigger(eventName, currentField || this);
+				this.parent.trigger(eventName, param);
 			}
 		},
-		getValue: function() {
+
+		// update: function(updater, param) {
+		// 	this.children.forEach(function(child) {
+		// 		if (child.resource.key) {
+		// 			let childParam = child.update(updater, param[child.resource.key] || {});
+		// 			if (childParam !== undefined) {
+		// 				param[child.resource.key] = childParam;
+		// 			}
+		// 		} else {
+		// 			param = child.update(updater, param);
+		// 		}
+		// 	});
+		// 	return updater(this, param);
+		// },
+
+		// getValue: function() {
+		// 	if (this.children) {
+		// 		let value = {};
+		// 		this.children.forEach(function(child) {
+		// 			let childValue = child.getValue();
+		// 			if (child.resource.key) {
+		// 				value[child.resource.key] = childValue;
+		// 			} else if (childValue && typeof childValue === "object") {
+		// 				for (let i in childValue) {
+		// 					value[i] = childValue[i];
+		// 				}
+		// 			}
+		// 		});
+		// 		return value;
+		// 	}
+		// 	return this.value;
+		// },
+		getModifiedValue: function() {
+			let value;
 			if (this.children) {
-				let value = {};
 				this.children.forEach(function(child) {
-					let childValue = child.getValue();
-					if (child.resource.key) {
-						value[child.resource.key] = childValue;
-					} else if (childValue && typeof childValue === "object") {
-						for (let i in childValue) {
-							value[i] = childValue[i];
+					let childValue = child.getModifiedValue();
+					if (childValue !== undefined) {
+						if (!value) {
+							value = {};
 						}
-					}
-				});
-				return value;
-			}
-			return this.value;
-		},
-		setValue: function(value, context) { // context = {'change' | 'update'}
-			if (this.children.length) {
-				this.children.forEach(function(child) {
-					if (child.key) {
-						if (value && value[child.key] !== undefined) {
-							child.setValue(value[child.key], context);
+						if (child.resource.key) {
+							value[child.resource.key] = childValue;
+						} else {
+							for (let i in childValue) {
+								value[i] = childValue[i];
+							}
 						}
-					} else {
-						child.setValue(value);
 					}
 				});
 			} else {
-				if (this.value === undefined) {
-					this.originalValue = value;
+				if (this.value !== this.originalValue) {
+					return this.value;
 				}
-				this.value = value;
-				// this.isModified = this.value !== this.originalValue;
-				this.trigger("modify");
-				this.trigger(context || "change");
-				if (context && this.resource.submit_mode === context) {
-					this.trigger("submit");
-				}
-
-				// if (this.history && !context || context === "change") {
-				// 	this.undos[this.history.current] = value;
-				//
-				// 	this.history.update(this.getId()); // -> todo
-				//
-				// }
 			}
+			return value;
+		},
+
+		getValue: function(filter) {
+			let value;
+			if (this.children) {
+				this.children.forEach(function(child) {
+					let childValue = child.getValue();
+					if (childValue !== undefined) {
+						if (!value) {
+							value = {};
+						}
+						if (child.resource.key) {
+							value[child.resource.key] = childValue;
+						} else if (typeof childValue === "object") {
+							for (let i in childValue) {
+								value[i] = childValue[i];
+							}
+						}
+					}
+				});
+			} else {
+				value = this.value;
+				if (filter) {
+					value = filter(value, this);
+				}
+			}
+			return value;
+		},
+		setValue: function(value, context) { // context = {'change' | 'set' | 'undo'}
+			if (value !== this.lastValue) {
+				if (!context) {
+					context = "change";
+				}
+				if (this.children.length) {
+					this.children.forEach(function(child) {
+						if (child.key) {
+							if (value && value[child.key] !== undefined) {
+								child.setValue(value[child.key], context);
+							} else if (context = "query") {
+								cell.queryValue();
+							}
+						} else {
+							child.setValue(value, context);
+						}
+					});
+				} else {
+					// if (this.value === undefined) {
+					// 	this.originalValue = value;
+					// }
+					this.value = value;
+					// this.isModified = this.value !== this.originalValue;
+					this.trigger("update");
+					// this.trigger(context);
+					// if (context && this.resource.submit_mode === context) {
+					// 	this.trigger("submit");
+					// }
+					if (context === "set") {
+						this.originalValue = value;
+						this.history.save();
+						this.trigger("render");
+					}
+					if (context === "undo") {
+						// this.trigger("render");
+					}
+					if (context === "change") {
+						this.trigger("change", this);
+					}
+				}
+				this.lastValue = value;
+			}
+
 
 
 
@@ -105,15 +191,36 @@ KarmaFields.Field = function() {
 		// 		return child.getFieldByPath(child.children, keys.join("/"));
 		// 	}
 		// },
+		// find: function(path) {
+		// 	let key = path.shift();
+		// 	if (path.length === 0 && key === this.resource.key) {
+		// 		return this;
+		// 	} else {
+		// 		let child = this.children.find(function(field) {
+		// 			return field.resource.key === key;
+		// 		});
+		// 		if (child) {
+		// 			return child.getFieldByPath(path);
+		// 		}
+		// 	}
+		//
+		// },
 		find: function(path) {
 			let key = path.shift();
-			let child = fields.find(function(field) {
-				return field.resource.key === key;
+			for (let i = 0; i < this.children.length; i++) {
+				if (this.children[i].resource.key === key) {
+					if (path.length) {
+						return this.children[i].getFieldByPath(path);
+					} else {
+						return this.children[i];
+					}
+				}
 			});
-			if (child) {
-				return child.getFieldByPath(path);
-			}
 		},
+		get: function(path) {
+			return this.find(path.split("/"));
+		},
+
 		getPath: function() {
 			let path = "";
 			if (this.parent) {
@@ -134,8 +241,11 @@ KarmaFields.Field = function() {
 
 		queryValue: function() {
 			let path = this.getPath();
+			this.data.loading = true;
+			this.trigger("update");
 			return KarmaFields.Transfer.get(path, [], [], this.resource.cache).then(function(value) {
-				field.setValue(value, "update"); // or "set" ?
+				field.data.loading = false;
+				field.setValue(value, "set");
 				return value;
 			});
 		},
@@ -170,39 +280,87 @@ KarmaFields.Field = function() {
 
 
 
-		getModifications: function() {
-			let modifications = {};
-			if (this.children.length) {
-				this.children.forEach(function(child) {
-					let childModifications = child.getModifications();
-					for (var i in childModifications) {
-						modifications[i] = childModifications[i];
-					}
-				});
-			} else if (this.value !== this.originalValue) {
-				let path = this.getPath();
-				modifications[path] = value;
-			}
-			return modification;
-		},
-		sync: function() {
-			let root = this.getRoot();
-			let modif = root.getModifications();
-			return KarmaFields.Transfer.update(root.resource.key, modif);
-		},
-		queryTable: function() {
-			return KarmaFields.Transfer.query(this.resource.key, data.header.getValue());
-		},
+		// getModifications: function() {
+		// 	let modifications = {};
+		// 	if (this.children.length) {
+		// 		this.children.forEach(function(child) {
+		// 			let childModifications = child.getModifications();
+		// 			for (var i in childModifications) {
+		// 				modifications[i] = childModifications[i];
+		// 			}
+		// 		});
+		// 	} else if (this.value !== this.originalValue) {
+		// 		let path = this.getPath();
+		// 		modifications[path] = this.value;
+		// 		this.originalValue = this.value;
+		// 	}
+		// 	return modification;
+		// },
+
+		// getModifications: function(modifications) {
+		// 	if (!modifications) {
+		// 		modifications = {};
+		// 	}
+		// 	let modifications = {};
+		// 	if (this.children.length) {
+		// 		this.children.forEach(function(child) {
+		// 			let childModifications = child.getModifications();
+		// 			if (childModifications) {
+		//
+		// 			}
+		//
+		//
+		// 			for (var i in childModifications) {
+		// 				modifications[i] = childModifications[i];
+		// 			}
+		// 		});
+		// 	} else if (this.value !== this.originalValue) {
+		// 		let path = this.getPath();
+		// 		modifications[path] = this.value;
+		// 		this.originalValue = this.value;
+		// 	}
+		// 	return modification;
+		// },
+
+		// sync: function() {
+		// 	// let root = this.getRoot();
+		// 	let modif = this.getValue(function(value, field) {
+		// 		if (value !== field.originalValue) {
+		// 			field.originalValue = value;
+		// 			return value;
+		// 		}
+		// 	});
+		// 	return KarmaFields.Transfer.update(root.resource.key, modif);
+		// },
+		// queryTable: function() {
+		// 	return KarmaFields.Transfer.query(this.resource.key, data.header.getValue());
+		// },
 
 
 		history: {
 			undos: {},
+			save: function() {
+				let index = KarmaFields.history.getIndex(field);
+				this.undos[index] = field.value;
+			},
 			go: function(index) {
 				if (this.undos[index]) {
-					field.setValue(this.undos[index], "update"); // or "undo" ?
+					field.setValue(this.undos[index], "undo");
 				}
 				field.children.forEach(function(child) {
 					child.history.go(index);
+				});
+			},
+			// getMax: function(len) {
+			// 	len = field.children.reduce(function(acc, child) {
+			// 		acc = child.getMax(len);
+			// 	}, len);
+			// 	return Math.max(len, this);
+			// },
+			delete: function(index) {
+				this.undos[index] = undefined;
+				field.children.forEach(function(child) {
+					child.history.delete(index);
 				});
 			},
 			clear: function(index) {
@@ -245,6 +403,9 @@ KarmaFields.Field = function() {
 		// }
 
 	}
+	field.value = field.resource.value;
+	field.originalValue = field.resource.value;
+
 	return field;
 };
 
