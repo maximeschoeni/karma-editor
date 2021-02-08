@@ -133,14 +133,9 @@ KarmaFields.Transfer.get = function(driver, path, key, cache) {
 	// 	return this.cache[file];
 	// }
 };
-KarmaFields.Transfer.fetch = function(driver, key, params) {
-	// var file = [KarmaFields.restURL, "fetch", driver, key].join("/");
-	var file = this.createQuery([KarmaFields.restURL, "fetch", driver, key], params);
+KarmaFields.Transfer.fetch = function(driver, request, params) {
+	let file = this.addQueryArgs(KarmaFields.restURL+"/fetch/"+driver+"/"+request, params);
 
-	// var serial = this.serialize(params);
-	// if (serial) {
-	// 	file += "?"+serial;
-	// }
 	if (!this.cache[file]) {
 		this.cache[file] = fetch(file, {
 			cache: "default", // force-cache
@@ -154,6 +149,7 @@ KarmaFields.Transfer.fetch = function(driver, key, params) {
 	}
 	return this.cache[file];
 };
+
 KarmaFields.Transfer.queryJson = function(url) {
 	return KarmaFields.assets[url] = fetch(url, {
 		cache: "no-store" // force-cache

@@ -153,7 +153,10 @@ KarmaFields.fields.table = function(field) {
         //
         // idsField.value = [uid].concat(ids).join(",");
 
-        KarmaFields.Transfer.add(field.driver, header.getValue()).then(function(value) {
+        KarmaFields.Transfer.add(field.driver, {
+          header: header.getValue(),
+          body: {}
+        }).then(function(value) {
           field.data.createRow(value);
           let ids = footer.get("ids");
           ids.setValue([value.id].concat(ids.value.split(",")).join(","), "set");
@@ -164,7 +167,28 @@ KarmaFields.fields.table = function(field) {
 
           return value;
         });
-      }
+      };
+
+      // field.events.queryFiles = function(param) {
+      //   let params = {param, ...header.getValue()};
+      //   return KarmaFields.Transfer.fetch(field.resource.key || field.resource.driver, "queryfiles", params).then(function(results) {
+      //     return results;
+      //   });
+      // };
+      //
+      // field.events.queryKey = function(param) {
+      //   let params = {param, ...header.getValue()};
+      //   return KarmaFields.Transfer.fetch(field.resource.key || field.resource.driver, "querykey", params).then(function(results) {
+      //     return results;
+      //   });
+      // };
+
+      field.events.fetch = function(handle, param) {
+        params.header = header.getValue();
+        return KarmaFields.Transfer.fetch(field.resource.key || field.resource.driver, "handle", params).then(function(results) {
+          return results;
+        });
+      };
 
 
 
@@ -228,10 +252,15 @@ KarmaFields.fields.tableBody = function(field) {
       },
       update: function(table) {
 
-        let order = field.parent.get("header/order");
-        let orderby = field.parent.get("header/orderby");
-        let page = field.parent.get("header/page");
-        let ppp = field.parent.get("header/ppp");
+        // let order = field.parent.get("header/order");
+        // let orderby = field.parent.get("header/orderby");
+        // let page = field.parent.get("header/page");
+        // let ppp = field.parent.get("header/ppp");
+
+        let order = field.parent.directory.header.directory.order;
+        let orderby = field.parent.directory.header.directory.orderby;
+        let page = field.parent.directory.header.directory.page;
+        let ppp = field.parent.directory.header.directory.ppp;
 
         field.data.select.init();
 
@@ -322,10 +351,12 @@ KarmaFields.fields.tableBody = function(field) {
                       });
                     },
                     update: function() {
-                      let order = field.parent.get("header/order");
-                      let orderby = field.parent.get("header/orderby");
-                      this.element.classList.toggle("asc", orderby.value === column.key && order.value === "asc");
-                      this.element.classList.toggle("desc", orderby.value === column.key && order.value === "desc");
+                      // let order = field.parent.directory.header.directory.order;
+                      // let orderby = field.parent.directory.header.directory.orderby;
+                      // let order = field.parent.get("header/order");
+                      // let orderby = field.parent.get("header/orderby");
+                      this.element.classList.toggle("asc", orderby.value === column.field.key && order.value === "asc");
+                      this.element.classList.toggle("desc", orderby.value === column.field.key && order.value === "desc");
                     }
                   });
                 }

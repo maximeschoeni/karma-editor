@@ -1,12 +1,20 @@
 KarmaFields.fields.dropdown = function(field) {
 	return {
-		class: "dropdown-container",
+		tag: "select",
+		class: "dropdown",
 		init: function(container) {
-			return field.fetchValue().then(function() {
-				// return Promise.resolve(field.getAttribute("options") || field.fetchOptions());
-				return Promise.resolve(field.resource.options || field.fetchOptions());
-			}).then(function(results) {
-				let items = results.items || results;
+			this.element.id = field.getId();
+			this.element.onchange = function() {
+				field.setValue(this.value, "change");
+			}
+			if (field.resource.style) {
+				this.element.style = field.resource.style;
+			}
+			if (field.resource.script_init) {
+				(new Function("element", "field", field.resource.script_init))(this.element, field);
+			}
+			Promise.resolve(field.resource.options || field.trigger("fetch", "querykey", {key: field.resource.key})).then(function(results) {
+				let items = results.items || results || [];
 
 				if (field.resource.novalue !== undefined) {
 					items = [{
@@ -15,11 +23,11 @@ KarmaFields.fields.dropdown = function(field) {
 					}].concat(items);
 				}
 
-				if (items.length && items.every(function(item) {
-					return item.key != field.getValue();
+				if (items.length && !items.some(function(item) {
+					return item.key == field.value;
 				})) {
 					value = items[0].key;
-					field.write(value);
+					field.setValue(value, "set");
 				}
 
 				if (items.length && items.some(function(item) {
@@ -45,68 +53,155 @@ KarmaFields.fields.dropdown = function(field) {
 					field.data.options = items;
 				}
 
-
-				container.render();
+				field.trigger("render");
 			});
-
 		},
-		child: {
-			tag: "select",
-			class: "dropdown",
-			init: function(dropdown) {
-				this.element.id = field.getId();
-				this.element.onchange = function() {
-					field.setValue(this.value, "change");
-				}
-				if (field.resource.style) {
-					this.element.style = field.resource.style;
-				}
-				if (field.resource.script_init) {
-					(new Function("element", "field", field.resource.script_init))(this.element, field);
-				}
-
-			},
-			update: function(dropdown) {
-				let value = field.getValue();
-
-
-				if (field.data.options) {
-					this.children = field.data.options.map(function(option) {
-						return {
-							tag: "option",
-							update: function() {
-								// let item = items[index];
-								this.element.textContent = option.name;
-								this.element.value = option.key;
-								this.element.selected = value == option.key;
-							}
-						};
-					});
-				} else if (field.data.optgroups) {
-					this.children = field.data.optgroups.map(function(option) {
-						return {
-							tag: "optgroup",
-							update: function() {
-								this.label = option.name;
-								this.children = option.children.map(function(item, index) {
-									return {
-										tag: "option",
-										update: function() {
-											// let item = items[index];
-											this.element.textContent = item.name;
-											this.element.value = item.key;
-											this.element.selected = value == item.key;
-										}
-									};
-								})
-							}
-						};
-					});
-				}
+		update: function(dropdown) {
+			if (field.data.options) {
+				this.children = field.data.options.map(function(option) {
+					return {
+						tag: "option",
+						update: function() {
+							this.element.textContent = option.name;
+							this.element.value = option.key;
+							this.element.selected = value == option.key;
+						}
+					};
+				});
+			} else if (field.data.optgroups) {
+				this.children = field.data.optgroups.map(function(option) {
+					return {
+						tag: "optgroup",
+						update: function() {
+							this.label = option.name;
+							this.children = option.children.map(function(item, index) {
+								return {
+									tag: "option",
+									update: function() {
+										this.element.textContent = item.name;
+										this.element.value = item.key;
+										this.element.selected = value == item.key;
+									}
+								};
+							})
+						}
+					};
+				});
 			}
 		}
-	};
+	}
 }
+
+
+// KarmaFields.fields.dropdown = function(field) {
+// 	return {
+// 		class: "dropdown-container",
+// 		init: function(container) {
+// 			return field.fetchValue().then(function() {
+// 				// return Promise.resolve(field.getAttribute("options") || field.fetchOptions());
+// 				return Promise.resolve(field.resource.options || field.fetchOptions());
+// 			}).then(function(results) {
+// 				let items = results.items || results;
+//
+// 				if (field.resource.novalue !== undefined) {
+// 					items = [{
+// 						key: "",
+// 						name: typeof field.resource.novalue === "string" && field.resource.novalue || "-"
+// 					}].concat(items);
+// 				}
+//
+// 				if (items.length && items.every(function(item) {
+// 					return item.key != field.getValue();
+// 				})) {
+// 					value = items[0].key;
+// 					field.write(value);
+// 				}
+//
+// 				if (items.length && items.some(function(item) {
+// 					return item.group;
+// 				})) {
+// 					// optgroups ->
+// 					let groups = items.reduce(function(obj, item) {
+// 						if (!obj[item.group || "default"]) {
+// 							obj[item.group || "default"] = [];
+// 						}
+// 						obj[item.group || "default"].push(item);
+// 						return obj;
+// 					}, {});
+//
+// 					field.data.optgroups = Object.entries(groups).map(function(entry) {
+// 						return {
+// 							name: entry[0],
+// 							children: entry[1]
+// 						}
+// 					});
+//
+// 				} else {
+// 					field.data.options = items;
+// 				}
+//
+//
+// 				container.render();
+// 			});
+//
+// 		},
+// 		child: {
+// 			tag: "select",
+// 			class: "dropdown",
+// 			init: function(dropdown) {
+// 				this.element.id = field.getId();
+// 				this.element.onchange = function() {
+// 					field.setValue(this.value, "change");
+// 				}
+// 				if (field.resource.style) {
+// 					this.element.style = field.resource.style;
+// 				}
+// 				if (field.resource.script_init) {
+// 					(new Function("element", "field", field.resource.script_init))(this.element, field);
+// 				}
+//
+// 			},
+// 			update: function(dropdown) {
+// 				let value = field.getValue();
+//
+//
+// 				if (field.data.options) {
+// 					this.children = field.data.options.map(function(option) {
+// 						return {
+// 							tag: "option",
+// 							update: function() {
+// 								// let item = items[index];
+// 								this.element.textContent = option.name;
+// 								this.element.value = option.key;
+// 								this.element.selected = value == option.key;
+// 							}
+// 						};
+// 					});
+// 				} else if (field.data.optgroups) {
+// 					this.children = field.data.optgroups.map(function(option) {
+// 						return {
+// 							tag: "optgroup",
+// 							update: function() {
+// 								this.label = option.name;
+// 								this.children = option.children.map(function(item, index) {
+// 									return {
+// 										tag: "option",
+// 										update: function() {
+// 											// let item = items[index];
+// 											this.element.textContent = item.name;
+// 											this.element.value = item.key;
+// 											this.element.selected = value == item.key;
+// 										}
+// 									};
+// 								})
+// 							}
+// 						};
+// 					});
+// 				}
+// 			}
+// 		}
+// 	};
+// }
 
 // KarmaFields.fields.dropdown = function(field) {
 // 	return {

@@ -6,12 +6,12 @@ KarmaFields.fields.search = function(fieldManager) {
 			this.element.type = "search";
 			this.element.placeholder = fieldManager.resource.title || "Search";
 			this.element.addEventListener("input", function(event) {
-				if (this.value.length !== 1) {
-					fieldManager.setValue(this.value, "input");
+				if (this.value.length !== 1 && fieldManager.resource.auto) {
+					fieldManager.setValue(this.value, "change");
 				}
 			});
 			this.element.addEventListener("search", function() {
-				fieldManager.setValue(this.value, "search");
+				fieldManager.setValue(this.value, "change");
 			});
 
 			if (fieldManager.resource.style) {
@@ -19,7 +19,7 @@ KarmaFields.fields.search = function(fieldManager) {
 			}
 		},
 		update: function() {
-			this.element.value = fieldManager.getValue() || "";
+			this.element.value = fieldManager.value || "";
 		}
 	};
 }

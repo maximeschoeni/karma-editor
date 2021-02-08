@@ -6,11 +6,9 @@ Class Karma_Fields_Driver_Posts {
 
 
   /**
-	 * get
+	 * is postfield
 	 */
-  public function get($id, $key, $request, $karma_fields) {
-
-    $post = get_post($id);
+  public function is_postfield($key) {
 
     switch($key) {
 
@@ -24,44 +22,83 @@ Class Karma_Fields_Driver_Posts {
       case 'post_author':
       case 'post_type':
       case 'menu_order':
-        $value = $post->$key;
-        break;
-
-      // case 'status':
-      //   switch($post->post_status) {
-      //     case 'trash':
-      //       $value = 2;
-      //       break;
-      //     case 'auto-draft':
-      //       $value = 0;
-      //       break;
-      //     default:
-      //       $value = 1;
-      //       break;
-      //   }
-      //   break;
+        return true;
 
     }
 
-    if (isset($value)) {
+    return false;
 
-      return $value;
+    // return property_exists('WP_Post', $key);
+  }
+
+  /**
+	 * get
+	 */
+  public function get($path, $karma_fields = null) {
+
+    $keys = explode('/', $path);
+
+    if (count($keys) === 2) {
+
+      $id = $keys[0];
+      $key = $keys[1];
+
+      $post = get_post($id);
+
+      if ($post) {
+
+        if ($this->is_postfield($key)) {
+
+          return $post->$key;
+
+        } else if (taxonomy_exists($key)) {
+
+          $terms = get_the_terms();
+
+          if ($terms && !is_wp_error($terms)) {
+
+            return array_map(function($term) {
+              return $term->term_id;
+            }, $terms);
+
+          }
+
+        } else {
+
+          $meta = get_post_meta($post->ID, $key);
+
+          if (count($meta) === 1) {
+
+            return $meta[0];
+
+          } else if (count($meta) > 1) {
+
+            return $meta;
+
+          } else {
+
+            return '';
+
+          }
+
+        }
+
+      }
 
     }
 
-    return '';
   }
 
   /**
 	 * update
 	 */
-  public function update($data, $output, $request, $karma_fields) {
+  public function update($data) {
 
     foreach ($data as $id => $item) {
 
       $args = array();
 
-      $args['ID'] = intval($id);
+      $id = intval($id);
 
       foreach ($item as $key => $value) {
 
@@ -83,24 +120,55 @@ Class Karma_Fields_Driver_Posts {
             $args[$key] = intval($value);
             break;
 
-          // case 'status':
-          //   switch($value) {
-          //     case 0:
-          //       $args['post_status'] = 'auto-draft';
-          //       break;
-          //     case 2:
-          //       $args['post_status'] = 'trash';
-          //       break;
-          //     default:
-          //       $args['post_status'] = 'publish';
-          //       break;
-          //   }
+          default:
+
+            if (taxonomy_exists($key) && is_array($value)) {
+
+              $value = array_filter(array_map('intval', $value));
+
+              wp_set_post_terms($id, $value, $key);
+
+            } else {
+
+              if (is_array($value) && array_filter($value, 'intval')) {
+
+                $current_value = get_post_meta($id, $key);
+
+                $to_delete = array_diff($current_value, $value);
+
+                $to_add = array_diff($value, $current_value);
+
+                foreach ($to_delete as $val) {
+
+                  delete_post_meta($id, $key, $val);
+
+                }
+
+                foreach ($to_add as $val) {
+
+                  add_post_meta($id, $key, $val);
+
+                }
+
+              } else {
+
+                update_post_meta($id, $key, $value);
+
+              }
+
+            }
 
         }
 
       }
 
-      wp_insert_post($args);
+      if ($args) {
+
+        $args['ID'] = $id;
+
+        wp_insert_post($args);
+
+      }
 
     }
 
@@ -109,57 +177,42 @@ Class Karma_Fields_Driver_Posts {
   /**
 	 * add
 	 */
-  public function add($item, $params, $request, $karma_fields) {
+  public function add($item, $params, $karma_fields) {
 
-    $args = array();
+    add_filter('wp_insert_post_empty_content', '__return_false', 10, 2);
 
-    foreach ($item as $key => $value) {
+    $id = wp_insert_post(array_merge($item, $params));
 
-      switch ($key) {
-
-        case 'post_name':
-        case 'post_title':
-        case 'post_content':
-        case 'post_excerpt':
-        case 'post_date':
-        case 'post_status':
-        case 'post_type':
-          $args[$key] = $value;
-          break;
-
-        case 'post_parent':
-        case 'post_author':
-        case 'menu_order':
-          $args[$key] = intval($value);
-          break;
-
-        // case 'status':
-        //   switch($value) {
-        //     case 0:
-        //       $args['post_status'] = 'auto-draft';
-        //       break;
-        //     case 2:
-        //       $args['post_status'] = 'trash';
-        //       break;
-        //     default:
-        //       $args['post_status'] = 'publish';
-        //       break;
-        //   }
-
-      }
-
-    }
-
-    $id = wp_insert_post($args);
-
-    return get_post($id);
+    return $id;
 
   }
 
   /**
+	 * fetch
+	 */
+  public function fetch($request, $params, $karma_fields = null) {
+
+    switch($request) {
+
+      'querytable':
+        return $this->query_table($params, $karma_fields);
+
+      'querykey':
+        return $this->query_key($params, $karma_fields);
+
+      'queryfiles':
+        return $this->query_files($params, $karma_fields);
+
+    }
+
+  }
+
+
+
+  /**
 	 * query
 	 */
-  public function query($params, $request, $karma_fields) {
+  public function query_table($params, $karma_fields = null) {
 
     $output = array();
 
@@ -172,21 +225,21 @@ Class Karma_Fields_Driver_Posts {
 
     if (isset($params['page'])) {
 
-      $args['paged'] = $params['options']['page'];
+      $args['paged'] = $params['page'];
 
     }
 
-    if (isset($params['options']['ppp'])) {
+    if (isset($params['ppp'])) {
 
-      $args['posts_per_page'] = $params['options']['ppp'];
+      $args['posts_per_page'] = $params['ppp'];
 
     }
 
-    if (isset($params['order']['orderby'])) {
+    if (isset($params['orderby'])) {
 
-      if (isset($params['order']['order'])) {
+      if (isset($params['order'])) {
 
-        $order = $params['order']['order'];
+        $order = $params['order'];
 
       } else {
 
@@ -194,82 +247,74 @@ Class Karma_Fields_Driver_Posts {
 
       }
 
-      if (isset($params['order']['driver']) && $params['order']['driver'] !== $this->name) {
+      switch ($params['orderby']) {
+        case 'post_name':
+          $args['orderby'] = array('name' => $order, 'date' => 'DESC');
+          break;
+        case 'post_title':
+          $args['orderby'] = array('title' => $order, 'date' => 'DESC');
+          break;
+        case 'post_date':
+          $args['orderby'] = array('date' => $order, 'title' => 'ASC');
+          break;
+        case 'menu_order':
+          $args['orderby'] = array('menu_order' => $order);
+          break;
+        case 'post_author':
+          $args['orderby'] = array('author' => $order, 'title' => 'ASC', 'date' => 'DESC');
+          break;
+        default:
 
-        $driver = $karma_fields->get_driver($params['order']['driver']);
 
-        if (method_exists($driver, 'order')) {
-
-          $driver->order($args, $params['order']['orderby'], $order);
-
-        }
-
-      } else {
-
-        switch ($params['options']['orderby']) {
-          case 'post_name':
-            $args['orderby'] = array('name' => $order, 'date' => 'DESC');
-            break;
-          case 'post_title':
-            $args['orderby'] = array('title' => $order, 'date' => 'DESC');
-            break;
-          case 'post_date':
-            $args['orderby'] = array('date' => $order, 'title' => 'ASC');
-            break;
-          case 'menu_order':
-            $args['orderby'] = array('menu_order' => $order);
-            break;
-          case 'post_author':
-            $args['orderby'] = array('author' => $order, 'title' => 'ASC', 'date' => 'DESC');
-            break;
-        }
+          // todo: handle numeric meta, taxonomies
+          $args['orderby'] = array('metavalue' => $order, 'title' => 'ASC', 'date' => 'DESC');
+          break;
 
       }
+
 
     }
 
     if (isset($params['filters'])) {
 
-      foreach ($params['filters'] as $driver_name => $filters) {
+      foreach ($params['filters'] as $key => $value) {
 
-        if ($driver_name === 'posts') {
+        switch ($key) {
+          case 'post_name':
+            $args['name'] = $value;
+            break;
 
-          foreach ($filters as $key => $value) {
+          case 'post_date':
+            $args['m'] = $value; // ex:201307
+            break;
 
-            switch ($key) {
-              case 'post_name':
-                $args['name'] = $value;
-                break;
-              case 'post_date':
-                $args['m'] = $value; // ex:201307
-                break;
-              case 'post_status':
-              case 'post_type':
-                $args[$key] = $value;
-                break;
-              case 'post_parent':
-                $args['post_parent'] = intval($value);
-                break;
-              case 'post_author':
-                $args['author'] = intval($value);
-                break;
-              case 'search':
-                $args['s'] = $value;
-                break;
+          case 'post_status':
+          case 'post_type':
+            $args[$key] = $value;
+            break;
+
+          case 'post_parent':
+          case 'post_author':
+            $args[$key] = intval($value);
+            break;
+
+          case 'search':
+            $args['s'] = $value;
+            break;
+
+          default:
+
+            if (taxonomy_exists($key)) {
+
+              $args['tax_query'][] = array(
+                'taxonomy' => $key,
+                'field'    => 'term_id',
+                'terms'    => intval($value)
+              );
 
             }
 
-          }
-
-        } else {
-
-          $driver = $karma_fields->get_driver($driver_name);
-
-          if (method_exists($driver, 'filter')) {
-
-            $driver->filter($args, $filters);
-
-          }
+            // todo: handle meta keys
 
         }
 
@@ -279,25 +324,25 @@ Class Karma_Fields_Driver_Posts {
 
     $query = new WP_Query($args);
 
-    if (isset($params['columns'])) {
-
-      foreach ($params['columns'] as $column) {
-
-        if (isset($column['driver']) && $column['driver'] !== $this->name) {
-
-          $driver = $karma_fields->get_driver($driver_name);
-
-          if (method_exists($driver, 'column')) {
-
-            $driver->column($query->posts, $column);
-
-          }
-
-        }
-
-      }
-
-    }
+    // if (isset($params['columns'])) {
+    //
+    //   foreach ($params['columns'] as $column) {
+    //
+    //     if (isset($column['driver']) && $column['driver'] !== $this->name) {
+    //
+    //       $driver = $karma_fields->get_driver($driver_name);
+    //
+    //       if (method_exists($driver, 'column')) {
+    //
+    //         $driver->column($query->posts, $column);
+    //
+    //       }
+    //
+    //     }
+    //
+    //   }
+    //
+    // }
 
 
 
@@ -312,187 +357,116 @@ Class Karma_Fields_Driver_Posts {
 
 
   /**
-	 * fetch spectacles
+	 * query_key
 	 */
-  public function fetch($key, $params, $request, $karma_fields) {
+  public function query_key($params, $karma_fields = null) {
     global $wpdb;
 
-    $clauses = array();
+    $key = isset($params['key']) ? $params['key'] : null;
 
-    switch ($key) {
-      case 'post_date':
-        $clauses['select'] = "DATE_FORMAT(p.post_date, '%Y%m') AS 'key', DATE_FORMAT(p.post_date, '%M %Y') AS 'name'";
-        $clauses['group'] = "YEAR(p.post_date), MONTH(p.post_date)";
-        $clauses['order'] = "p.post_date ASC";
-        break;
+    if ($key === 'post_status') {
 
-      case 'post_status':
-        $clauses['select'] = "p.post_status AS 'key', CASE
-          WHEN p.post_status='draft' THEN 'Draft'
-          WHEN p.post_status='publish' THEN 'Publish'
-          ELSE p.post_status
-          END AS 'name'";
-        $clauses['group'] = "p.post_status";
-        $clauses['order'] = "p.post_status ASC";
-        break;
+      return array(
+        'items' => array(
+          array(
+            'key' => 'draft',
+            'name' => 'Draft'
+          ),
+          array(
+            'key' => 'publish',
+            'name' => 'Publish'
+          ),
+          array(
+            'key' => 'pending',
+            'name' => 'Pending'
+          ),
+          array(
+            'key' => 'trash',
+            'name' => 'Trash'
+          )
+        )
+      );
 
-      case 'post_type':
-        $clauses['select'] = "p.post_type AS 'key', CASE
-          WHEN p.post_type='post' THEN 'Post'
-          WHEN p.post_type='page' THEN 'Page'
-          ELSE p.post_type
-          END AS 'name'";
-        $clauses['group'] = "p.post_type";
-        $clauses['order'] = "p.post_type ASC";
-        break;
+    } else if (taxonomy_exists($key)) {
 
-      case 'post_author':
-        $clauses['select'] = "p.post_author AS 'key', u.display_name AS 'name'";
-        $clauses['group'] = "p.post_author";
-        $clauses['order'] = "u.display_name ASC";
-        $clauses['join']['u'] = "INNER JOIN $wpdb->users AS u ON (p.post_author = u.ID)";
-        break;
+      $args = array(
+        'taxonomy' => $key,
+        'hide_empty' => false,
+      );
 
-      case 'ID':
-        $clauses['select'] = "p.ID AS 'key', p.post_title AS 'name'";
-        $clauses['group'] = "p.ID";
-        $clauses['order'] = "p.post_title ASC";
-        break;
+      $args = apply_filters('karma_fields_query_key_taxonomy_args', $args, $params);
 
-    }
+      $terms = get_terms($args);
 
-    if (isset($params['filters'])) {
+      if ($terms && !is_wp_error($terms)) {
 
-      foreach ($params['filters'] as $driver_name => $filters) {
-
-        if ($driver_name !== $this->name) {
-
-          $driver = $karma_fields->get_driver($driver_name);
-
-          if (method_exists($driver, 'filter_fetch')) {
-
-            $driver->filter_fetch($clauses, $filters);
-
-          }
-
-        } else {
-
-          if (isset($filters[$key])) {
-
-            unset($filters[$key]);
-
-          }
-
-          $this->filter_fetch($clauses, $filters);
-
-        }
+        return array(
+          'items' => array_map(function($term) {
+            return array(
+              'key' => $term->term_id,
+              'name' => $term->name
+            );
+          }, $terms)
+        );
 
       }
 
-    }
-
-    if (isset($clauses['select'])) {
-
-      $select = "SELECT {$clauses['select']} FROM $wpdb->posts AS p";
-
     } else {
 
-      $select = "SELECT * FROM $wpdb->posts AS p";
+      do_action('karma_fields_query_key', $key, $params);
 
     }
-
-    if (isset($clauses['where'])) {
-
-      $where = "WHERE ".implode(" AND ", $clauses['where']);
-
-    } else {
-
-      $where = '';
-
-    }
-
-    if (isset($clauses['join'])) {
-
-      $join = implode(" ", $clauses['join']);
-
-    } else {
-
-      $join = '';
-
-    }
-
-    if (isset($clauses['group'])) {
-
-      $group = "GROUP BY {$clauses['group']}";
-
-    } else {
-
-      $group = '';
-
-    }
-
-    if (isset($clauses['order'])) {
-
-      $order = "ORDER BY {$clauses['order']}";
-
-    } else {
-
-      $order = '';
-
-    }
-
-    $sql = "$select $join $where $group $order";
-
-    $output = array();
-    $output['sql'] = $sql;
-    $output['items'] = $wpdb->get_results($sql);
-
-    return $output;
 
   }
-
 
   /**
-	 * @hook clauses_posts_fetch
+	 * query_key
 	 */
-  public function filter_fetch(&$clauses, $filters) {
+  public function query_files($params, $karma_fields = null) {
     global $wpdb;
 
-    foreach ($filters as $key => $value) {
+    $ids = isset($params['ids']) ? $params['ids'] : array;
 
-      switch ($key) {
-        case 'post_date':
-          $year = substr($value, 0, 4);
-          $month = substr($value, 4, 2);
-          $next_month = $month < 12 ? intval($month+1) : 1;
-          $next_year = $month < 12 ? $year : intval($year+1);
-          $clauses['where'][] = "p.post_date > '$year-$month'";
-          $clauses['where'][] = "p.post_date < '$next_year-$next_month'";
-          break;
-        case 'post_status':
-        case 'post_type':
-          $value = esc_sql($value);
-          $key = esc_sql($key);
-          $clauses['where'][] = "$key = '$value'";
-          break;
-        case 'post_author':
-          $user_id = intval($value);
-          $clauses['where'][] = "p.post_author = $user_id";
-          break;
-        case 'search':
-          $words = explode(' ', $value);
-          foreach ($words as $word) {
-            $word = esc_sql($word);
-            $clauses['where'][] = "(p.post_title LIKE '%$word%' OR p.post_content LIKE '%$word%' OR p.post_excerpt LIKE '%$word%' OR pm.meta_value LIKE '%$word%')";
-          }
-          $clauses['join']['pm'] = "LEFT JOIN $wpdb->postmeta AS pm ON (p.ID = pm.post_id)";
-          break;
+    if ($ids) {
+
+      $sql_ids = implode(",", array_map('intval', $ids));
+
+			$sql = "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN ($sql_ids)";
+
+			$attachments = $wpdb->get_results($sql);
+
+			if ($attachments) {
+
+				update_post_caches($attachments, 'any', false, true);
+
+			}
+
+      $images = array();
+
+      foreach ($attachments as $attachment) {
+
+        $attachment = get_post($attachment->ID);
+        $thumb_src_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
+
+        $images[] = array(
+          'id' => $attachment->ID,
+          'title' => get_the_title($attachment),
+          'caption' => wp_get_attachment_caption($attachment->ID), // = post_excerpt
+          'type' => get_post_mime_type($attachment),
+          'src' => $thumb_src_data[0],
+          'width' => $thumb_src_data[1],
+          'height' => $thumb_src_data[2]
+        );
 
       }
+
+      return $images;
 
     }
 
   }
+
+
 
 
 

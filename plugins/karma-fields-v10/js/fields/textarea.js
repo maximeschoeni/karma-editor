@@ -11,9 +11,6 @@ KarmaFields.fields.textarea = function(field) {
 					field.setValue(input.element.value);
 				});
 			}
-			field.fetchValue().then(function(value) { // -> maybe undefined
-				input.element.value = value;
-			});
 
 			if (field.resource.style) {
 				this.element.style = field.resource.style;
@@ -26,7 +23,7 @@ KarmaFields.fields.textarea = function(field) {
 			}
 		},
 		update: function() {
-			this.element.value = field.getValue() || "";
+			this.element.value = field.value || "";
 		}
 	};
 }

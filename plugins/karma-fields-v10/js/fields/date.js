@@ -13,9 +13,9 @@ KarmaFields.fields.date = function(field) {
     class: "karma-field-date",
 
     init: function(container) {
-      field.fetchValue().then(function() {
-        container.render();
-      });
+      // field.fetchValue().then(function() {
+      //   container.render();
+      // });
     },
     update: function(container) {
       let format = field.resource.format || "dd/mm/yyyy";
