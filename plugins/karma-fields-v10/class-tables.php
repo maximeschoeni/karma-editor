@@ -23,10 +23,10 @@ Class Karma_Tables {
 
 			add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
 
-			add_action('karma_field_print_grid', array($this, 'print_grid_compat'));
-			add_action('karma_fields_print_field', array($this, 'print_field_compat'), 10, 2);
+			// add_action('karma_field_print_grid', array($this, 'print_grid_compat'));
+			// add_action('karma_fields_print_field', array($this, 'print_field_compat'), 10, 2);
 
-			add_action('karma_editor_fields', array($this, 'print_field'));
+			add_action('karma_fields_print_field', array($this, 'print_field'));
 
 
 			add_action('admin_head', array($this, 'print_footer'));
@@ -234,7 +234,7 @@ Class Karma_Tables {
 
 								if (method_exists($driver, 'update')) {
 
-									$driver->update($data, array(), null, $this);
+									$driver->update($data);
 
 								}
 
@@ -296,9 +296,6 @@ Class Karma_Tables {
 				),
 				'body' => array(
 					'required' => true
-				),
-				'header' => array(
-					'required' => true
 				)
 	    )
 		));
@@ -313,9 +310,6 @@ Class Karma_Tables {
 				),
 				'request' => array(
 					'required' => true
-				),
-				'header' => array(
-					'required' => true
 				)
 	    )
 		));
@@ -328,17 +322,19 @@ Class Karma_Tables {
 	 */
 	public function rest_fetch($request) {
 
-		$driver = $this->get_driver($params['driver']);
-		$request = $this->get_driver($params['request']);
-		$header = $this->get_driver($params['header']);
+		$driver_name = $request->get_param('driver');
 
-		$header = $this->parse_query_object($header);
+		$request_name = $request->get_param('request');
+		$params = $request->get_params();
+		$header = $this->parse_query_object($params);
+
+		$driver = $this->get_driver($driver_name);
 
 		if ($driver) {
 
 			if (method_exists($driver, 'fetch')) {
 
-				return $driver->fetch($request, $header);
+				return $driver->fetch($request_name, $header);
 
 			} else {
 
@@ -361,6 +357,7 @@ Class Karma_Tables {
 
 		$driver_name = $request->get_param('driver');
 		$path = $request->get_param('path');
+
 		$driver = $this->get_driver($driver_name);
 
 		if ($driver) {
@@ -414,7 +411,7 @@ Class Karma_Tables {
 
 		// update history
 
-		$this->update_users($fields, $main_driver_name, $request);
+		// $this->update_users($fields, $main_driver_name, $request);
 
 		return $output;
 
@@ -426,14 +423,13 @@ Class Karma_Tables {
 	public function rest_add($request) {
 
 		$driver_name = $request->get_param('driver');
-		$header = $request->get_param('header');
 		$body = $request->get_param('body');
 
 		$driver = $this->get_driver($driver_name);
 
 		if (method_exists($driver, 'add')) {
 
-			return $driver->add($body, $header);
+			return $driver->add($body);
 
 		} else {
 
@@ -482,7 +478,7 @@ Class Karma_Tables {
 
 		$index++;
 
-		include plugin_dir_path(__FILE__) . 'includes/field.php';
+		include plugin_dir_path(__FILE__) . 'includes/table.php';
 
 	}
 

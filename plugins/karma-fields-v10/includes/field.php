@@ -16,30 +16,26 @@
 			index: 0
 		};
 
-		let field = KarmaFields.Field({
-			key: 'posts',
+		let field = KarmaFields.Field(resource);
 
-		});
 
-		// window.fieldHistory = history; // -> for debug
-		//
-		// var fieldManager = history.createFieldManager(resource);
-		// fieldManager.buffer = "input";
-		// fieldManager.outputBuffer = "output";
-
-		// fieldManager.uri = id;
-		fieldManager.events.update = function() {
-			var output = history.getValue(["output"]);
-			input.value = JSON.stringify(output);
-		};
-
-		var fieldNode = KarmaFields.build({
-			children: fieldManager.build()
+		KarmaFields.build({
+			init: function(item) {
+				field.events.change = function() {
+					KarmaFields.History.update(currentField);
+					currentField.history.save();
+					input.value = JSON.stringify(field.getValue());
+				};
+				field.events.render = function() {
+					item.render();
+				};
+			},
+			child: KarmaFields.fields["group"](field)
 		}, container);
 
 
 
-		window.ktable = fieldNode; // -> for debug
+		// window.ktable = fieldNode; // -> for debug
 
 		// container.addEventListener("focusin", function() {
 		// 	KarmaFields.events.onUndo = function(event) {

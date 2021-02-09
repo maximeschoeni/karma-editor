@@ -40,36 +40,36 @@ KarmaFields.Transfer.flaten = function(object, parentKey, results) {
 	}
 	return results;
 }
-KarmaFields.Transfer.clean = function(object) {
-	var params = {};
-	for (var key in object) {
-		if (object[key]) {
-			params[key] = object[key];
-		}
-	}
-	return params;
-}
-KarmaFields.Transfer.query = function(driver, params) {
-	// var file = KarmaFields.restURL+"/query/"+driver;
-	// var serial = this.serialize(params);
-	// if (serial) {
-	// 	file += "?"+serial;
-	// }
-
-	var file = this.createQuery([KarmaFields.restURL, "query", driver], params);
-
-	// var file = KarmaFields.restURL+"/query/"+driver+"?p="+JSON.stringify(params);
-	// console.log(file);
-	return fetch(file, {
-		cache: "default", // force-cache
-		headers: {
-      'Content-Type': 'application/json',
-      'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
-    },
-	}).then(function(response) {
-		return response.json();
-	});
-};
+// KarmaFields.Transfer.clean = function(object) {
+// 	var params = {};
+// 	for (var key in object) {
+// 		if (object[key]) {
+// 			params[key] = object[key];
+// 		}
+// 	}
+// 	return params;
+// }
+// KarmaFields.Transfer.query = function(driver, params) {
+// 	// var file = KarmaFields.restURL+"/query/"+driver;
+// 	// var serial = this.serialize(params);
+// 	// if (serial) {
+// 	// 	file += "?"+serial;
+// 	// }
+//
+// 	var file = this.createQuery([KarmaFields.restURL, "query", driver], params);
+//
+// 	// var file = KarmaFields.restURL+"/query/"+driver+"?p="+JSON.stringify(params);
+// 	// console.log(file);
+// 	return fetch(file, {
+// 		cache: "default", // force-cache
+// 		headers: {
+//       'Content-Type': 'application/json',
+//       'X-WP-Nonce': KarmaFields.nonce //wpApiSettings.nonce
+//     },
+// 	}).then(function(response) {
+// 		return response.json();
+// 	});
+// };
 KarmaFields.Transfer.update = function(driver, params) {
 	var file = KarmaFields.restURL+"/update/"+driver;
 	// var params = this.clean(params);
@@ -99,12 +99,12 @@ KarmaFields.Transfer.add = function(driver, params) {
 		return response.json();
 	});
 };
-KarmaFields.Transfer.get = function(driver, path, key, cache) {
+KarmaFields.Transfer.get = function(driver, path, cache) {
 	var file;
 	if (cache && KarmaFields.cacheURL) {
-		file = [KarmaFields.cacheURL, driver, path || [], cache].join("/");
+		file = [KarmaFields.cacheURL, driver, path, cache].join("/");
 	} else {
-		file = [KarmaFields.restURL, "get", driver, path || [], key].join("/");
+		file = [KarmaFields.restURL, "get", driver, path].join("/");
 	}
 	return fetch(file, {
 		cache: "reload",
@@ -135,7 +135,6 @@ KarmaFields.Transfer.get = function(driver, path, key, cache) {
 };
 KarmaFields.Transfer.fetch = function(driver, request, params) {
 	let file = this.addQueryArgs(KarmaFields.restURL+"/fetch/"+driver+"/"+request, params);
-
 	if (!this.cache[file]) {
 		this.cache[file] = fetch(file, {
 			cache: "default", // force-cache
@@ -147,6 +146,7 @@ KarmaFields.Transfer.fetch = function(driver, request, params) {
 			return response.json();
 		});
 	}
+
 	return this.cache[file];
 };
 

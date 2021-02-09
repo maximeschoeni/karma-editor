@@ -34,7 +34,7 @@ Class Karma_Fields_Driver_Posts {
   /**
 	 * get
 	 */
-  public function get($path, $karma_fields = null) {
+  public function get($path) {
 
     $keys = explode('/', $path);
 
@@ -177,11 +177,11 @@ Class Karma_Fields_Driver_Posts {
   /**
 	 * add
 	 */
-  public function add($item, $params, $karma_fields) {
+  public function add($item) {
 
     add_filter('wp_insert_post_empty_content', '__return_false', 10, 2);
 
-    $id = wp_insert_post(array_merge($item, $params));
+    $id = wp_insert_post($item);
 
     return $id;
 
@@ -190,18 +190,18 @@ Class Karma_Fields_Driver_Posts {
   /**
 	 * fetch
 	 */
-  public function fetch($request, $params, $karma_fields = null) {
+  public function fetch($request, $params) {
 
     switch($request) {
 
       'querytable':
-        return $this->query_table($params, $karma_fields);
+        return $this->query_table($params);
 
       'querykey':
-        return $this->query_key($params, $karma_fields);
+        return $this->query_key($params);
 
       'queryfiles':
-        return $this->query_files($params, $karma_fields);
+        return $this->query_files($params);
 
     }
 
@@ -212,7 +212,7 @@ Class Karma_Fields_Driver_Posts {
   /**
 	 * query
 	 */
-  public function query_table($params, $karma_fields = null) {
+  public function query_table($params) {
 
     $output = array();
 
@@ -359,7 +359,7 @@ Class Karma_Fields_Driver_Posts {
   /**
 	 * query_key
 	 */
-  public function query_key($params, $karma_fields = null) {
+  public function query_key($params) {
     global $wpdb;
 
     $key = isset($params['key']) ? $params['key'] : null;
@@ -422,7 +422,7 @@ Class Karma_Fields_Driver_Posts {
   /**
 	 * query_key
 	 */
-  public function query_files($params, $karma_fields = null) {
+  public function query_files($params) {
     global $wpdb;
 
     $ids = isset($params['ids']) ? $params['ids'] : array;
