@@ -1,4 +1,4 @@
-
+//test
 KarmaFields.fields.table = function(field) {
 
   return {
