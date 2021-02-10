@@ -18,12 +18,13 @@ KarmaFields.fields.group = function(field) {
 		update: function(group) {
 			field.trigger("update");
 			this.children = [];
-			
+
 			(field.resource.children || []).map(function(resource) {
 				let child = (resource.key && field.get(resource.key) || field.createChild(resource)) || field;
 
 				if (KarmaFields.fields[resource.type || "group"]) {
-					this.children.push({
+
+					group.children.push({
 						class: "karma-field-group-content",
 						update: function() {
 							this.children = [

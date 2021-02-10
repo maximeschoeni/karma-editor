@@ -9,66 +9,66 @@ KarmaFields.fields.table = function(field) {
         container.render();
       }
 
-      // let header = field.createChild({
-      //   key: "header",
-      //   children: [
-      //     {
-      //       key: "filter",
-      //       children: field.resource.filter && [field.resource.filter]
-      //     },
-      //     {
-      //       key: "orderby",
-      //       type: "hidden",
-      //       value: field.resource.orderby
-      //     },
-      //     {
-      //       key: "order",
-      //       type: "hidden"
-      //     },
-      //     {
-      //       key: "page",
-      //       type: "hidden",
-      //       value: 1
-      //     },
-      //     {
-      //       key: "ppp",
-      //       type: "hidden",
-      //       value: field.resource.ppp || 50
-      //     },
-      //     {
-      //       key: "option",
-      //       type: "hidden",
-      //       children: field.resource.option && [field.resource.option]
-      //     }
-      //   ],
-      // });
-
       let header = field.createChild({
         key: "header",
+        children: [
+          {
+            key: "filter",
+            children: field.resource.filter && [field.resource.filter]
+          },
+          {
+            key: "orderby",
+            type: "hidden",
+            value: field.resource.orderby
+          },
+          {
+            key: "order",
+            type: "hidden"
+          },
+          {
+            key: "page",
+            type: "hidden",
+            value: 1
+          },
+          {
+            key: "ppp",
+            type: "hidden",
+            value: field.resource.ppp || 50
+          },
+          {
+            key: "option",
+            type: "hidden",
+            children: field.resource.option && [field.resource.option]
+          }
+        ],
       });
-      header.createChild({
-        key: "filter",
-        children: field.resource.filter && [field.resource.filter]
-      });
-      header.createChild({
-        key: "orderby",
-        type: "hidden",
-        value: field.resource.orderby
-      });
-      header.createChild({
-        key: "order",
-        type: "hidden"
-      });
-      header.createChild({
-        key: "page",
-        type: "hidden",
-        value: 1
-      });
-      header.createChild({
-        key: "ppp",
-        type: "hidden",
-        value: field.resource.ppp || 50
-      });
+
+      // let header = field.createChild({
+      //   key: "header",
+      // });
+      // header.createChild({
+      //   key: "filter",
+      //   children: field.resource.filter && [field.resource.filter]
+      // });
+      // header.createChild({
+      //   key: "orderby",
+      //   type: "hidden",
+      //   value: field.resource.orderby
+      // });
+      // header.createChild({
+      //   key: "order",
+      //   type: "hidden"
+      // });
+      // header.createChild({
+      //   key: "page",
+      //   type: "hidden",
+      //   value: 1
+      // });
+      // header.createChild({
+      //   key: "ppp",
+      //   type: "hidden",
+      //   value: field.resource.ppp || 50
+      // });
 
 
       let body = field.createChild({
@@ -271,7 +271,7 @@ KarmaFields.fields.tableHeader = function(field) {
     },
     update: function() {
       this.child = KarmaFields.fields["group"](field);
-      
+
     }
   }
 }

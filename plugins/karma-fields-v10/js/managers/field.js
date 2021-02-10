@@ -21,6 +21,7 @@ KarmaFields.Field = function(resource) {
 				this.directory[child.resource.key] = child;
 				child.parent = this;
 			} else {
+				console.log(child.resource);
 				console.error("No key!");
 			}
 		},
