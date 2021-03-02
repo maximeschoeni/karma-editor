@@ -6,10 +6,7 @@ KarmaFields.fields.checkboxtest = function(field) {
 			this.element.addEventListener("click", function() {
 				var value = field.getValue();
 				field.setValue(value === "1" ? "0" : "1");
-				button.render();
-			});
-			field.fetchValue().then(function(value) {
-				button.render();
+				field.trigger("render");
 			});
 		},
 		update: function() {

@@ -51,13 +51,13 @@ KarmaFields.History = {
 		let instance = this.getInstance(field);
 		instance.index = Math.max(instance.index-1, 0);
 		instance.state = undefined;
-		field.go(instance.index);
+		field.history.go(instance.index);
 	},
 	redo: function(field) {
 		let instance = this.getInstance(field);
 		instance.index = Math.min(instance.index+1, instance.max);
 		instance.state = undefined;
-		field.go(instance.index);
+		field.history.go(instance.index);
 	}
 	// update: function(driver, state) {
 	// 	let instance = this.getInstance(driver);

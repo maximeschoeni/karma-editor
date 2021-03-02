@@ -16,6 +16,10 @@
   width: 20px;
   height: 20px;
 }
+.karma-fields button.loading .button-content {
+  display: none;
+}
+
 /* .karma-fields button .karma-icon path {
   fill: #32373c;
 }
@@ -144,6 +148,12 @@
   background-image: url(../dashicons/arrow-down.svg);
   mix-blend-mode: normal;
 }
+.karma-fields .loading .table .th a.header-cell-order,
+.karma-fields .table .th a.header-cell-order.loading {
+  background-image: none;
+  mix-blend-mode: normal;
+}
+
 
 
 /* Grid Text Input
@@ -221,6 +231,9 @@
 .td.modified .on-off svg path {
   fill: black;
 }
+
+
+
 
 /* Grid Dropdown
 --------------------------------------*/

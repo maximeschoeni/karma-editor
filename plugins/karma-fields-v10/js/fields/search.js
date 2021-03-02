@@ -14,9 +14,9 @@ KarmaFields.fields.search = function(fieldManager) {
 				fieldManager.setValue(this.value, "change");
 			});
 
-			if (fieldManager.resource.style) {
-				this.element.style = fieldManager.resource.style;
-			}
+			// if (fieldManager.resource.style) {
+			// 	this.element.style = fieldManager.resource.style;
+			// }
 		},
 		update: function() {
 			this.element.value = fieldManager.value || "";

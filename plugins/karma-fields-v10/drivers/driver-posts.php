@@ -172,6 +172,7 @@ Class Karma_Fields_Driver_Posts {
 
     }
 
+    return true;
   }
 
   /**

@@ -1,72 +1,31 @@
-// KarmaFields.fields.checkbox = function(field) {
-// 	return KarmaFields.build({
-// 		class: "checkbox-container",
-// 		children: function() {
-// 			return [
-// 				KarmaFields.build({
-// 					tag: "input",
-// 					init: function(element) {
-// 						element.id = field.id;
-// 						element.type = "checkbox";
-// 						element.addEventListener("change", function() {
-// 							if (field.history) {
-// 								field.history.save();
-// 							}
-// 							field.set(element.checked);
-// 						});
-// 						field.onUpdate = function(value) {
-// 							element.checked = value || false;
-// 						};
-// 						field.fetch().then(field.onUpdate);
-// 						field.onFocus = function() {
-// 							element.focus();
-// 						}
-// 						field.onBlur = function() {
-// 							element.blur();
-// 						}
-// 					}
-// 				}),
-// 				field.resource.description && KarmaFields.build({
-// 					tag: "label",
-// 					class: "description",
-// 					init: function(element) {
-// 						element.htmlFor = field.id;
-// 						element.innerText = field.resource.description;
-// 					}
-// 				})
-// 			];
-// 		}
-// 	});
-// }
-
-
 KarmaFields.fields.checkbox = function(field) {
 	return {
-		className: "checkbox",
-		kids: [
+		class: "checkbox",
+		children: [
 			{
 				tag: "input",
 				init: function(input) {
-					this.id = field.getId();
-					this.addEventListener("change", function(event) {
-						field.setValue(input.checked);
+					this.element.id = field.getId();
+					this.element.addEventListener("change", function(event) {
+						if (field.datatype === "boolean") {
+							field.setValue(input.checked);
+						} else if (field.datatype === "number") {
+							field.setValue(input.checked ? 1 : 0);
+						} else {
+							field.setValue(input.checked ? "1" : "");
+						}
 					});
-					field.fetchValue().then(function(value) { // -> maybe undefined
-						input.checked = Boolean(value);
-					});
-					if (field.resource.style) {
-						this.style = field.resource.style;
-					}
 				},
 				update: function() {
-					this.checked = Boolean(field.getValue());
+					this.checked = field.getValue();
 				}
 			},
 			{
 				tag: "label",
 				init: function() {
+					this.element.htmlFor = field.getId();
 					if (field.resource.description) {
-						this.textContent = field.resource.description;
+						this.element.textContent = field.resource.description;
 					}
 				}
 			}

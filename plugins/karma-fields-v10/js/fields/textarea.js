@@ -12,9 +12,9 @@ KarmaFields.fields.textarea = function(field) {
 				});
 			}
 
-			if (field.resource.style) {
-				this.element.style = field.resource.style;
-			}
+			// if (field.resource.style) {
+			// 	this.element.style = field.resource.style;
+			// }
 			if (field.resource.width) {
 				this.element.style.width = field.resource.width;
 			}

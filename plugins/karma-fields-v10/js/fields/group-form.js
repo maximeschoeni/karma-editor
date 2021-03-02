@@ -1,4 +1,4 @@
-KarmaFields.fields.group = function(field) {
+KarmaFields.fields.groupForm = function(field) {
 	return {
 		class: "karma-field-group-container display-"+(field.resource.display || "flex"),
 		init: function(group) {
@@ -24,8 +24,7 @@ KarmaFields.fields.group = function(field) {
 
 					group.children.push({
 						class: "karma-field-"+child.resource.type || "group",
-						init: function() {
-							child.trigger("init", child);
+						update: function(item) {
 							if (child.resource.style) {
 								this.element.style = child.resource.style;
 							}
@@ -36,18 +35,6 @@ KarmaFields.fields.group = function(field) {
 							child.events.render = function() {
 								item.render();
 							};
-						},
-						update: function(item) {
-							// if (child.resource.style) {
-							// 	this.element.style = child.resource.style;
-							// }
-							// child.events.update = function() {
-							// 	item.element.classList.toggle("loading", child.data.loading ? true : false);
-							// 	item.element.classList.toggle("modified", child.value !== child.originalValue);
-							// };
-							// child.events.render = function() {
-							// 	item.render();
-							// };
 
 							child.events.update();
 

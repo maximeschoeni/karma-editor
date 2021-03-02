@@ -13,87 +13,50 @@
 		var input = document.getElementById("karma-fields-input-<?php echo $index; ?>");
 		let resource = <?php echo json_encode($args); ?>;
 		let id = <?php echo $post->ID; ?>;
-		let history = KarmaFields.History.createInstance();
-		//  {
-		// 	index: 0,
-		// 	flux: undefined,
-		// 	update: function(flux) {
-		// 		if (flux !== this.flux || KarmaFields.History.current !== this) {
-		// 			this.flux = flux;
-		// 			KarmaFields.History.current = this;
-		// 			this.index++;
-		// 		}
-		// 	}
-		// };
+
+		let form = KarmaFields.Form({
+			key: id,
+			type: "group",
+			children: [resource]
+		}, {
+			init: function(field) {
+				field.data.loading = true;
+				field.trigger("update");
+				form.trigger("get", field).then(function(value) {
+					field.data.loading = false;
+					field.setValue(value);
+				});
+			},
+			change: function(field) {
+				field.history.save();
+				// form.trigger("save");
+				input.value = JSON.stringify(form.getModifiedValue() || {});
+			}
+		});
+
+		// form.events.init = function(field) {
+		// 	// field.fetch();
+		//
+		// 	field.data.loading = true;
+		// 	field.trigger("update");
+		// 	form.trigger("get", field).then(function(value) {
+		// 		field.data.loading = false;
+		// 		field.setValue(value);
+		// 	});
+		// }
+		// form.events.change = function(field) {
+		// 	field.history.save();
+		// 	// form.trigger("save");
+		//
+		// 	input.value = JSON.stringify(form.getModifiedValue() || {});
+		// }
 
 		KarmaFields.build({
-			init: function(item) {
-				// let globalfield = KarmaFields.Field({
-				// 	key: "posts"
-				// });
-				// let postfield = KarmaFields.Field({
-				// 	key: id
-				// });
-				// let field = KarmaFields.Field(resource);
-
-				let field = KarmaFields.Field({
-					driver: "posts"
-				}).createChild({
-					key: id
-				}).createChild(resource);
-
-				field.events.update = function() {
-					input.value = JSON.stringify(field.getRoot().getValue());
-					item.render();
-				}
-
-				field.events.change = function(field) {
-					history.update(field.state || field.getId());
-					field.history.save(history.index);
-				}
-
-				field.queryValue();
-
-
-				this.child = KarmaFields.Fields[resource.name || resource.field || "group"](field);
+			update: function(item) {
+				this.child = KarmaFields.Fields.group(form);
 			}
-
 		}, container);
 
-
-
-
-		// window.fieldHistory = history; // -> for debug
-		//
-		// var fieldManager = history.createFieldManager(resource);
-		// fieldManager.buffer = "input";
-		// fieldManager.outputBuffer = "output";
-
-		// fieldManager.uri = id;
-		// fieldManager.events.update = function() {
-		// 	var output = history.getValue(["output"]);
-		// 	input.value = JSON.stringify(output);
-		// };
-		//
-		// var fieldNode = KarmaFields.build({
-		// 	children: fieldManager.build()
-		// }, container);
-		//
-		//
-		//
-		// window.ktable = fieldNode; // -> for debug
-
-		// container.addEventListener("focusin", function() {
-		// 	KarmaFields.events.onUndo = function(event) {
-		// 		history.undo();
-		// 		fieldNode.render();
-		// 		event.preventDefault();
-		// 	}
-		// 	KarmaFields.events.onRedo = function(event) {
-		// 		history.redo();
-		// 		event.preventDefault();
-		// 	}
-		// });
 
 	});
 </script>

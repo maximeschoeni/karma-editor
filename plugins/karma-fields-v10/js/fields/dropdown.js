@@ -7,19 +7,33 @@ KarmaFields.fields.dropdown = function(field) {
 			this.element.onchange = function() {
 				field.setValue(this.value, "change");
 			}
-			if (field.resource.style) {
-				this.element.style = field.resource.style;
-			}
+			// if (field.resource.style) {
+			// 	this.element.style = field.resource.style;
+			// }
 			if (field.resource.script_init) {
 				(new Function("element", "field", field.resource.script_init))(this.element, field);
 			}
+
+			field.data.loading = true;
+			field.trigger("update");
+
 			Promise.resolve(field.resource.options || field.trigger("fetch", "querykey", {key: field.resource.key})).then(function(results) {
+
 				let items = results.items || results || [];
 
 				if (field.resource.novalue !== undefined) {
+					let emptyValue;
+					if (field.resource.datatype === "boolean") {
+						emptyValue = "false";
+					} else if (field.resource.datatype === "number") {
+						emptyValue = "0";
+					} else {
+						emptyValue = "";
+					}
+					let emptyName = typeof field.resource.novalue === "string" && field.resource.novalue || "-";
 					items = [{
-						key: "",
-						name: typeof field.resource.novalue === "string" && field.resource.novalue || "-"
+						key: emptyValue,
+						name: emptyName
 					}].concat(items);
 				}
 
@@ -53,6 +67,8 @@ KarmaFields.fields.dropdown = function(field) {
 					field.data.options = items;
 				}
 
+				field.data.loading = false;
+				field.trigger("update");
 				field.trigger("render");
 			});
 		},
@@ -64,7 +80,7 @@ KarmaFields.fields.dropdown = function(field) {
 						update: function() {
 							this.element.textContent = option.name;
 							this.element.value = option.key;
-							this.element.selected = value == option.key;
+							this.element.selected = field.value == option.key;
 						}
 					};
 				});
@@ -80,7 +96,7 @@ KarmaFields.fields.dropdown = function(field) {
 									update: function() {
 										this.element.textContent = item.name;
 										this.element.value = item.key;
-										this.element.selected = value == item.key;
+										this.element.selected = field.value == item.key;
 									}
 								};
 							})

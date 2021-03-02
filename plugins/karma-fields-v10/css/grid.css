@@ -158,7 +158,7 @@
 .table-header label {
   font-size: 0.875em;
   font-weight: bolder;
-  margin-top: 1em;
+  /* margin-top: 1em; */
   margin-bottom: 0;
   position: relative;
   display: block;
@@ -225,6 +225,7 @@
   flex-grow: 1;
   width: 100%;
   overflow: auto;
+  margin-bottom: 70px;
 }
 .karma-fields table {
   border-collapse: separate;
@@ -670,7 +671,8 @@ td.modified .on-off svg path {
 --------------------------------------*/
 
 .karma-fields .table-footer {
-  position: sticky;
+  position: fixed;
+  width: 100%;
   bottom: 0;
   background-color: #24282d;
   color: #f3f5f6;
@@ -801,59 +803,12 @@ td.modified .on-off svg path {
 .karma-fields .table-footer button.primary:enabled:hover .karma-icon svg path {
   fill: #f1f1f1;
 }
-.karma-fields .table-footer button.active:hover .karma-icon svg path {
-  /* fill: #f3f5f6; */
-}
 
-.karma-fields .table-footer button[title]:enabled:not(.active):hover::before {
-  /* content: attr(title);
-  position: absolute;
-  bottom: 40px;
-  background-color: #25282d;
-  color: #f3f5f6;
-  padding: 2px 10px;
-  border: 1px solid #f3f5f6;
-  border-radius: 3px;
-  font-weight: bold;
-  opacity: 1;
-
-  left: -100px;
-  right: -100px;
-  margin: auto;
-  width: 60px; */
-
-  /* content: attr(title);
-  position: absolute;
-  bottom: 0;
-  background-color: #535c63;
-  color: #e9e9e9;
-  padding: 0;
-  border-radius: 0 0 3px 3px;
-  font-weight: bold;
-  line-height: 13px;
-  opacity: 1;
-  left: 0;
-  right: 0;
-  font-size: 9px;
-  text-align:center; */
+.karma-fields .table-footer button:not(:hover) .karma-field-spinner {
+  border-color: #f1f1f1 transparent #f1f1f1 #f1f1f1;
 }
 
 
-
-
-
-.karma-fields .table-footer .button.active:hover {
-  /* color: #f3f5f6;
-  background: #25282d;
-  box-shadow: inset 1px 3px 8px #f3f5f626; */
-}
-/* .karma-fields .table-footer .button:focus {
-  color: #25282d;
-  border-color: #f3f5f6;
-  background-color: #f3f5f6;
-  outline: none;
-  box-shadow: none;
-} */
 
 .karma-fields .table-footer button[disabled] svg path {
   fill: #5f6469;
@@ -979,38 +934,22 @@ td.modified .on-off svg path {
 /* Table Spinner
 --------------------------------------*/
 
-/* .karma-fields .table-spinner {
-  width: 10px;
-  height: 10px;
-  vertical-align: text-bottom;
-  border-color: #cb4a1f transparent #cb4a1f #cb4a1f;
+.karma-field-spinner {
+  display: none;
+}
+.loading .karma-field-spinner {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;;
+  margin: 0 0.5em;
+  vertical-align: middle;
+  border-color: #535c63 transparent #535c63 #535c63;
   border-style: solid;
-  border-width: 5px;
+  border-width: 2px;
   border-radius: 50%;
   animation: spinner 750ms linear infinite;
-} */
-
-.karma-fields .table-spinner {
-  /* width: 20px;
-  height: 20px; */
-  /* vertical-align: text-bottom; */
-  /* border-color: #cb4a1f transparent #cb4a1f #cb4a1f;
-  border-style: solid;
-  border-width: 5px;
-  border-radius: 50%; */
-
-  /* background-image: url(../dashicons/sort.svg);
-  background-repeat: no-repeat; */
-
-
 }
-.karma-fields .table-spinner.loading,
-.karma-fields .loading .table-spinner {
-  animation: spinner 1200ms linear infinite;
-}
-.karma-fields .table-spinner svg path {
-  fill: #f3f5f6;
-}
+
 
 @keyframes spinner {
   100% {
@@ -1177,102 +1116,61 @@ td.modified .on-off svg path {
 /* Group
 --------------------------------------*/
 
-.karma-field-group.display-block {
 
-}
-.karma-field-group.display-block>.karma-field-item {
+.karma-field-group-container.display-block>* {
   margin-bottom: 1em;
 }
-.karma-field-group.display-block>.karma-field-item>label {
+.karma-field-group-container.display-block>*>label {
   display: block;
 }
-/* .karma-field-group.display-block>.karma-field-item>.karma-field-children {
-  display: block;
-  margin: -10px 0;
-}
-.karma-field-group.display-block>.karma-field-item>.karma-field-children>.karma-field {
-  margin: 10px 0;
-} */
 
 
 
 /* Group Display Flex
 --------------------------------------*/
 
-.karma-field-group.display-flex {
+.karma-field-group-container.display-flex {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  margin: -10px -5px;
+  margin: 0 -5px -1em;
 }
-.karma-field-group.display-flex>.karma-field-item {
-  padding: 10px 5px;
-  flex-basis: 50%;
+.karma-field-group-container.display-flex>* {
+  padding: 0 5px 1em;
+  width: 100%;
   min-width: 480px;
   box-sizing: border-box;
 }
-/* .karma-field.display-flex>.karma-field-content>.karma-field-children {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  margin: -10px -5px;
-}
-.karma-field.display-flex>.karma-field-content>.karma-field-children>.karma-field {
-  margin: 10px 5px;
-} */
 
 
 
 /* Group Display Table
 --------------------------------------*/
 
-.karma-field-group.display-table {
+.karma-field-group-container.display-table {
   display: table;
 }
-.karma-field-group.display-table>.karma-field-item {
+.karma-field-group-container.display-table>* {
   display: table-row;
 }
-.karma-field-group.display-table>.karma-field-item>* {
+.karma-field-group-container.display-table>*>* {
   display: table-cell;
   padding: 0 5px;
   margin-bottom: 0.5em;
 }
-.karma-field-group.display-table>.karma-field-item>label {
+.karma-field-group-container.display-table>*>label {
   padding-left: 0;
   margin: 0;
   font-weight: bolder;
   min-width: 150px;
 }
-
-/* .karma-field.display-table .karma-field-children {
-  display: table;
-}
-.karma-field.display-table .karma-field-children>.karma-field {
-  display: table-row;
-}
-.karma-field.display-table .karma-field-children>.karma-field>label,
-.karma-field.display-table .karma-field-children>.karma-field>.karma-field-content {
-  display: table-cell;
-  padding: 10px;
-}
-.karma-field.display-table .karma-field-children>.karma-field>label {
-  padding-left: 0;
-  margin: 0;
-  font-weight: bolder;
-  min-width: 150px;
-}
-.karma-field.display-table .karma-field-children>.karma-field>.karma-field-content {
-  padding-right: 0;
-  width: 100%;
-} */
-
 
 /* Arsenic
 --------------------------------------*/
 
 .karma-fields .spectacle-details {
   /* display: flex; */
-  padding: 1em 0 0;
+  /* padding: 1em 0 0; */
 }
 .karma-fields .spectacle-details-row {
   display: flex;

@@ -17,12 +17,12 @@ KarmaFields.fields.textinput = function(field) {
 					}
 				});
 			}
-			if (field.resource.width) {
-				this.element.style.width = field.resource.width;
-			}
-			if (field.resource.style) {
-				this.element.style = field.resource.style;
-			}
+			// if (field.resource.width) {
+			// 	this.element.style.width = field.resource.width;
+			// }
+			// if (field.resource.style) {
+			// 	this.element.style = field.resource.style;
+			// }
 		},
 		update: function() {
 			this.element.value = field.value || "";

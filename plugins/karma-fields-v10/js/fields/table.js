@@ -9,11 +9,12 @@ KarmaFields.fields.table = function(field) {
         container.render();
       }
 
+
       let header = field.createChild({
         key: "header",
         children: [
           {
-            key: "filter",
+            key: "filters",
             children: field.resource.filter && [field.resource.filter]
           },
           {
@@ -24,6 +25,11 @@ KarmaFields.fields.table = function(field) {
           {
             key: "order",
             type: "hidden"
+            // value: field.resource.orderby && field.resource.columns.some(function(column) {
+            //   return column.field && column.field.key === field.resource.orderby;
+            // }) && field.resource.columns.find(function(column) {
+            //   return column.field && column.field.key === field.resource.orderby;
+            // }).order || "asc"
           },
           {
             key: "page",
@@ -42,6 +48,10 @@ KarmaFields.fields.table = function(field) {
           }
         ],
       });
+
+
+
+
 
       // let header = field.createChild({
       //   key: "header",
@@ -77,25 +87,25 @@ KarmaFields.fields.table = function(field) {
 
       let footer = field.createChild({
         key: "footer",
-        // children: [
-        //   {
-        //     key: "count",
-        //     type: "hidden"
-        //   },
-        //   {
-        //     key: "ids",
-        //     type: "hidden"
-        //   }
-        // ],
+        children: [
+          {
+            key: "count",
+            type: "hidden"
+          },
+          {
+            key: "ids",
+            type: "hidden"
+          }
+        ]
       });
-      footer.createChild({
-        key: "count",
-        type: "hidden",
-      });
-      footer.createChild({
-        key: "ids",
-        type: "hidden",
-      });
+      // footer.createChild({
+      //   key: "count",
+      //   type: "hidden",
+      // });
+      // footer.createChild({
+      //   key: "ids",
+      //   type: "hidden",
+      // });
 
       footer.events.change = function(currentField) {
         currentField.history.save();
@@ -104,16 +114,15 @@ KarmaFields.fields.table = function(field) {
       body.events.change = function(currentField) {
         KarmaFields.History.update(currentField);
         currentField.history.save();
+        footer.trigger("render");
       }
 
       header.events.change = function(currentField) {
         currentField.data.loading = true;
-        field.data.loading = true;
         currentField.history.save();
         currentField.trigger("update");
         field.trigger("queryTable").then(function() {
           currentField.data.loading = false;
-          field.data.loading = false;
           container.render();
         });
       }
@@ -122,26 +131,43 @@ KarmaFields.fields.table = function(field) {
         let row = body.get(value.id) || body.createChild({
           key: value.id
         });
-        let trashField = rowField.get("trash") || rowField.createChild({
+        let trashField = row.get("trash") || row.createChild({
           key: "trash"
         });
-        field.resource.children.forEach(function(resource) {
-          let child = row.get(resource.key) || row.createChild(resource);
-          if (item[resource.key] === undefined) {
-            child.trigger("queryValue", child);
-          } else {
-            child.setValue(item[resource.key], "set");
-          }
-        });
+        if (field.resource.children) {
+          field.resource.children.forEach(function(resource) {
+            let child = row.get(resource.key) || row.createChild(resource);
+
+            // child.events.change = function(...args) {
+            //   return field.trigger("change", ...args);
+            // };
+            // child.events.fetch = function(...args) {
+            //   return field.trigger("fetch", ...args);
+            // };
+            // child.events.get = function(...args) {
+            //   return field.trigger("get", ...args);
+            // };
+
+            if (item[resource.key] === undefined) {
+              child.trigger("queryValue", child);
+            } else {
+              child.setValue(item[resource.key], "set");
+            }
+          });
+        }
         field.resource.columns.forEach(function(column) {
-          let cell = row.get(column.field.key) || row.createChild(column.field);
-          if (item[column.field.key] === undefined) {
-            cell.queryValue();
-          } else {
-            cell.setValue(item[column.field.key], "set");
+          if (column.field) {
+            let cell = row.get(column.field.key) || row.createChild(column.field);
+            if (value[column.field.key] === undefined) {
+              cell.queryValue();
+            } else {
+              cell.setValue(value[column.field.key], "set");
+            }
           }
         });
       }
+
+
 
       field.events.queryTable = function() {
 
@@ -150,7 +176,9 @@ KarmaFields.fields.table = function(field) {
           footer.get("ids").setValue(results.items.map(function(item) {
             return item.id;
           }).join(","), "set");
-          results.forEach(function(item) {
+
+
+          results.items.forEach(function(item) {
             field.data.createRow(item);
   				});
           return results;
@@ -159,9 +187,9 @@ KarmaFields.fields.table = function(field) {
 
       field.events.sync = function() {
         let value = body.getModifiedValue();
-        return KarmaFields.Transfer.update(field.driver, {body: value}).then(function(value) {
+        return KarmaFields.Transfer.update(field.resource.driver || field.resource.key, {data: value}).then(function(results) {
           body.setValue(value, "set");
-          return field.data.query();
+          // return field.events.queryTable();
         });
       };
 
@@ -175,11 +203,12 @@ KarmaFields.fields.table = function(field) {
         //
         // idsField.value = [uid].concat(ids).join(",");
 
-        KarmaFields.Transfer.add(field.driver, {
-          body: header.directory.filters.getValue(),
+        return KarmaFields.Transfer.add(field.resource.driver || field.resource.key, {
+          data: header.get("filters").getValue(),
         }).then(function(value) {
           field.data.createRow(value);
-          footer.directory.ids.setValue([value.id].concat(footer.directory.ids.value.split(",")).join(","), "set");
+          const ids = footer.get("ids");
+          ids.setValue([value.id].concat(ids.value.split(",")).join(","), "set");
 
           // row.key = value.id;
           // row.setValue(value);
@@ -194,7 +223,8 @@ KarmaFields.fields.table = function(field) {
           return cell.field;
         });
         if (fields) {
-          footer.directory.ids.setValue(footer.directory.ids.value.split(",").filter(function(id) {
+          const ids = footer.get("ids");
+          ids.setValue(ids.value.split(",").filter(function(id) {
             return !fields.some(function(field) {
               field.resource.key == id;
             });
@@ -217,17 +247,18 @@ KarmaFields.fields.table = function(field) {
       //   });
       // };
 
-      field.events.fetch = function(handle, param) {
-        return KarmaFields.Transfer.fetch(field.resource.key || field.resource.driver, "handle", {params, ...header.getValue()}).then(function(results) {
+      field.events.fetch = function(handle, params) {
+        return KarmaFields.Transfer.fetch(field.resource.key || field.resource.driver, handle, {filters: header.get("filters").getValue(), ...params}).then(function(results) {
           return results;
         });
       };
 
       field.events.get = function(currentField) {
-        let path = currentField.parent.resource.key + "/" + currentField.resource.key;
+        let path = currentField.getPath(body);
   			currentField.data.loading = true;
   			currentField.trigger("update");
-  			return KarmaFields.Transfer.get(field.driver || field.key, path, this.resource.cache).then(function(value) {
+
+  			return KarmaFields.Transfer.get(field.resource.driver || field.resource.key, path, this.resource.cache).then(function(value) {
   				currentField.data.loading = false;
   				currentField.setValue(value, "set");
   				return value;
@@ -235,13 +266,20 @@ KarmaFields.fields.table = function(field) {
       };
 
 
-
-
-      // field.data.loading = true;
       // field.trigger("queryTable").then(function() {
-      //   field.data.loading = false;
-      //   container.render();
+      //   field.parent.trigger("render");
       // });
+
+      body.data.loading = true;
+      body.trigger("update");
+
+
+      field.trigger("queryTable").then(function(results) {
+        body.data.loading = false;
+        container.render();
+      });
+
+
     },
     update: function(container) {
 
@@ -265,6 +303,7 @@ KarmaFields.fields.tableHeader = function(field) {
     class: "table-header",
     clear: true,
     init: function(header) {
+
       field.events.render = function(clean) {
         header.render(clean);
       }
@@ -284,6 +323,17 @@ KarmaFields.fields.tableHeader = function(field) {
 KarmaFields.fields.tableBody = function(field) {
   return {
     class: "table-body",
+    init: function(tableBody) {
+      field.events.update = function() {
+        tableBody.element.classList.toggle("loading", field.data.loading ? true : false);
+      };
+      field.events.render = function(clean) {
+        tableBody.render(clean);
+      }
+    },
+    update: function() {
+      field.trigger("update");
+    },
     child: {
       class: "table grid",
       clear: true,
@@ -295,24 +345,13 @@ KarmaFields.fields.tableBody = function(field) {
         field.events.render = function(clean) {
           table.render(clean);
         }
-
-
-
-        // field.trigger("queryTable").then(function() {
-        //   field.parent.trigger("render");
-        // });
       },
       update: function(table) {
-
-        // let order = field.parent.get("header/order");
-        // let orderby = field.parent.get("header/orderby");
-        // let page = field.parent.get("header/page");
-        // let ppp = field.parent.get("header/ppp");
-
-        let order = field.parent.directory.header.directory.order;
-        let orderby = field.parent.directory.header.directory.orderby;
-        let page = field.parent.directory.header.directory.page;
-        let ppp = field.parent.directory.header.directory.ppp;
+        const header = field.parent.get("header");
+        const order = header.get("order");
+        const orderby = header.get("orderby");
+        const page = header.get("page");
+        const ppp = header.get("ppp");
 
         field.data.select.init();
 
@@ -320,9 +359,9 @@ KarmaFields.fields.tableBody = function(field) {
           return column.width || "1fr";
         }).join(" ");
 
-        this.children = [];
+        // this.children = [];
 
-        field.parent.resource.columns.map(function(column, colIndex) {
+        this.children = field.parent.resource.columns.map(function(column, colIndex) {
           if (column.type === "index") {
             return {
               class: "th table-header-index",
@@ -376,28 +415,32 @@ KarmaFields.fields.tableBody = function(field) {
                     tag: "a",
                     class: "header-cell-order",
                     child: {
-                      class: "order-icon change-order",
-                    },
-                    init: function() {
+    									class: "karma-field-spinner"
+    								},
+                    // child: {
+                    //   class: "order-icon change-order",
+                    // },
+                    init: function(a) {
 
                       if (!order.value && orderby.value === column.field.key) {
-                        order.value = column.order || "asc";
+                        // order.value = column.order || "asc";
+                        order.setValue(column.order || "asc", "set");
                       }
 
                       this.element.addEventListener("click", function() {
-                        container.element.classList.add("loading");
+                        a.element.classList.add("loading");
 
                   			if (orderby.value === column.field.key) {
-                          order.setValue(order === "asc" ? "desc" : "asc", "change");
+                          order.setValue(order.value === "asc" ? "desc" : "asc", "set");
                   			} else {
-                          order.setValue(column.order || "asc", "change");
-                          orderby.setValue(column.field.key, "change");
+                          order.setValue(column.order || "asc", "set");
+                          orderby.setValue(column.field.key, "set");
                   			}
 
-                        page.setValue(1, "change");
+                        page.setValue(1, "set");
 
                   			field.parent.trigger("queryTable").then(function() { // ! should use field.resource.children[colIndex]
-                          container.element.classList.remove("loading");
+                          a.element.classList.remove("loading");
                           field.parent.trigger("render");
                         });
                       });
@@ -418,8 +461,8 @@ KarmaFields.fields.tableBody = function(field) {
         });
 
 
-        if (field.parent.directory.footer.directory.ids.value) {
-          field.parent.directory.footer.directory.ids.value.split(",").forEach(function(id, rowIndex) {
+        if (field.parent.get("footer").get("ids").value) {
+          field.parent.get("footer").get("ids").value.split(",").forEach(function(id, rowIndex) {
             let rowField = field.get(id) || field.createChild({
               key: id
             });
@@ -433,7 +476,9 @@ KarmaFields.fields.tableBody = function(field) {
                   class: "th table-row-index",
                   init: function() {
                     this.element.addEventListener("mousedown", function(event) {
-                      field.data.select.onIndexCellMouseDown(rowIndex);
+                      if (event.button === 0) {
+                        field.data.select.onIndexCellMouseDown(rowIndex);
+                      }
                     });
                     this.element.addEventListener("mousemove", function() {
                       field.data.select.onIndexCellMouseMove(rowIndex);
@@ -448,12 +493,14 @@ KarmaFields.fields.tableBody = function(field) {
                   }
                 });
               } else {
-                let cellField = rowField.directory[column.field.key] || rowField.createChild(column.field);
+                let cellField = rowField.get(column.field.key) || rowField.createChild(column.field);
                 table.children.push({
                   class: "td",
                   init: function(cell) {
                     this.element.addEventListener("mousedown", function(event) {
-                      field.data.select.onCellMouseDown(colIndex, rowIndex);
+                      if (event.button === 0) {
+                        field.data.select.onCellMouseDown(colIndex, rowIndex);
+                      }
                     });
                     this.element.addEventListener("mousemove", function() {
                       field.data.select.onCellMouseMove(colIndex, rowIndex);
@@ -466,8 +513,8 @@ KarmaFields.fields.tableBody = function(field) {
                       this.element.style = column.style;
                     }
                     cellField.events.update = function() {
-                      cell.element.classList.toggle("loading", cellField.loading);
-                      cell.element.classList.toggle("modified", cellField.value === cellField.originalValue);
+                      cell.element.classList.toggle("loading", cellField.data.loading ? true : false);
+                      cell.element.classList.toggle("modified", cellField.value !== cellField.originalValue);
                     };
                     cellField.events.render = function() {
                       cell.render();
@@ -510,20 +557,29 @@ KarmaFields.fields.tableFooter = function(field) {
                 {
                   tag: "button",
                   class: "button footer-item",
-                  children: [{
-                    class: "table-spinner",
-                    update: function(icon) {
-                      // var loading = field.history.read("static", ["loading"]);
-                      // this.element.classList.toggle("loading", loading);
+                  children: [
+                    {
+                      class: "table-spinner button-content",
+                      update: function(icon) {
+                        // var loading = field.history.read("static", ["loading"]);
+                        // this.element.classList.toggle("loading", loading);
+                      },
+                      child: KarmaFields.includes.icon({
+                        file: KarmaFields.icons_url+"/update.svg"
+                      })
                     },
-                    child: KarmaFields.includes.icon({
-                      file: KarmaFields.icons_url+"/update.svg"
-                    })
-                  }],
+                    {
+                      class: "karma-field-spinner"
+                    }
+                  ],
                   init: function(item) {
                     this.element.title = "Reload";
                     this.element.addEventListener("click", function(event) {
                       item.element.classList.add("loading");
+
+                      // empty cache
+                      KarmaFields.Transfer.cache = {};
+
                       field.parent.trigger("queryTable").then(function() {
                         item.element.classList.remove("loading");
                         field.parent.trigger("render");
@@ -537,36 +593,37 @@ KarmaFields.fields.tableFooter = function(field) {
                 },
                 {
                   tag: "button",
-                  class: "button footer-item primary",
+                  class: "button footer-item",
                   init: function(button) {
                     this.element.title = "Save";
-                    this.element.textContent = "Save";
                     this.element.addEventListener("click", function(event) {
                       button.element.classList.add("loading");
 
                       field.parent.trigger("sync").then(function() {
                         button.element.classList.remove("loading");
                         button.element.blur();
-                        field.parent.trigger("render");
+                        field.trigger("render");
                       });
 
-                      // let value = field.get("body").getModifiedValue();
-                      // let driver = field.getRoot().driver;
-                			// return KarmaFields.Transfer.update(driver, value).then(function(value) {
-                      //   field.parent.get("body").setValue(value, "set");
-                      //   return field.parent.data.query();
-                      // }).then(function() {
-                      //   item.element.classList.remove("loading");
-                      //   item.element.blur();
-                      //   field.parent.trigger("render");
-                      // });
                     });
                     this.element.addEventListener("mouseup", function(event) {
                       event.stopPropagation();
                     });
                   },
+                  children: [
+                    {
+                      tag: "span",
+                      class: "button-content",
+                      init: function() {
+                        this.element.textContent = "Save";
+                      }
+                    },
+                    {
+    									class: "karma-field-spinner"
+    								}
+                  ],
                   update: function() {
-                    this.element.disabled = !field.parent.directory.body.getModifiedValue();
+                    this.element.disabled = !field.parent.get("body").getModifiedValue();
                   }
                 },
                 // {
@@ -611,7 +668,7 @@ KarmaFields.fields.tableFooter = function(field) {
                     });
                   },
                   update: function() {
-                    this.element.disabled = KarmaFields.History.getIndex(field).index > 0;
+                    this.element.disabled = KarmaFields.History.getIndex(field) === 0;
                   }
                 },
                 {
@@ -632,7 +689,7 @@ KarmaFields.fields.tableFooter = function(field) {
                   },
                   update: function(button) {
                     let instance = KarmaFields.History.getInstance(field);
-                    this.element.disabled = instance.index === instance.max;
+                    this.element.disabled = instance.index >= instance.max;
                   }
                 },
                 {
@@ -655,7 +712,19 @@ KarmaFields.fields.tableFooter = function(field) {
                     });
                   },
                   update: function(element) {
-                    this.element.disabled = field.parent.resource.disable_add;
+
+                    // let can_add = !field.resource.can_add ||
+                    // if (field.resource.script_init) {
+              			// 	(new Function("element", "field", field.resource.script_init))(this.element, field);
+              			// }
+                    //
+                    // this.element.disabled = field.parent.resource.disable_add;
+
+                    // console.log((new Function("element", "field", field.parent.resource.can_add))(this.element, field.parent));
+
+                    this.element.disabled = field.parent.resource.can_add === false
+                      || field.parent.resource.can_add
+                        && !(new Function("element", "field", field.parent.resource.can_add))(this.element, field.parent);
                   }
                 },
                 {
@@ -686,7 +755,7 @@ KarmaFields.fields.tableFooter = function(field) {
                     });
                   },
                   update: function(element) {
-                    this.element.disabled = field.parent.resource.disable_delete || field.parent.directory.body.data.select.getSelectedRows().length === 0;
+                    this.element.disabled = field.parent.resource.disable_delete || field.parent.get("body").data.select.getSelectedRows().length === 0;
                   }
                 }
               ]
@@ -699,7 +768,7 @@ KarmaFields.fields.tableFooter = function(field) {
                     tag: "p",
                     class: "footer-item",
                     update: function() {
-                      let num = field.directory.count.value;
+                      let num = field.get("count").value;
                       this.element.textContent = num ? num + " items" : "";
                     }
                   },
@@ -709,7 +778,7 @@ KarmaFields.fields.tableFooter = function(field) {
                     init: function(button) {
                       this.element.innerText = "«";
                       this.element.addEventListener("click", function() {
-                        let page = field.parent.directory.header.directory.page;
+                        let page = field.parent.get("header").get("page");
                         page.setValue(1, "change");
                         button.element.classList.add("loading");
                         field.parent.trigger("queryTable").then(function() {
@@ -719,9 +788,9 @@ KarmaFields.fields.tableFooter = function(field) {
                       });
                     },
                     update: function() {
-                      let num = field.directory.count.value;
-                      let page = field.parent.directory.header.directory.page.value;
-                      let ppp = field.parent.directory.header.directory.ppp.value;
+                      let num = field.get("count").value;
+                      let page = field.parent.get("header").get("page").value;
+                      let ppp = field.parent.get("header").get("ppp").value;
                       this.element.style.display = num > ppp ? "block" : "none";
                       this.element.disabled = (page == 1);
                     }
@@ -732,7 +801,7 @@ KarmaFields.fields.tableFooter = function(field) {
                     init: function(button) {
                       this.element.innerText = "‹";
                       this.element.addEventListener("click", function() {
-                        let page = field.parent.directory.header.directory.page;
+                        let page = field.parent.get("header").get("page");
                         page.setValue(Math.max(page.value-1, 1), "change");
                         button.element.classList.add("loading");
                         field.parent.data.query().then(function() {
@@ -742,9 +811,9 @@ KarmaFields.fields.tableFooter = function(field) {
                       });
                     },
                     update: function() {
-                      let num = field.directory.count.value;
-                      let page = field.parent.directory.header.directory.page.value;
-                      let ppp = field.parent.directory.header.directory.ppp.value;
+                      let num = field.get("count").value;
+                      let page = field.parent.get("header").get("page").value;
+                      let ppp = field.parent.get("header").get("ppp").value;
                       this.element.style.display = num > ppp ? "block" : "none";
                       this.element.disabled = (page === 1);
                     }
@@ -752,9 +821,9 @@ KarmaFields.fields.tableFooter = function(field) {
                   {
                     class: "current-page footer-item",
                     update: function() {
-                      let num = field.directory.count.value;
-                      let page = field.parent.directory.header.directory.page.value;
-                      let ppp = field.parent.directory.header.directory.ppp.value;
+                      let num = field.get("count").value;
+                      let page = field.parent.get("header").get("page").value;
+                      let ppp = field.parent.get("header").get("ppp").value;
                       this.element.style.display = num > ppp ? "block" : "none";
                       this.element.textContent = num && page+" / "+Math.ceil(num/ppp) || "";
                     }
@@ -765,7 +834,7 @@ KarmaFields.fields.tableFooter = function(field) {
                     init: function(button) {
                       this.element.innerText = "›";
                       this.element.addEventListener("click", function() {
-                        let page = field.parent.directory.header.directory.page.value;
+                        let page = field.parent.get("header").get("page").value;
                         page.setValue(page.value+1, "change"); // -> should check max!
                         button.element.classList.add("loading");
                         field.parent.data.query().then(function() {
@@ -775,9 +844,9 @@ KarmaFields.fields.tableFooter = function(field) {
                       });
                     },
                     update: function() {
-                      let num = field.directory.count.value;
-                      let page = field.parent.directory.header.directory.page.value;
-                      let ppp = field.parent.directory.header.directory.ppp.value;
+                      let num = field.get("count").value;
+                      let page = field.parent.get("header").get("page").value;
+                      let ppp = field.parent.get("header").get("ppp").value;
                       this.element.style.display = num > ppp ? "block" : "none";
                       this.element.disabled = page >= Math.ceil(num/ppp);
                     }
@@ -788,9 +857,9 @@ KarmaFields.fields.tableFooter = function(field) {
                     init: function(button) {
                       this.element.innerText = "»";
                       this.element.addEventListener("click", function() {
-                        let num = field.directory.count.value;
-                        let page = field.parent.directory.header.directory.page;
-                        let ppp = field.parent.directory.header.directory.ppp.value;
+                        let num = field.get("count").value;
+                        let page = field.parent.get("header").get("page");
+                        let ppp = field.parent.get("header").get("ppp").value;
                         page.setValue(Math.ceil(num/ppp), "change");
                         button.element.classList.add("loading");
                         field.parent.data.query().then(function() {
@@ -800,9 +869,9 @@ KarmaFields.fields.tableFooter = function(field) {
                       });
                     },
                     update: function() {
-                      let num = field.directory.count.value;
-                      let page = field.parent.directory.header.directory.page.value;
-                      let ppp = field.parent.directory.header.directory.ppp.value;
+                      let num = field.get("count").value;
+                      let page = field.parent.get("header").get("page").value;
+                      let ppp = field.parent.get("header").get("ppp").value;
                       this.element.style.display = num > ppp ? "block" : "none";
                       this.element.disabled = page >= Math.ceil(num/ppp);
                     }

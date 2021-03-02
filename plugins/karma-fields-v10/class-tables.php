@@ -91,7 +91,7 @@ Class Karma_Tables {
 				wp_enqueue_script('karma-field-submit', $plugin_url . '/js/fields/submit.js', array('karma-fields-media'), $this->version, true);
 				wp_enqueue_script('karma-field-filterlink', $plugin_url . '/js/fields/filterlink.js', array('karma-fields-media'), $this->version, true);
 				wp_enqueue_script('karma-field-autocomplete-textinput', $plugin_url . '/js/fields/autocomplete-textinput.js', array('karma-fields-media'), $this->version, true);
-				wp_enqueue_script('karma-field-posttype', $plugin_url . '/js/fields/posttype.js', array('karma-fields-media'), $this->version, true);
+				wp_enqueue_script('karma-field-header', $plugin_url . '/js/fields/header.js', array('karma-fields-media'), $this->version, true);
 				wp_enqueue_script('karma-field-search', $plugin_url . '/js/fields/search.js', array('karma-fields-media'), $this->version, true);
 				wp_enqueue_script('karma-field-array', $plugin_url . '/js/fields/array.js', array('karma-fields-media'), $this->version, true);
 
@@ -280,7 +280,7 @@ Class Karma_Tables {
 				'driver' => array(
 					'required' => true
 				),
-				'body' => array(
+				'data' => array(
 					'required' => true
 				)
 	    )
@@ -294,7 +294,7 @@ Class Karma_Tables {
 				'driver' => array(
 					'required' => true
 				),
-				'body' => array(
+				'data' => array(
 					'required' => true
 				)
 	    )
@@ -387,7 +387,7 @@ Class Karma_Tables {
 	public function rest_update($request) {
 
 		$driver_name = $request->get_param('driver');
-		$body = $request->get_param('body');
+		$data = $request->get_param('data');
 
 		$driver = $this->get_driver($driver_name);
 
@@ -395,7 +395,7 @@ Class Karma_Tables {
 
 			if (method_exists($driver, 'update')) {
 
-				$driver->update($body);
+				return $driver->update($data);
 
 			} else {
 
@@ -409,12 +409,6 @@ Class Karma_Tables {
 
 		}
 
-		// update history
-
-		// $this->update_users($fields, $main_driver_name, $request);
-
-		return $output;
-
 	}
 
 	/**
@@ -423,13 +417,13 @@ Class Karma_Tables {
 	public function rest_add($request) {
 
 		$driver_name = $request->get_param('driver');
-		$body = $request->get_param('body');
+		$data = $request->get_param('data');
 
 		$driver = $this->get_driver($driver_name);
 
 		if (method_exists($driver, 'add')) {
 
-			return $driver->add($body);
+			return $driver->add($data);
 
 		} else {
 
